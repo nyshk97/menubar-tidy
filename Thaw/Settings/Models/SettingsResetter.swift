@@ -32,8 +32,6 @@ extension AppSettings {
         general.iceBarLocationOnHotkey = Defaults.DefaultValue.iceBarLocationOnHotkey
         general.showOnClick = Defaults.DefaultValue.showOnClick
         general.showOnDoubleClick = Defaults.DefaultValue.showOnDoubleClick
-        general.showOnHover = Defaults.DefaultValue.showOnHover
-        general.showOnScroll = Defaults.DefaultValue.showOnScroll
         general.autoRehide = Defaults.DefaultValue.autoRehide
         general.rehideStrategy = Defaults.DefaultValue.rehideStrategy
         general.rehideInterval = Defaults.DefaultValue.rehideInterval
@@ -49,18 +47,9 @@ extension AppSettings {
         advanced.hideApplicationMenus = Defaults.DefaultValue.hideApplicationMenus
         advanced.enableSecondaryContextMenu = Defaults.DefaultValue.enableSecondaryContextMenu
         advanced.enableSecondaryContextMenuQuit = Defaults.DefaultValue.enableSecondaryContextMenuQuit
-        advanced.showOnHoverDelay = Defaults.DefaultValue.showOnHoverDelay
         advanced.tooltipDelay = Defaults.DefaultValue.tooltipDelay
-        advanced.showMenuBarTooltips = Defaults.DefaultValue.showMenuBarTooltips
         advanced.enableDiagnosticLogging = Defaults.DefaultValue.enableDiagnosticLogging
         advanced.useAXClickDelivery = Defaults.DefaultValue.useAXClickDelivery
-        advanced.searchSectionOrder = AdvancedSettings.sanitizedSearchSectionOrder(
-            from: Defaults.DefaultValue.searchSectionOrder
-        )
-        advanced.searchIncludeVisible = Defaults.DefaultValue.searchIncludeVisible
-        advanced.searchIncludeHidden = Defaults.DefaultValue.searchIncludeHidden
-        advanced.searchIncludeAlwaysHidden = Defaults.DefaultValue.searchIncludeAlwaysHidden
-        advanced.moveCursorToRevealedItem = Defaults.DefaultValue.moveCursorToRevealedItem
     }
 
     /// Resets Display settings to their default values.

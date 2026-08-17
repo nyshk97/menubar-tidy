@@ -75,28 +75,11 @@ final class AdvancedSettings {
         }
     }
 
-    /// The delay before showing on hover.
-    var showOnHoverDelay = Defaults.DefaultValue.showOnHoverDelay {
-        didSet {
-            guard oldValue != showOnHoverDelay else { return }
-            Defaults.set(showOnHoverDelay, forKey: .showOnHoverDelay)
-        }
-    }
-
     /// The delay before showing a tooltip when hovering over a menu bar item.
     var tooltipDelay = Defaults.DefaultValue.tooltipDelay {
         didSet {
             guard oldValue != tooltipDelay else { return }
             Defaults.set(tooltipDelay, forKey: .tooltipDelay)
-        }
-    }
-
-    /// A Boolean value that indicates whether tooltips are shown when hovering
-    /// over menu bar items in the actual menu bar (not just in the IceBar or settings).
-    var showMenuBarTooltips = Defaults.DefaultValue.showMenuBarTooltips {
-        didSet {
-            guard oldValue != showMenuBarTooltips else { return }
-            Defaults.set(showMenuBarTooltips, forKey: .showMenuBarTooltips)
         }
     }
 
@@ -143,56 +126,6 @@ final class AdvancedSettings {
         }
     }
 
-    /// The order in which menu bar sections appear in the search panel.
-    var searchSectionOrder: [MenuBarSection.Name] = Defaults.DefaultValue.searchSectionOrder
-        .compactMap(MenuBarSection.Name.init(rawValue:))
-    {
-        didSet {
-            guard oldValue != searchSectionOrder else { return }
-            Defaults.set(searchSectionOrder.map(\.rawValue), forKey: .searchSectionOrder)
-        }
-    }
-
-    /// A Boolean value that indicates whether items from the visible section
-    /// are included in the menu bar search panel.
-    var searchIncludeVisible = Defaults.DefaultValue.searchIncludeVisible {
-        didSet {
-            guard oldValue != searchIncludeVisible else { return }
-            Defaults.set(searchIncludeVisible, forKey: .searchIncludeVisible)
-        }
-    }
-
-    /// A Boolean value that indicates whether items from the hidden section
-    /// are included in the menu bar search panel.
-    var searchIncludeHidden = Defaults.DefaultValue.searchIncludeHidden {
-        didSet {
-            guard oldValue != searchIncludeHidden else { return }
-            Defaults.set(searchIncludeHidden, forKey: .searchIncludeHidden)
-        }
-    }
-
-    /// A Boolean value that indicates whether items from the always-hidden section
-    /// are included in the menu bar search panel.
-    var searchIncludeAlwaysHidden = Defaults.DefaultValue.searchIncludeAlwaysHidden {
-        didSet {
-            guard oldValue != searchIncludeAlwaysHidden else { return }
-            Defaults.set(searchIncludeAlwaysHidden, forKey: .searchIncludeAlwaysHidden)
-        }
-    }
-
-    /// A Boolean value that indicates whether the mouse pointer is moved to a
-    /// menu bar item that was opened from the search panel.
-    ///
-    /// Only the search panel warps the pointer. Opening an item from the Thaw
-    /// Bar means the pointer is already there, so moving it would only take it
-    /// somewhere the user did not put it.
-    var moveCursorToRevealedItem = Defaults.DefaultValue.moveCursorToRevealedItem {
-        didSet {
-            guard oldValue != moveCursorToRevealedItem else { return }
-            Defaults.set(moveCursorToRevealedItem, forKey: .moveCursorToRevealedItem)
-        }
-    }
-
     /// The shared app state.
     @ObservationIgnored
     private(set) weak var appState: AppState?
@@ -217,29 +150,8 @@ final class AdvancedSettings {
         Defaults.ifPresent(key: .hideApplicationMenus, assign: &hideApplicationMenus)
         Defaults.ifPresent(key: .enableSecondaryContextMenu, assign: &enableSecondaryContextMenu)
         Defaults.ifPresent(key: .enableSecondaryContextMenuQuit, assign: &enableSecondaryContextMenuQuit)
-        Defaults.ifPresent(key: .showOnHoverDelay, assign: &showOnHoverDelay)
         Defaults.ifPresent(key: .tooltipDelay, assign: &tooltipDelay)
-        Defaults.ifPresent(key: .showMenuBarTooltips, assign: &showMenuBarTooltips)
         Defaults.ifPresent(key: .enableDiagnosticLogging, assign: &enableDiagnosticLogging)
         Defaults.ifPresent(key: .useAXClickDelivery, assign: &useAXClickDelivery)
-        Defaults.ifPresent(key: .searchIncludeVisible, assign: &searchIncludeVisible)
-        Defaults.ifPresent(key: .searchIncludeHidden, assign: &searchIncludeHidden)
-        Defaults.ifPresent(key: .searchIncludeAlwaysHidden, assign: &searchIncludeAlwaysHidden)
-        Defaults.ifPresent(key: .moveCursorToRevealedItem, assign: &moveCursorToRevealedItem)
-
-        Defaults.ifPresent(key: .searchSectionOrder) { (rawValues: [String]) in
-            searchSectionOrder = Self.sanitizedSearchSectionOrder(from: rawValues)
-        }
-    }
-
-    /// Returns a search-section order that contains each `MenuBarSection.Name`
-    /// case exactly once, using the supplied raw values as the preferred order
-    /// and filling any missing cases at the end. Returns the default order if
-    /// the input is unusable.
-    static func sanitizedSearchSectionOrder(from rawValues: [String]) -> [MenuBarSection.Name] {
-        let preferred = Array(
-            rawValues.compactMap(MenuBarSection.Name.init(rawValue:)).uniqued()
-        )
-        return preferred + MenuBarSection.Name.allCases.filter { !preferred.contains($0) }
     }
 }

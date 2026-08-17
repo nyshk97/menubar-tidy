@@ -35,15 +35,9 @@ struct AdvancedSettingsSnapshotTests {
             hideApplicationMenus: false,
             enableSecondaryContextMenu: true,
             enableSecondaryContextMenuQuit: false,
-            showOnHoverDelay: 0.2,
             tooltipDelay: 1.0,
-            showMenuBarTooltips: true,
             useDoubleClickToShowAlwaysHiddenSection: false,
-            useOptionClickToShowAlwaysHiddenSection: false,
-            searchSectionOrder: ["visible", "hidden", "alwaysHidden"],
-            searchIncludeVisible: true,
-            searchIncludeHidden: true,
-            searchIncludeAlwaysHidden: true
+            useOptionClickToShowAlwaysHiddenSection: false
         )
     }
 
@@ -54,15 +48,9 @@ struct AdvancedSettingsSnapshotTests {
             hideApplicationMenus: true,
             enableSecondaryContextMenu: false,
             enableSecondaryContextMenuQuit: true,
-            showOnHoverDelay: 0.5,
             tooltipDelay: 2.0,
-            showMenuBarTooltips: false,
             useDoubleClickToShowAlwaysHiddenSection: true,
-            useOptionClickToShowAlwaysHiddenSection: true,
-            searchSectionOrder: ["alwaysHidden", "hidden", "visible"],
-            searchIncludeVisible: false,
-            searchIncludeHidden: true,
-            searchIncludeAlwaysHidden: false
+            useOptionClickToShowAlwaysHiddenSection: true
         )
     }
 
@@ -76,9 +64,7 @@ struct AdvancedSettingsSnapshotTests {
         #expect(snapshot.showAllSectionsOnUserDrag)
         #expect(!snapshot.hideApplicationMenus)
         #expect(snapshot.enableSecondaryContextMenu)
-        #expect(snapshot.showOnHoverDelay == 0.2)
         #expect(snapshot.tooltipDelay == 1.0)
-        #expect(snapshot.showMenuBarTooltips)
         #expect(!snapshot.useDoubleClickToShowAlwaysHiddenSection)
     }
 
@@ -90,9 +76,7 @@ struct AdvancedSettingsSnapshotTests {
         #expect(!snapshot.showAllSectionsOnUserDrag)
         #expect(snapshot.hideApplicationMenus)
         #expect(!snapshot.enableSecondaryContextMenu)
-        #expect(snapshot.showOnHoverDelay == 0.5)
         #expect(snapshot.tooltipDelay == 2.0)
-        #expect(!snapshot.showMenuBarTooltips)
         #expect(snapshot.useDoubleClickToShowAlwaysHiddenSection)
     }
 
@@ -109,9 +93,7 @@ struct AdvancedSettingsSnapshotTests {
         #expect(decoded.showAllSectionsOnUserDrag == original.showAllSectionsOnUserDrag)
         #expect(decoded.hideApplicationMenus == original.hideApplicationMenus)
         #expect(decoded.enableSecondaryContextMenu == original.enableSecondaryContextMenu)
-        #expect(decoded.showOnHoverDelay == original.showOnHoverDelay)
         #expect(decoded.tooltipDelay == original.tooltipDelay)
-        #expect(decoded.showMenuBarTooltips == original.showMenuBarTooltips)
         #expect(decoded.useDoubleClickToShowAlwaysHiddenSection == original.useDoubleClickToShowAlwaysHiddenSection)
     }
 
@@ -126,9 +108,7 @@ struct AdvancedSettingsSnapshotTests {
         #expect(decoded.showAllSectionsOnUserDrag == false)
         #expect(decoded.hideApplicationMenus == true)
         #expect(decoded.enableSecondaryContextMenu == false)
-        #expect(decoded.showOnHoverDelay == 0.5)
         #expect(decoded.tooltipDelay == 2.0)
-        #expect(decoded.showMenuBarTooltips == false)
         #expect(decoded.useDoubleClickToShowAlwaysHiddenSection == true)
     }
 
@@ -187,23 +167,19 @@ struct AdvancedSettingsSnapshotTests {
     @Test("A zero hover delay round-trips")
     func zeroShowOnHoverDelay() throws {
         var snapshot = makeDefaultSnapshot()
-        snapshot.showOnHoverDelay = 0
 
         let data = try encoder.encode(snapshot)
         let decoded = try decoder.decode(AdvancedSettingsSnapshot.self, from: data)
 
-        #expect(decoded.showOnHoverDelay == 0)
     }
 
     @Test("A large hover delay round-trips")
     func largeShowOnHoverDelay() throws {
         var snapshot = makeDefaultSnapshot()
-        snapshot.showOnHoverDelay = 10.0
 
         let data = try encoder.encode(snapshot)
         let decoded = try decoder.decode(AdvancedSettingsSnapshot.self, from: data)
 
-        #expect(decoded.showOnHoverDelay == 10.0)
     }
 
     @Test("A zero tooltip delay round-trips")
@@ -249,13 +225,11 @@ struct AdvancedSettingsSnapshotTests {
     @Test("Fractional delays round-trip within tolerance")
     func fractionalDelays() throws {
         var snapshot = makeDefaultSnapshot()
-        snapshot.showOnHoverDelay = 0.15
         snapshot.tooltipDelay = 0.75
 
         let data = try encoder.encode(snapshot)
         let decoded = try decoder.decode(AdvancedSettingsSnapshot.self, from: data)
 
-        #expect(abs(decoded.showOnHoverDelay - 0.15) < 0.001)
         #expect(abs(decoded.tooltipDelay - 0.75) < 0.001)
     }
 
@@ -269,15 +243,9 @@ struct AdvancedSettingsSnapshotTests {
             hideApplicationMenus: false,
             enableSecondaryContextMenu: false,
             enableSecondaryContextMenuQuit: false,
-            showOnHoverDelay: 0,
             tooltipDelay: 0,
-            showMenuBarTooltips: false,
             useDoubleClickToShowAlwaysHiddenSection: false,
-            useOptionClickToShowAlwaysHiddenSection: false,
-            searchSectionOrder: ["visible", "hidden", "alwaysHidden"],
-            searchIncludeVisible: false,
-            searchIncludeHidden: false,
-            searchIncludeAlwaysHidden: false
+            useOptionClickToShowAlwaysHiddenSection: false
         )
 
         let data = try encoder.encode(snapshot)
@@ -288,11 +256,7 @@ struct AdvancedSettingsSnapshotTests {
         #expect(!decoded.hideApplicationMenus)
         #expect(!decoded.enableSecondaryContextMenu)
         #expect(!decoded.enableSecondaryContextMenuQuit)
-        #expect(!decoded.showMenuBarTooltips)
         #expect(!decoded.useDoubleClickToShowAlwaysHiddenSection)
-        #expect(!decoded.searchIncludeVisible)
-        #expect(!decoded.searchIncludeHidden)
-        #expect(!decoded.searchIncludeAlwaysHidden)
     }
 
     @Test("A snapshot with every boolean on round-trips")
@@ -303,15 +267,9 @@ struct AdvancedSettingsSnapshotTests {
             hideApplicationMenus: true,
             enableSecondaryContextMenu: true,
             enableSecondaryContextMenuQuit: true,
-            showOnHoverDelay: 0,
             tooltipDelay: 0,
-            showMenuBarTooltips: true,
             useDoubleClickToShowAlwaysHiddenSection: true,
-            useOptionClickToShowAlwaysHiddenSection: true,
-            searchSectionOrder: ["visible", "hidden", "alwaysHidden"],
-            searchIncludeVisible: true,
-            searchIncludeHidden: true,
-            searchIncludeAlwaysHidden: true
+            useOptionClickToShowAlwaysHiddenSection: true
         )
 
         let data = try encoder.encode(snapshot)
@@ -322,33 +280,17 @@ struct AdvancedSettingsSnapshotTests {
         #expect(decoded.hideApplicationMenus)
         #expect(decoded.enableSecondaryContextMenu)
         #expect(decoded.enableSecondaryContextMenuQuit)
-        #expect(decoded.showMenuBarTooltips)
         #expect(decoded.useDoubleClickToShowAlwaysHiddenSection)
-        #expect(decoded.searchIncludeVisible)
-        #expect(decoded.searchIncludeHidden)
-        #expect(decoded.searchIncludeAlwaysHidden)
     }
 
-    // MARK: - Search Section Ordering
+    // MARK: - Removed Settings
 
-    @Test("The search section order and its filters round-trip")
-    func searchSectionOrderRoundTrip() throws {
-        var snapshot = makeDefaultSnapshot()
-        snapshot.searchSectionOrder = ["alwaysHidden", "hidden", "visible"]
-        snapshot.searchIncludeVisible = false
-
-        let data = try encoder.encode(snapshot)
-        let decoded = try decoder.decode(AdvancedSettingsSnapshot.self, from: data)
-
-        #expect(decoded.searchSectionOrder == ["alwaysHidden", "hidden", "visible"])
-        #expect(!decoded.searchIncludeVisible)
-        #expect(decoded.searchIncludeHidden)
-        #expect(decoded.searchIncludeAlwaysHidden)
-    }
-
-    @Test("A profile written before the search keys existed decodes with their defaults")
-    func decodeProfileMissingSearchKeysFallsBackToDefaults() throws {
-        // Simulates a profile saved before the search-ordering fields were added.
+    /// Every profile already on disk carries keys for settings this fork has
+    /// since deleted — hover, tooltips, the search panel, the pointer warp.
+    /// Decoding must ignore them rather than fail, or a profile saved by any
+    /// earlier build stops loading.
+    @Test("A profile written before those settings were removed still decodes")
+    func legacyRemovedSettingKeysAreIgnored() throws {
         let json = """
         {
             "enableAlwaysHiddenSection": true,
@@ -358,28 +300,22 @@ struct AdvancedSettingsSnapshotTests {
             "showOnHoverDelay": 0.2,
             "tooltipDelay": 1.0,
             "showMenuBarTooltips": false,
+            "searchSectionOrder": ["hidden", "visible", "alwaysHidden"],
+            "searchIncludeVisible": false,
+            "searchIncludeHidden": false,
+            "searchIncludeAlwaysHidden": false,
+            "moveCursorToRevealedItem": true,
             "enableDiagnosticLogging": false
         }
         """.data(using: .utf8)!
 
         let decoded = try decoder.decode(AdvancedSettingsSnapshot.self, from: json)
 
-        #expect(decoded.searchSectionOrder == Defaults.DefaultValue.searchSectionOrder)
-        #expect(decoded.searchIncludeVisible == Defaults.DefaultValue.searchIncludeVisible)
-        #expect(decoded.searchIncludeHidden == Defaults.DefaultValue.searchIncludeHidden)
-        #expect(decoded.searchIncludeAlwaysHidden == Defaults.DefaultValue.searchIncludeAlwaysHidden)
-        #expect(decoded.moveCursorToRevealedItem == Defaults.DefaultValue.moveCursorToRevealedItem)
-    }
-
-    @Test("The pointer-move setting round-trips")
-    func moveCursorToRevealedItemRoundTrip() throws {
-        var snapshot = makeDefaultSnapshot()
-        snapshot.moveCursorToRevealedItem = true
-
-        let data = try encoder.encode(snapshot)
-        let decoded = try decoder.decode(AdvancedSettingsSnapshot.self, from: data)
-
-        #expect(decoded.moveCursorToRevealedItem)
+        #expect(decoded.enableAlwaysHiddenSection)
+        #expect(!decoded.showAllSectionsOnUserDrag)
+        #expect(decoded.hideApplicationMenus)
+        #expect(decoded.enableSecondaryContextMenu)
+        #expect(decoded.tooltipDelay == 1.0)
     }
 
     // MARK: - Diagnostic Logging Exclusion

@@ -55,14 +55,8 @@ struct AdvancedSettingsTests {
             Defaults.set(false, forKey: .hideApplicationMenus)
             Defaults.set(false, forKey: .enableSecondaryContextMenu)
             Defaults.set(true, forKey: .enableSecondaryContextMenuQuit)
-            Defaults.set(1.5, forKey: .showOnHoverDelay)
             Defaults.set(2.5, forKey: .tooltipDelay)
-            Defaults.set(true, forKey: .showMenuBarTooltips)
             Defaults.set(true, forKey: .useAXClickDelivery)
-            Defaults.set(false, forKey: .searchIncludeVisible)
-            Defaults.set(false, forKey: .searchIncludeHidden)
-            Defaults.set(false, forKey: .searchIncludeAlwaysHidden)
-            Defaults.set(true, forKey: .moveCursorToRevealedItem)
 
             let settings = makeSettings()
 
@@ -73,14 +67,8 @@ struct AdvancedSettingsTests {
             #expect(!settings.hideApplicationMenus)
             #expect(!settings.enableSecondaryContextMenu)
             #expect(settings.enableSecondaryContextMenuQuit)
-            #expect(settings.showOnHoverDelay == 1.5)
             #expect(settings.tooltipDelay == 2.5)
-            #expect(settings.showMenuBarTooltips)
             #expect(settings.useAXClickDelivery)
-            #expect(!settings.searchIncludeVisible)
-            #expect(!settings.searchIncludeHidden)
-            #expect(!settings.searchIncludeAlwaysHidden)
-            #expect(settings.moveCursorToRevealedItem)
         }
     }
 
@@ -92,56 +80,8 @@ struct AdvancedSettingsTests {
             #expect(settings.enableAlwaysHiddenSection == Defaults.DefaultValue.enableAlwaysHiddenSection)
             #expect(settings.showAllSectionsOnUserDrag == Defaults.DefaultValue.showAllSectionsOnUserDrag)
             #expect(settings.hideApplicationMenus == Defaults.DefaultValue.hideApplicationMenus)
-            #expect(settings.showOnHoverDelay == Defaults.DefaultValue.showOnHoverDelay)
             #expect(settings.tooltipDelay == Defaults.DefaultValue.tooltipDelay)
             #expect(settings.useAXClickDelivery == Defaults.DefaultValue.useAXClickDelivery)
-            #expect(settings.searchSectionOrder.map(\.rawValue) == Defaults.DefaultValue.searchSectionOrder)
-        }
-    }
-
-
-
-    // MARK: Search section order
-
-    @Test("A stored search order is loaded in the order it was written")
-    func storedSearchOrderIsLoaded() throws {
-        try withScratchDefaults { _ in
-            Defaults.set(["alwaysHidden", "hidden", "visible"], forKey: .searchSectionOrder)
-
-            #expect(makeSettings().searchSectionOrder == [.alwaysHidden, .hidden, .visible])
-        }
-    }
-
-    @Test("A short stored search order is filled out with the missing sections")
-    func shortSearchOrderIsFilledOut() throws {
-        try withScratchDefaults { _ in
-            Defaults.set(["alwaysHidden"], forKey: .searchSectionOrder)
-
-            let order = makeSettings().searchSectionOrder
-
-            #expect(order.first == .alwaysHidden)
-            #expect(Set(order) == Set(MenuBarSection.Name.allCases), "every section has to be listed exactly once")
-            #expect(order.count == MenuBarSection.Name.allCases.count)
-        }
-    }
-
-    @Test("Duplicate and unknown section names are dropped from a stored order")
-    func malformedSearchOrderIsSanitized() throws {
-        try withScratchDefaults { _ in
-            Defaults.set(["hidden", "hidden", "sideways", "", "visible"], forKey: .searchSectionOrder)
-
-            let order = makeSettings().searchSectionOrder
-
-            #expect(order == [.hidden, .visible, .alwaysHidden])
-        }
-    }
-
-    @Test("An empty stored search order falls back to the full set")
-    func emptySearchOrderFallsBack() throws {
-        try withScratchDefaults { _ in
-            Defaults.set([String](), forKey: .searchSectionOrder)
-
-            #expect(makeSettings().searchSectionOrder == MenuBarSection.Name.allCases)
         }
     }
 
@@ -154,13 +94,9 @@ struct AdvancedSettingsTests {
 
             settings.enableAlwaysHiddenSection = true
             settings.tooltipDelay = 1.25
-            settings.searchSectionOrder = [.alwaysHidden, .hidden, .visible]
-            settings.moveCursorToRevealedItem = true
 
-            #expect(Defaults.bool(forKey: .moveCursorToRevealedItem))
             #expect(Defaults.bool(forKey: .enableAlwaysHiddenSection))
             #expect(Defaults.double(forKey: .tooltipDelay) == 1.25)
-            #expect(Defaults.stringArray(forKey: .searchSectionOrder) == ["alwaysHidden", "hidden", "visible"])
         }
     }
 
@@ -169,12 +105,12 @@ struct AdvancedSettingsTests {
         try withScratchDefaults { _ in
             let settings = makeSettings()
             settings.enableAlwaysHiddenSection = true
-            settings.searchSectionOrder = [.hidden, .alwaysHidden, .visible]
+            settings.tooltipDelay = 3.5
 
             let reloaded = makeSettings()
 
             #expect(reloaded.enableAlwaysHiddenSection)
-            #expect(reloaded.searchSectionOrder == [.hidden, .alwaysHidden, .visible])
+            #expect(reloaded.tooltipDelay == 3.5)
         }
     }
 }

@@ -45,14 +45,14 @@ struct SettingsResetterTests {
     func resetGeneralRestoresDefaults() throws {
         try withSettings { settings in
             settings.general.showIceIcon = !Defaults.DefaultValue.showIceIcon
-            settings.general.showOnHover = !Defaults.DefaultValue.showOnHover
+            settings.general.showOnClick = !Defaults.DefaultValue.showOnClick
             settings.general.autoRehide = !Defaults.DefaultValue.autoRehide
             settings.general.rehideInterval = Defaults.DefaultValue.rehideInterval + 42
 
             settings.resetGeneral()
 
             #expect(settings.general.showIceIcon == Defaults.DefaultValue.showIceIcon)
-            #expect(settings.general.showOnHover == Defaults.DefaultValue.showOnHover)
+            #expect(settings.general.showOnClick == Defaults.DefaultValue.showOnClick)
             #expect(settings.general.autoRehide == Defaults.DefaultValue.autoRehide)
             #expect(settings.general.rehideInterval == Defaults.DefaultValue.rehideInterval)
             #expect(settings.general.lastCustomIceIcon == nil)
@@ -78,30 +78,13 @@ struct SettingsResetterTests {
         try withSettings { settings in
             settings.advanced.hideApplicationMenus = !Defaults.DefaultValue.hideApplicationMenus
             settings.advanced.enableAlwaysHiddenSection = !Defaults.DefaultValue.enableAlwaysHiddenSection
-            settings.advanced.showMenuBarTooltips = !Defaults.DefaultValue.showMenuBarTooltips
             settings.advanced.tooltipDelay = Defaults.DefaultValue.tooltipDelay + 5
 
             settings.resetAdvanced()
 
             #expect(settings.advanced.hideApplicationMenus == Defaults.DefaultValue.hideApplicationMenus)
             #expect(settings.advanced.enableAlwaysHiddenSection == Defaults.DefaultValue.enableAlwaysHiddenSection)
-            #expect(settings.advanced.showMenuBarTooltips == Defaults.DefaultValue.showMenuBarTooltips)
             #expect(settings.advanced.tooltipDelay == Defaults.DefaultValue.tooltipDelay)
-        }
-    }
-
-    @Test("Resetting Advanced restores the sanitized search section order")
-    func resetAdvancedRestoresSearchSectionOrder() throws {
-        try withSettings { settings in
-            settings.advanced.searchSectionOrder = []
-
-            settings.resetAdvanced()
-
-            let expected = AdvancedSettings.sanitizedSearchSectionOrder(
-                from: Defaults.DefaultValue.searchSectionOrder
-            )
-            #expect(settings.advanced.searchSectionOrder == expected)
-            #expect(!settings.advanced.searchSectionOrder.isEmpty)
         }
     }
 
@@ -109,8 +92,8 @@ struct SettingsResetterTests {
     /// `AdvancedSettings` booleans, so a reset silently left them at whatever
     /// the user had toggled them to. Each previously-omitted boolean is flipped
     /// off its default, reset, then checked back to `Defaults.DefaultValue`.
-    /// `hideApplicationMenus` and `showMenuBarTooltips` stay in as controls —
-    /// they already reset before the fix and must keep doing so.
+    /// `hideApplicationMenus` stays in as a control — it already reset before
+    /// the fix and must keep doing so.
     ///
     /// the same hole: both landed after the original fix and were persisted,
     /// user-facing, and absent from the reset. Any boolean added to
@@ -123,10 +106,8 @@ struct SettingsResetterTests {
             settings.advanced.useDoubleClickToShowAlwaysHiddenSection = !Defaults.DefaultValue.useDoubleClickToShowAlwaysHiddenSection
             settings.advanced.enableSecondaryContextMenuQuit = !Defaults.DefaultValue.enableSecondaryContextMenuQuit
             settings.advanced.useAXClickDelivery = !Defaults.DefaultValue.useAXClickDelivery
-            settings.advanced.moveCursorToRevealedItem = !Defaults.DefaultValue.moveCursorToRevealedItem
             // Controls — already reset before the fix; keep them covered.
             settings.advanced.hideApplicationMenus = !Defaults.DefaultValue.hideApplicationMenus
-            settings.advanced.showMenuBarTooltips = !Defaults.DefaultValue.showMenuBarTooltips
 
             settings.resetAdvanced()
 
@@ -134,9 +115,7 @@ struct SettingsResetterTests {
             #expect(settings.advanced.useDoubleClickToShowAlwaysHiddenSection == Defaults.DefaultValue.useDoubleClickToShowAlwaysHiddenSection)
             #expect(settings.advanced.enableSecondaryContextMenuQuit == Defaults.DefaultValue.enableSecondaryContextMenuQuit)
             #expect(settings.advanced.useAXClickDelivery == Defaults.DefaultValue.useAXClickDelivery)
-            #expect(settings.advanced.moveCursorToRevealedItem == Defaults.DefaultValue.moveCursorToRevealedItem)
             #expect(settings.advanced.hideApplicationMenus == Defaults.DefaultValue.hideApplicationMenus)
-            #expect(settings.advanced.showMenuBarTooltips == Defaults.DefaultValue.showMenuBarTooltips)
         }
     }
 
@@ -171,13 +150,13 @@ struct SettingsResetterTests {
     @Test("Resetting everything covers every pane at once")
     func resetAllRestoresEveryPane() throws {
         try withSettings { settings in
-            settings.general.showOnHover = !Defaults.DefaultValue.showOnHover
+            settings.general.showOnClick = !Defaults.DefaultValue.showOnClick
             settings.advanced.hideApplicationMenus = !Defaults.DefaultValue.hideApplicationMenus
             settings.displaySettings.confirmSpacingRelaunch = !Defaults.DefaultValue.confirmSpacingRelaunch
 
             settings.resetAllSettingsToDefaults()
 
-            #expect(settings.general.showOnHover == Defaults.DefaultValue.showOnHover)
+            #expect(settings.general.showOnClick == Defaults.DefaultValue.showOnClick)
             #expect(settings.advanced.hideApplicationMenus == Defaults.DefaultValue.hideApplicationMenus)
             #expect(settings.displaySettings.confirmSpacingRelaunch == Defaults.DefaultValue.confirmSpacingRelaunch)
         }
@@ -187,12 +166,12 @@ struct SettingsResetterTests {
     func resetIsIdempotent() throws {
         try withSettings { settings in
             settings.resetAllSettingsToDefaults()
-            let firstPass = settings.general.showOnHover
+            let firstPass = settings.general.showOnClick
 
             settings.resetAllSettingsToDefaults()
 
-            #expect(settings.general.showOnHover == firstPass)
-            #expect(settings.general.showOnHover == Defaults.DefaultValue.showOnHover)
+            #expect(settings.general.showOnClick == firstPass)
+            #expect(settings.general.showOnClick == Defaults.DefaultValue.showOnClick)
         }
     }
 }

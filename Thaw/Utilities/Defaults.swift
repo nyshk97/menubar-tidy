@@ -166,8 +166,6 @@ nonisolated extension Defaults {
         static let iceBarLocationOnHotkey = false
         static let showOnClick = true
         static let showOnDoubleClick = true
-        static let showOnHover = false
-        static let showOnScroll = true
         static let autoRehide = true
         static let rehideStrategy: RehideStrategy = .smart
         static let rehideInterval: TimeInterval = 15
@@ -181,9 +179,7 @@ nonisolated extension Defaults {
         static let hideApplicationMenus = true
         static let enableSecondaryContextMenu = true
         static let enableSecondaryContextMenuQuit = false
-        static let showOnHoverDelay: TimeInterval = 0.2
         static let tooltipDelay: TimeInterval = 0.5
-        static let showMenuBarTooltips = false
         #if DEBUG
             static let enableDiagnosticLogging = true
         #else
@@ -195,12 +191,6 @@ nonisolated extension Defaults {
 
         // MARK: Search
 
-        static let rememberSearchQuery = false
-        static let searchSectionOrder: [String] = ["visible", "hidden", "alwaysHidden"]
-        static let searchIncludeVisible = true
-        static let searchIncludeHidden = true
-        static let searchIncludeAlwaysHidden = true
-        static let moveCursorToRevealedItem = false
 
         // MARK: Hotkeys Settings
 
@@ -239,8 +229,6 @@ nonisolated extension Defaults {
         case iceBarLocationOnHotkey = "IceBarLocationOnHotkey"
         case showOnClick = "ShowOnClick"
         case showOnDoubleClick = "ShowOnDoubleClick"
-        case showOnHover = "ShowOnHover"
-        case showOnScroll = "ShowOnScroll"
         case autoRehide = "AutoRehide"
         case rehideStrategy = "RehideStrategy"
         case rehideInterval = "RehideInterval"
@@ -253,7 +241,6 @@ nonisolated extension Defaults {
         // MARK: Hotkeys Settings
 
         case hotkeys = "Hotkeys"
-        case profileHotkeys = "ProfileHotkeys"
         case menuBarItemHotkeys = "MenuBarItemHotkeys"
 
         // MARK: Advanced Settings
@@ -265,9 +252,7 @@ nonisolated extension Defaults {
         case hideApplicationMenus = "HideApplicationMenus"
         case enableSecondaryContextMenu = "EnableSecondaryContextMenu"
         case enableSecondaryContextMenuQuit = "EnableSecondaryContextMenuQuit"
-        case showOnHoverDelay = "ShowOnHoverDelay"
         case tooltipDelay = "TooltipDelay"
-        case showMenuBarTooltips = "ShowMenuBarTooltips"
         case enableDiagnosticLogging = "EnableDiagnosticLogging"
         case useOptionClickToShowAlwaysHiddenSection = "UseOptionClickToShowAlwaysHiddenSection"
         case useDoubleClickToShowAlwaysHiddenSection = "UseDoubleClickToShowAlwaysHiddenSection"
@@ -275,12 +260,6 @@ nonisolated extension Defaults {
 
         // MARK: Search
 
-        case rememberSearchQuery = "RememberSearchQuery"
-        case searchSectionOrder = "SearchSectionOrder"
-        case searchIncludeVisible = "SearchIncludeVisible"
-        case searchIncludeHidden = "SearchIncludeHidden"
-        case searchIncludeAlwaysHidden = "SearchIncludeAlwaysHidden"
-        case moveCursorToRevealedItem = "MoveCursorToRevealedItem"
 
         // MARK: Internal
 
@@ -329,10 +308,6 @@ nonisolated extension Defaults {
         // MARK: First Launch
 
         case hasCompletedFirstLaunch
-
-        // MARK: Onboarding
-
-        case hasSeenOnboarding
 
         // MARK: Hidden Diagnostic Flags
 

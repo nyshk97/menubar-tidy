@@ -115,28 +115,6 @@ final class GeneralSettings {
     }
 
     /// A Boolean value that indicates whether the hidden section
-    /// should be shown when the mouse pointer hovers over an
-    /// empty area of the menu bar.
-    var showOnHover = Defaults.DefaultValue.showOnHover {
-        didSet {
-            guard oldValue != showOnHover else { return }
-            Defaults.set(showOnHover, forKey: .showOnHover)
-        }
-    }
-
-    /// A Boolean value that indicates whether the hidden section
-    /// should be shown or hidden when the user scrolls in the
-    /// menu bar.
-    var showOnScroll = Defaults.DefaultValue.showOnScroll {
-        didSet {
-            guard oldValue != showOnScroll else { return }
-            Defaults.set(showOnScroll, forKey: .showOnScroll)
-        }
-    }
-
-    // The offset to apply to the menu bar item spacing and padding.
-
-    /// A Boolean value that indicates whether the hidden section
     /// should automatically rehide.
     var autoRehide = Defaults.DefaultValue.autoRehide {
         didSet {
@@ -194,8 +172,6 @@ final class GeneralSettings {
         Defaults.ifPresent(key: .iceBarLocationOnHotkey, assign: &iceBarLocationOnHotkey)
         Defaults.ifPresent(key: .showOnClick, assign: &showOnClick)
         Defaults.ifPresent(key: .showOnDoubleClick, assign: &showOnDoubleClick)
-        Defaults.ifPresent(key: .showOnHover, assign: &showOnHover)
-        Defaults.ifPresent(key: .showOnScroll, assign: &showOnScroll)
         Defaults.ifPresent(key: .autoRehide, assign: &autoRehide)
         Defaults.ifPresent(key: .rehideInterval, assign: &rehideInterval)
 

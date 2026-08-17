@@ -70,8 +70,6 @@ struct ProfileSnapshotLiveSettingsTests {
             settings.iceBarLocationOnHotkey = true
             settings.showOnClick = false
             settings.showOnDoubleClick = false
-            settings.showOnHover = true
-            settings.showOnScroll = false
             settings.autoRehide = false
             settings.rehideStrategy = .focusedApp
             settings.rehideInterval = 42
@@ -88,8 +86,6 @@ struct ProfileSnapshotLiveSettingsTests {
             #expect(snapshot.iceBarLocationOnHotkey)
             #expect(snapshot.showOnClick == false)
             #expect(snapshot.showOnDoubleClick == false)
-            #expect(snapshot.showOnHover)
-            #expect(snapshot.showOnScroll == false)
             #expect(snapshot.autoRehide == false)
             // The snapshot stores the strategy's raw value, not the enum, so
             // an unrecognized value from a newer build can survive a profile
@@ -126,8 +122,6 @@ struct ProfileSnapshotLiveSettingsTests {
                 iceBarLocationOnHotkey: true,
                 showOnClick: false,
                 showOnDoubleClick: false,
-                showOnHover: true,
-                showOnScroll: false,
                 autoRehide: false,
                 rehideStrategyRawValue: RehideStrategy.timed.rawValue,
                 rehideInterval: 99
@@ -145,8 +139,6 @@ struct ProfileSnapshotLiveSettingsTests {
             #expect(settings.iceBarLocationOnHotkey)
             #expect(settings.showOnClick == false)
             #expect(settings.showOnDoubleClick == false)
-            #expect(settings.showOnHover)
-            #expect(settings.showOnScroll == false)
             #expect(settings.autoRehide == false)
             #expect(settings.rehideStrategy == .timed)
             #expect(settings.rehideInterval == 99)
@@ -158,7 +150,7 @@ struct ProfileSnapshotLiveSettingsTests {
         try withScratchDefaults { suite in
             let settings = GeneralSettings()
             var snapshot = GeneralSettingsSnapshot.capture(from: settings)
-            snapshot.showOnHover = true
+            snapshot.showOnClick = false
             snapshot.rehideInterval = 77
             snapshot.rehideStrategyRawValue = RehideStrategy.focusedApp.rawValue
 
@@ -167,7 +159,7 @@ struct ProfileSnapshotLiveSettingsTests {
             // Applying is what a profile switch does, and the switch has to
             // outlive the launch: the models persist through `didSet`, so the
             // scratch domain is the observable side effect.
-            #expect(suite.object(forKey: Defaults.Key.showOnHover.rawValue) as? Bool == true)
+            #expect(suite.object(forKey: Defaults.Key.showOnClick.rawValue) as? Bool == false)
             #expect(suite.object(forKey: Defaults.Key.rehideInterval.rawValue) as? Double == 77)
             #expect(
                 suite.object(forKey: Defaults.Key.rehideStrategy.rawValue) as? Int
@@ -220,8 +212,6 @@ struct ProfileSnapshotLiveSettingsTests {
                 iceBarLocationOnHotkey: false,
                 showOnClick: true,
                 showOnDoubleClick: true,
-                showOnHover: false,
-                showOnScroll: true,
                 autoRehide: true,
                 rehideStrategyRawValue: RehideStrategy.smart.rawValue,
                 rehideInterval: 15
@@ -246,16 +236,9 @@ struct ProfileSnapshotLiveSettingsTests {
             settings.hideApplicationMenus = false
             settings.enableSecondaryContextMenu = false
             settings.enableSecondaryContextMenuQuit = true
-            settings.showOnHoverDelay = 0.75
             settings.tooltipDelay = 1.25
-            settings.showMenuBarTooltips = true
             settings.useDoubleClickToShowAlwaysHiddenSection = true
             settings.useOptionClickToShowAlwaysHiddenSection = true
-            settings.searchSectionOrder = [.alwaysHidden, .visible, .hidden]
-            settings.searchIncludeVisible = false
-            settings.searchIncludeHidden = false
-            settings.searchIncludeAlwaysHidden = false
-            settings.moveCursorToRevealedItem = true
 
             let snapshot = AdvancedSettingsSnapshot.capture(from: settings)
 
@@ -264,18 +247,11 @@ struct ProfileSnapshotLiveSettingsTests {
             #expect(snapshot.hideApplicationMenus == false)
             #expect(snapshot.enableSecondaryContextMenu == false)
             #expect(snapshot.enableSecondaryContextMenuQuit)
-            #expect(snapshot.showOnHoverDelay == 0.75)
             #expect(snapshot.tooltipDelay == 1.25)
-            #expect(snapshot.showMenuBarTooltips)
             #expect(snapshot.useDoubleClickToShowAlwaysHiddenSection)
             #expect(snapshot.useOptionClickToShowAlwaysHiddenSection)
             // The snapshot stores raw strings so a section name this build does
             // not know still survives the profile.
-            #expect(snapshot.searchSectionOrder == ["alwaysHidden", "visible", "hidden"])
-            #expect(snapshot.searchIncludeVisible == false)
-            #expect(snapshot.searchIncludeHidden == false)
-            #expect(snapshot.searchIncludeAlwaysHidden == false)
-            #expect(snapshot.moveCursorToRevealedItem)
             // Left at the compiled-in default; see the suite's deliberate gaps.
         }
     }
@@ -290,16 +266,9 @@ struct ProfileSnapshotLiveSettingsTests {
                 hideApplicationMenus: false,
                 enableSecondaryContextMenu: false,
                 enableSecondaryContextMenuQuit: true,
-                showOnHoverDelay: 0.75,
                 tooltipDelay: 1.25,
-                showMenuBarTooltips: true,
                 useDoubleClickToShowAlwaysHiddenSection: true,
                 useOptionClickToShowAlwaysHiddenSection: true,
-                searchSectionOrder: ["alwaysHidden", "hidden", "visible"],
-                searchIncludeVisible: false,
-                searchIncludeHidden: false,
-                searchIncludeAlwaysHidden: false,
-                moveCursorToRevealedItem: true
             )
 
             snapshot.apply(to: settings)
@@ -309,39 +278,13 @@ struct ProfileSnapshotLiveSettingsTests {
             #expect(settings.hideApplicationMenus == false)
             #expect(settings.enableSecondaryContextMenu == false)
             #expect(settings.enableSecondaryContextMenuQuit)
-            #expect(settings.showOnHoverDelay == 0.75)
             #expect(settings.tooltipDelay == 1.25)
-            #expect(settings.showMenuBarTooltips)
             #expect(settings.useDoubleClickToShowAlwaysHiddenSection)
             #expect(settings.useOptionClickToShowAlwaysHiddenSection)
-            #expect(settings.searchSectionOrder == [.alwaysHidden, .hidden, .visible])
-            #expect(settings.searchIncludeVisible == false)
-            #expect(settings.searchIncludeHidden == false)
-            #expect(settings.searchIncludeAlwaysHidden == false)
-            #expect(settings.moveCursorToRevealedItem)
         }
     }
 
     /// A profile written by an older build lists fewer sections than this build
-    /// knows, and one written by a newer build can list a name this build does
-    /// not. `apply(to:)` runs the raw list through
-    /// `AdvancedSettings.sanitizedSearchSectionOrder(from:)` so the search panel
-    /// still ends up with every section exactly once.
-    @Test("A short or unknown search section order is completed on apply")
-    func applyAdvancedSettingsSanitizesTheSearchSectionOrder() throws {
-        try withScratchDefaults { _ in
-            let settings = AdvancedSettings()
-            var snapshot = AdvancedSettingsSnapshot.capture(from: settings)
-            snapshot.searchSectionOrder = ["hidden", "somethingThisBuildDoesNotKnow"]
-
-            snapshot.apply(to: settings)
-
-            #expect(settings.searchSectionOrder.first == .hidden)
-            #expect(Set(settings.searchSectionOrder) == Set(MenuBarSection.Name.allCases))
-            #expect(settings.searchSectionOrder.count == MenuBarSection.Name.allCases.count)
-        }
-    }
-
     /// Same forward-compatibility contract as the rehide strategy: the divider
     /// style is stored as an `Int`, so a value from a newer build has to leave
     /// the current style alone rather than reset it.
@@ -365,15 +308,10 @@ struct ProfileSnapshotLiveSettingsTests {
             let settings = AdvancedSettings()
             var snapshot = AdvancedSettingsSnapshot.capture(from: settings)
             snapshot.tooltipDelay = 4.5
-            snapshot.searchSectionOrder = ["alwaysHidden", "hidden", "visible"]
 
             snapshot.apply(to: settings)
 
             #expect(suite.object(forKey: Defaults.Key.tooltipDelay.rawValue) as? Double == 4.5)
-            #expect(
-                suite.object(forKey: Defaults.Key.searchSectionOrder.rawValue) as? [String]
-                    == ["alwaysHidden", "hidden", "visible"]
-            )
         }
     }
 
@@ -396,8 +334,6 @@ struct ProfileSnapshotLiveSettingsTests {
             source.iceBarLocationOnHotkey = true
             source.showOnClick = false
             source.showOnDoubleClick = false
-            source.showOnHover = true
-            source.showOnScroll = false
             source.autoRehide = false
             source.rehideStrategy = .timed
             source.rehideInterval = 55
@@ -416,8 +352,6 @@ struct ProfileSnapshotLiveSettingsTests {
             #expect(destination.iceBarLocationOnHotkey == source.iceBarLocationOnHotkey)
             #expect(destination.showOnClick == source.showOnClick)
             #expect(destination.showOnDoubleClick == source.showOnDoubleClick)
-            #expect(destination.showOnHover == source.showOnHover)
-            #expect(destination.showOnScroll == source.showOnScroll)
             #expect(destination.autoRehide == source.autoRehide)
             #expect(destination.rehideStrategy == source.rehideStrategy)
             #expect(destination.rehideInterval == source.rehideInterval)
@@ -433,15 +367,9 @@ struct ProfileSnapshotLiveSettingsTests {
             source.hideApplicationMenus = false
             source.enableSecondaryContextMenu = false
             source.enableSecondaryContextMenuQuit = true
-            source.showOnHoverDelay = 0.6
             source.tooltipDelay = 0.9
-            source.showMenuBarTooltips = true
             source.useDoubleClickToShowAlwaysHiddenSection = true
             source.useOptionClickToShowAlwaysHiddenSection = true
-            source.searchSectionOrder = [.hidden, .alwaysHidden, .visible]
-            source.searchIncludeVisible = false
-            source.searchIncludeHidden = false
-            source.searchIncludeAlwaysHidden = false
 
             let data = try JSONEncoder().encode(AdvancedSettingsSnapshot.capture(from: source))
             let decoded = try JSONDecoder().decode(AdvancedSettingsSnapshot.self, from: data)
@@ -453,9 +381,7 @@ struct ProfileSnapshotLiveSettingsTests {
             #expect(destination.hideApplicationMenus == source.hideApplicationMenus)
             #expect(destination.enableSecondaryContextMenu == source.enableSecondaryContextMenu)
             #expect(destination.enableSecondaryContextMenuQuit == source.enableSecondaryContextMenuQuit)
-            #expect(destination.showOnHoverDelay == source.showOnHoverDelay)
             #expect(destination.tooltipDelay == source.tooltipDelay)
-            #expect(destination.showMenuBarTooltips == source.showMenuBarTooltips)
             #expect(
                 destination.useDoubleClickToShowAlwaysHiddenSection
                     == source.useDoubleClickToShowAlwaysHiddenSection
@@ -464,10 +390,6 @@ struct ProfileSnapshotLiveSettingsTests {
                 destination.useOptionClickToShowAlwaysHiddenSection
                     == source.useOptionClickToShowAlwaysHiddenSection
             )
-            #expect(destination.searchSectionOrder == source.searchSectionOrder)
-            #expect(destination.searchIncludeVisible == source.searchIncludeVisible)
-            #expect(destination.searchIncludeHidden == source.searchIncludeHidden)
-            #expect(destination.searchIncludeAlwaysHidden == source.searchIncludeAlwaysHidden)
         }
     }
 }
@@ -608,8 +530,12 @@ struct ProfilePartialSettingsDecodingTests {
         let profile = try decoder.decode(Profile.self, from: json)
 
         #expect(profile.advancedSettings.tooltipDelay == 9)
-        #expect(profile.advancedSettings.showOnHoverDelay == Defaults.DefaultValue.showOnHoverDelay)
-        #expect(profile.advancedSettings.searchSectionOrder == Defaults.DefaultValue.searchSectionOrder)
+        // The keys the JSON omits still take their shipped defaults.
+        #expect(profile.advancedSettings.hideApplicationMenus == Defaults.DefaultValue.hideApplicationMenus)
+        #expect(
+            profile.advancedSettings.enableAlwaysHiddenSection
+                == Defaults.DefaultValue.enableAlwaysHiddenSection
+        )
     }
 
     @Test("A null General settings value falls back to the shipped defaults")

@@ -36,8 +36,6 @@ nonisolated struct GeneralSettingsSnapshot: Codable {
     var iceBarLocationOnHotkey: Bool
     var showOnClick: Bool
     var showOnDoubleClick: Bool
-    var showOnHover: Bool
-    var showOnScroll: Bool
     var autoRehide: Bool
     var rehideStrategyRawValue: Int
     var rehideInterval: TimeInterval
@@ -55,8 +53,6 @@ nonisolated struct GeneralSettingsSnapshot: Codable {
             iceBarLocationOnHotkey: settings.iceBarLocationOnHotkey,
             showOnClick: settings.showOnClick,
             showOnDoubleClick: settings.showOnDoubleClick,
-            showOnHover: settings.showOnHover,
-            showOnScroll: settings.showOnScroll,
             autoRehide: settings.autoRehide,
             rehideStrategyRawValue: settings.rehideStrategy.rawValue,
             rehideInterval: settings.rehideInterval
@@ -80,8 +76,6 @@ nonisolated struct GeneralSettingsSnapshot: Codable {
         settings.iceBarLocationOnHotkey = iceBarLocationOnHotkey
         settings.showOnClick = showOnClick
         settings.showOnDoubleClick = showOnDoubleClick
-        settings.showOnHover = showOnHover
-        settings.showOnScroll = showOnScroll
         settings.autoRehide = autoRehide
         if let strategy = RehideStrategy(rawValue: rehideStrategyRawValue) {
             settings.rehideStrategy = strategy
@@ -99,9 +93,7 @@ nonisolated struct AdvancedSettingsSnapshot: Codable {
     var hideApplicationMenus: Bool
     var enableSecondaryContextMenu: Bool
     var enableSecondaryContextMenuQuit: Bool
-    var showOnHoverDelay: TimeInterval
     var tooltipDelay: TimeInterval
-    var showMenuBarTooltips: Bool
     // enableDiagnosticLogging is deliberately NOT part of a profile.
     //
     // It is a diagnostic control, not a preference: a user turns it on to
@@ -119,11 +111,6 @@ nonisolated struct AdvancedSettingsSnapshot: Codable {
     // newly-written profile falls back to the default rather than failing.
     var useDoubleClickToShowAlwaysHiddenSection: Bool
     var useOptionClickToShowAlwaysHiddenSection: Bool
-    var searchSectionOrder: [String]
-    var searchIncludeVisible: Bool
-    var searchIncludeHidden: Bool
-    var searchIncludeAlwaysHidden: Bool
-    var moveCursorToRevealedItem: Bool
 
     @MainActor
     static func capture(from settings: AdvancedSettings) -> AdvancedSettingsSnapshot {
@@ -133,16 +120,9 @@ nonisolated struct AdvancedSettingsSnapshot: Codable {
             hideApplicationMenus: settings.hideApplicationMenus,
             enableSecondaryContextMenu: settings.enableSecondaryContextMenu,
             enableSecondaryContextMenuQuit: settings.enableSecondaryContextMenuQuit,
-            showOnHoverDelay: settings.showOnHoverDelay,
             tooltipDelay: settings.tooltipDelay,
-            showMenuBarTooltips: settings.showMenuBarTooltips,
             useDoubleClickToShowAlwaysHiddenSection: settings.useDoubleClickToShowAlwaysHiddenSection,
-            useOptionClickToShowAlwaysHiddenSection: settings.useOptionClickToShowAlwaysHiddenSection,
-            searchSectionOrder: settings.searchSectionOrder.map(\.rawValue),
-            searchIncludeVisible: settings.searchIncludeVisible,
-            searchIncludeHidden: settings.searchIncludeHidden,
-            searchIncludeAlwaysHidden: settings.searchIncludeAlwaysHidden,
-            moveCursorToRevealedItem: settings.moveCursorToRevealedItem
+            useOptionClickToShowAlwaysHiddenSection: settings.useOptionClickToShowAlwaysHiddenSection
         )
     }
 
@@ -153,17 +133,10 @@ nonisolated struct AdvancedSettingsSnapshot: Codable {
         settings.hideApplicationMenus = hideApplicationMenus
         settings.enableSecondaryContextMenu = enableSecondaryContextMenu
         settings.enableSecondaryContextMenuQuit = enableSecondaryContextMenuQuit
-        settings.showOnHoverDelay = showOnHoverDelay
         settings.tooltipDelay = tooltipDelay
-        settings.showMenuBarTooltips = showMenuBarTooltips
         // enableDiagnosticLogging intentionally untouched — see the property list.
         settings.useDoubleClickToShowAlwaysHiddenSection = useDoubleClickToShowAlwaysHiddenSection
         settings.useOptionClickToShowAlwaysHiddenSection = useOptionClickToShowAlwaysHiddenSection
-        settings.searchSectionOrder = AdvancedSettings.sanitizedSearchSectionOrder(from: searchSectionOrder)
-        settings.searchIncludeVisible = searchIncludeVisible
-        settings.searchIncludeHidden = searchIncludeHidden
-        settings.searchIncludeAlwaysHidden = searchIncludeAlwaysHidden
-        settings.moveCursorToRevealedItem = moveCursorToRevealedItem
     }
 
     enum CodingKeys: String, CodingKey {
@@ -172,16 +145,9 @@ nonisolated struct AdvancedSettingsSnapshot: Codable {
         case hideApplicationMenus
         case enableSecondaryContextMenu
         case enableSecondaryContextMenuQuit
-        case showOnHoverDelay
         case tooltipDelay
-        case showMenuBarTooltips
         case useDoubleClickToShowAlwaysHiddenSection
         case useOptionClickToShowAlwaysHiddenSection
-        case searchSectionOrder
-        case searchIncludeVisible
-        case searchIncludeHidden
-        case searchIncludeAlwaysHidden
-        case moveCursorToRevealedItem
     }
 
     init(
@@ -190,32 +156,18 @@ nonisolated struct AdvancedSettingsSnapshot: Codable {
         hideApplicationMenus: Bool,
         enableSecondaryContextMenu: Bool,
         enableSecondaryContextMenuQuit: Bool,
-        showOnHoverDelay: TimeInterval,
         tooltipDelay: TimeInterval,
-        showMenuBarTooltips: Bool,
         useDoubleClickToShowAlwaysHiddenSection: Bool,
-        useOptionClickToShowAlwaysHiddenSection: Bool,
-        searchSectionOrder: [String],
-        searchIncludeVisible: Bool,
-        searchIncludeHidden: Bool,
-        searchIncludeAlwaysHidden: Bool,
-        moveCursorToRevealedItem: Bool = Defaults.DefaultValue.moveCursorToRevealedItem
+        useOptionClickToShowAlwaysHiddenSection: Bool
     ) {
         self.enableAlwaysHiddenSection = enableAlwaysHiddenSection
         self.showAllSectionsOnUserDrag = showAllSectionsOnUserDrag
         self.hideApplicationMenus = hideApplicationMenus
         self.enableSecondaryContextMenu = enableSecondaryContextMenu
         self.enableSecondaryContextMenuQuit = enableSecondaryContextMenuQuit
-        self.showOnHoverDelay = showOnHoverDelay
         self.tooltipDelay = tooltipDelay
-        self.showMenuBarTooltips = showMenuBarTooltips
         self.useDoubleClickToShowAlwaysHiddenSection = useDoubleClickToShowAlwaysHiddenSection
         self.useOptionClickToShowAlwaysHiddenSection = useOptionClickToShowAlwaysHiddenSection
-        self.searchSectionOrder = searchSectionOrder
-        self.searchIncludeVisible = searchIncludeVisible
-        self.searchIncludeHidden = searchIncludeHidden
-        self.searchIncludeAlwaysHidden = searchIncludeAlwaysHidden
-        self.moveCursorToRevealedItem = moveCursorToRevealedItem
     }
 
     init(from decoder: Decoder) throws {
@@ -235,15 +187,9 @@ nonisolated struct AdvancedSettingsSnapshot: Codable {
         enableSecondaryContextMenuQuit = try container.decodeIfPresent(
             Bool.self, forKey: .enableSecondaryContextMenuQuit
         ) ?? Defaults.DefaultValue.enableSecondaryContextMenuQuit
-        showOnHoverDelay = try container.decodeIfPresent(
-            TimeInterval.self, forKey: .showOnHoverDelay
-        ) ?? Defaults.DefaultValue.showOnHoverDelay
         tooltipDelay = try container.decodeIfPresent(
             TimeInterval.self, forKey: .tooltipDelay
         ) ?? Defaults.DefaultValue.tooltipDelay
-        showMenuBarTooltips = try container.decodeIfPresent(
-            Bool.self, forKey: .showMenuBarTooltips
-        ) ?? Defaults.DefaultValue.showMenuBarTooltips
         // No enableDiagnosticLogging decode: the key may still be present in
         // profiles written by earlier builds and is ignored on purpose.
         useDoubleClickToShowAlwaysHiddenSection = try container.decodeIfPresent(
@@ -252,21 +198,6 @@ nonisolated struct AdvancedSettingsSnapshot: Codable {
         useOptionClickToShowAlwaysHiddenSection = try container.decodeIfPresent(
             Bool.self, forKey: .useOptionClickToShowAlwaysHiddenSection
         ) ?? Defaults.DefaultValue.useOptionClickToShowAlwaysHiddenSection
-        searchSectionOrder = try container.decodeIfPresent(
-            [String].self, forKey: .searchSectionOrder
-        ) ?? Defaults.DefaultValue.searchSectionOrder
-        searchIncludeVisible = try container.decodeIfPresent(
-            Bool.self, forKey: .searchIncludeVisible
-        ) ?? Defaults.DefaultValue.searchIncludeVisible
-        searchIncludeHidden = try container.decodeIfPresent(
-            Bool.self, forKey: .searchIncludeHidden
-        ) ?? Defaults.DefaultValue.searchIncludeHidden
-        searchIncludeAlwaysHidden = try container.decodeIfPresent(
-            Bool.self, forKey: .searchIncludeAlwaysHidden
-        ) ?? Defaults.DefaultValue.searchIncludeAlwaysHidden
-        moveCursorToRevealedItem = try container.decodeIfPresent(
-            Bool.self, forKey: .moveCursorToRevealedItem
-        ) ?? Defaults.DefaultValue.moveCursorToRevealedItem
     }
 }
 
@@ -467,8 +398,6 @@ nonisolated struct Profile: Codable, Identifiable {
             iceBarLocationOnHotkey: Defaults.DefaultValue.iceBarLocationOnHotkey,
             showOnClick: Defaults.DefaultValue.showOnClick,
             showOnDoubleClick: Defaults.DefaultValue.showOnDoubleClick,
-            showOnHover: Defaults.DefaultValue.showOnHover,
-            showOnScroll: Defaults.DefaultValue.showOnScroll,
             autoRehide: Defaults.DefaultValue.autoRehide,
             rehideStrategyRawValue: Defaults.DefaultValue.rehideStrategy.rawValue,
             rehideInterval: Defaults.DefaultValue.rehideInterval
@@ -483,16 +412,9 @@ nonisolated struct Profile: Codable, Identifiable {
             hideApplicationMenus: Defaults.DefaultValue.hideApplicationMenus,
             enableSecondaryContextMenu: Defaults.DefaultValue.enableSecondaryContextMenu,
             enableSecondaryContextMenuQuit: Defaults.DefaultValue.enableSecondaryContextMenuQuit,
-            showOnHoverDelay: Defaults.DefaultValue.showOnHoverDelay,
             tooltipDelay: Defaults.DefaultValue.tooltipDelay,
-            showMenuBarTooltips: Defaults.DefaultValue.showMenuBarTooltips,
             useDoubleClickToShowAlwaysHiddenSection: Defaults.DefaultValue.useDoubleClickToShowAlwaysHiddenSection,
-            useOptionClickToShowAlwaysHiddenSection: Defaults.DefaultValue.useOptionClickToShowAlwaysHiddenSection,
-            searchSectionOrder: Defaults.DefaultValue.searchSectionOrder,
-            searchIncludeVisible: Defaults.DefaultValue.searchIncludeVisible,
-            searchIncludeHidden: Defaults.DefaultValue.searchIncludeHidden,
-            searchIncludeAlwaysHidden: Defaults.DefaultValue.searchIncludeAlwaysHidden,
-            moveCursorToRevealedItem: Defaults.DefaultValue.moveCursorToRevealedItem
+            useOptionClickToShowAlwaysHiddenSection: Defaults.DefaultValue.useOptionClickToShowAlwaysHiddenSection
         )
 
         hotkeys = try container.decodeIfPresent(

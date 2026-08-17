@@ -38,8 +38,6 @@ struct GeneralSettingsSnapshotTests {
             iceBarLocationOnHotkey: false,
             showOnClick: true,
             showOnDoubleClick: false,
-            showOnHover: false,
-            showOnScroll: false,
             autoRehide: true,
             rehideStrategyRawValue: 0,
             rehideInterval: 15
@@ -68,8 +66,6 @@ struct GeneralSettingsSnapshotTests {
             iceBarLocationOnHotkey: true,
             showOnClick: false,
             showOnDoubleClick: true,
-            showOnHover: true,
-            showOnScroll: true,
             autoRehide: false,
             rehideStrategyRawValue: 2,
             rehideInterval: 30
@@ -91,8 +87,6 @@ struct GeneralSettingsSnapshotTests {
         #expect(!snapshot.iceBarLocationOnHotkey)
         #expect(snapshot.showOnClick)
         #expect(!snapshot.showOnDoubleClick)
-        #expect(!snapshot.showOnHover)
-        #expect(!snapshot.showOnScroll)
         #expect(snapshot.autoRehide)
         #expect(snapshot.rehideStrategyRawValue == 0)
         #expect(snapshot.rehideInterval == 15)
@@ -111,8 +105,6 @@ struct GeneralSettingsSnapshotTests {
         #expect(snapshot.iceBarLocationOnHotkey)
         #expect(!snapshot.showOnClick)
         #expect(snapshot.showOnDoubleClick)
-        #expect(snapshot.showOnHover)
-        #expect(snapshot.showOnScroll)
         #expect(!snapshot.autoRehide)
         #expect(snapshot.rehideStrategyRawValue == 2)
         #expect(snapshot.rehideInterval == 30)
@@ -152,8 +144,6 @@ struct GeneralSettingsSnapshotTests {
         #expect(decoded.iceBarLocationOnHotkey == true)
         #expect(decoded.showOnClick == false)
         #expect(decoded.showOnDoubleClick == true)
-        #expect(decoded.showOnHover == true)
-        #expect(decoded.showOnScroll == true)
         #expect(decoded.autoRehide == false)
         #expect(decoded.rehideStrategyRawValue == 2)
         #expect(decoded.rehideInterval == 30)
@@ -236,9 +226,8 @@ struct GeneralSettingsSnapshotTests {
     }
 
     @Test("A fractional rehide interval survives a round trip")
-    func fractionalShowOnHoverDelay() throws {
+    func fractionalRehideInterval() throws {
         var snapshot = makeDefaultSnapshot()
-        // showOnHoverDelay not in GeneralSettingsSnapshot, but rehideInterval is TimeInterval
         snapshot.rehideInterval = 15.5
 
         let data = try encoder.encode(snapshot)

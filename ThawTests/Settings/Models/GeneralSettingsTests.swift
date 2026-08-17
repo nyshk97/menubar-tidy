@@ -47,8 +47,6 @@ final class GeneralSettingsTests {
         .iceBarLocationOnHotkey,
         .showOnClick,
         .showOnDoubleClick,
-        .showOnHover,
-        .showOnScroll,
         .autoRehide,
         .rehideStrategy,
         .rehideInterval,
@@ -104,8 +102,6 @@ final class GeneralSettingsTests {
         Defaults.set(true, forKey: .iceBarLocationOnHotkey)
         Defaults.set(false, forKey: .showOnClick)
         Defaults.set(false, forKey: .showOnDoubleClick)
-        Defaults.set(true, forKey: .showOnHover)
-        Defaults.set(false, forKey: .showOnScroll)
         Defaults.set(false, forKey: .autoRehide)
         Defaults.set(42.5, forKey: .rehideInterval)
 
@@ -118,8 +114,6 @@ final class GeneralSettingsTests {
         #expect(settings.iceBarLocationOnHotkey)
         #expect(!settings.showOnClick)
         #expect(!settings.showOnDoubleClick)
-        #expect(settings.showOnHover)
-        #expect(!settings.showOnScroll)
         #expect(!settings.autoRehide)
         #expect(settings.rehideInterval == 42.5)
     }
@@ -135,7 +129,7 @@ final class GeneralSettingsTests {
         #expect(settings.customIceIconIsTemplate == Defaults.DefaultValue.customIceIconIsTemplate)
         #expect(settings.useIceBar == Defaults.DefaultValue.useIceBar)
         #expect(settings.iceBarLocation == Defaults.DefaultValue.iceBarLocation)
-        #expect(settings.showOnHover == Defaults.DefaultValue.showOnHover)
+        #expect(settings.showOnClick == Defaults.DefaultValue.showOnClick)
         #expect(settings.autoRehide == Defaults.DefaultValue.autoRehide)
         #expect(settings.rehideStrategy == Defaults.DefaultValue.rehideStrategy)
         #expect(settings.rehideInterval == Defaults.DefaultValue.rehideInterval)

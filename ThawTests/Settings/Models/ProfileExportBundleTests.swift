@@ -205,7 +205,6 @@ struct ProfileExportBundleTests {
         let decoded = try decoder.decode(ProfileExportEntry.self, from: data)
 
         #expect(decoded.profile.advancedSettings.enableAlwaysHiddenSection)
-        #expect(decoded.profile.advancedSettings.showOnHoverDelay == 0.2)
         #expect(decoded.profile.advancedSettings.tooltipDelay == 1.0)
     }
 

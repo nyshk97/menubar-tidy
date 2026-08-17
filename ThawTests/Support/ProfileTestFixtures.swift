@@ -28,8 +28,6 @@ func makeTestGeneralSettings() -> GeneralSettingsSnapshot {
         iceBarLocationOnHotkey: false,
         showOnClick: true,
         showOnDoubleClick: false,
-        showOnHover: false,
-        showOnScroll: false,
         autoRehide: true,
         rehideStrategyRawValue: 0,
         rehideInterval: 15
@@ -37,8 +35,8 @@ func makeTestGeneralSettings() -> GeneralSettingsSnapshot {
 }
 
 /// The advanced settings block every profile fixture shares. Same caveat as
-/// ``makeTestGeneralSettings()``: tests assert `showOnHoverDelay == 0.2`,
-/// `tooltipDelay == 1.0` and friends.
+/// ``makeTestGeneralSettings()``: tests assert `tooltipDelay == 1.0` and
+/// friends.
 func makeTestAdvancedSettings() -> AdvancedSettingsSnapshot {
     AdvancedSettingsSnapshot(
         enableAlwaysHiddenSection: true,
@@ -46,15 +44,9 @@ func makeTestAdvancedSettings() -> AdvancedSettingsSnapshot {
         hideApplicationMenus: false,
         enableSecondaryContextMenu: true,
         enableSecondaryContextMenuQuit: false,
-        showOnHoverDelay: 0.2,
         tooltipDelay: 1.0,
-        showMenuBarTooltips: true,
         useDoubleClickToShowAlwaysHiddenSection: false,
-        useOptionClickToShowAlwaysHiddenSection: false,
-        searchSectionOrder: ["visible", "hidden", "alwaysHidden"],
-        searchIncludeVisible: true,
-        searchIncludeHidden: true,
-        searchIncludeAlwaysHidden: true
+        useOptionClickToShowAlwaysHiddenSection: false
     )
 }
 

@@ -23,7 +23,7 @@ import Testing
 /// dictionary.
 ///
 /// Every test routes through ``withScratchDefaults(sourceLocation:_:)``, so
-/// nothing here touches the developer's real `com.stonerl.Thaw` domain. The
+/// nothing here touches the developer's real `com.nyshk97.Thaw` domain. The
 /// suite is `.serialized` for the reason that helper documents:
 /// `Defaults.store` is process-wide.
 ///
@@ -35,9 +35,9 @@ struct CoverageSweep3Tests {
     @Test("array(forKey:) returns the stored array")
     func arrayForKeyReturnsTheStoredArray() throws {
         try withScratchDefaults { suite in
-            suite.set(["visible", "hidden", "alwaysHidden"], forKey: Defaults.Key.searchSectionOrder.rawValue)
+            suite.set(["visible", "hidden", "alwaysHidden"], forKey: Defaults.Key.hotkeys.rawValue)
 
-            let stored = try #require(Defaults.array(forKey: .searchSectionOrder) as? [String])
+            let stored = try #require(Defaults.array(forKey: .hotkeys) as? [String])
 
             #expect(stored == ["visible", "hidden", "alwaysHidden"])
         }
@@ -46,7 +46,7 @@ struct CoverageSweep3Tests {
     @Test("array(forKey:) is nil for an unset key")
     func arrayForKeyIsNilWhenUnset() throws {
         try withScratchDefaults { _ in
-            #expect(Defaults.array(forKey: .searchSectionOrder) == nil)
+            #expect(Defaults.array(forKey: .hotkeys) == nil)
         }
     }
 
@@ -56,9 +56,9 @@ struct CoverageSweep3Tests {
     @Test("array(forKey:) is nil when the stored value is not an array")
     func arrayForKeyIsNilForAMismatchedType() throws {
         try withScratchDefaults { suite in
-            suite.set("not an array", forKey: Defaults.Key.searchSectionOrder.rawValue)
+            suite.set("not an array", forKey: Defaults.Key.hotkeys.rawValue)
 
-            #expect(Defaults.array(forKey: .searchSectionOrder) == nil)
+            #expect(Defaults.array(forKey: .hotkeys) == nil)
         }
     }
 
@@ -66,9 +66,9 @@ struct CoverageSweep3Tests {
     func floatForKeyReturnsTheStoredValue() throws {
         try withScratchDefaults { suite in
             // 0.75 is exactly representable, so this is not a tolerance test.
-            suite.set(0.75, forKey: Defaults.Key.showOnHoverDelay.rawValue)
+            suite.set(0.75, forKey: Defaults.Key.tooltipDelay.rawValue)
 
-            #expect(Defaults.float(forKey: .showOnHoverDelay) == 0.75)
+            #expect(Defaults.float(forKey: .tooltipDelay) == 0.75)
         }
     }
 
@@ -78,7 +78,7 @@ struct CoverageSweep3Tests {
     @Test("float(forKey:) is zero for an unset key")
     func floatForKeyIsZeroWhenUnset() throws {
         try withScratchDefaults { _ in
-            #expect(Defaults.float(forKey: .showOnHoverDelay) == 0)
+            #expect(Defaults.float(forKey: .tooltipDelay) == 0)
         }
     }
 

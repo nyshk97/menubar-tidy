@@ -126,7 +126,6 @@ final class AppState {
     /// from the permissions window's Continue button.
     func completeFirstLaunchSetup() {
         dismissWindow(.permissions)
-        Defaults.set(true, forKey: .hasSeenOnboarding)
 
         let hasPermissions = permissions.permissionsState != .missing
         performSetup(hasPermissions: hasPermissions)

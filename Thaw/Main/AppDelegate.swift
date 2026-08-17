@@ -114,13 +114,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             appState.performSetup(hasPermissions: false)
         }
 
-        // On first launch, walk the user through onboarding — its final step
-        // is where they decide whether to grant permissions, so there's no
-        // separate need to surface the permissions window here (PermissionsWindow
-        // shows the onboarding tour until first launch completes). Afterward,
-        // only resurface the plain permissions window if required permissions
-        // are missing (e.g. they were revoked), so a reset doesn't drag the
-        // user back through onboarding.
+        // Surface the permissions window on first launch, and afterwards only
+        // when required permissions are missing (e.g. they were revoked).
+        // Upstream fronted this with a feature tour on first launch; this fork
+        // dropped it, so both occasions show the permissions screen directly.
         if isFirstLaunch || appState.permissions.permissionsState == .missing {
             appState.openWindow(.permissions)
         }

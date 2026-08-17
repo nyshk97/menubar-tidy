@@ -8,10 +8,18 @@
 
 import SwiftUI
 
-/// The permissions step shown at the end of the glass onboarding tour, and
-/// again on its own whenever permissions are missing on a later launch.
+/// Window dimensions for the permissions flow.
 ///
-/// One view serves both so the second encounter looks like the first.
+/// Upstream sizes an onboarding tour and this screen alike, so the numbers
+/// lived with the tour. The tour is gone; the numbers stay here, where the
+/// only remaining screen they size is defined.
+enum ThawPermissionsWindowMetrics {
+    static let width: CGFloat = 608
+    static let height: CGFloat = 480
+}
+
+/// The permissions screen: shown on first launch, and again whenever
+/// permissions are missing on a later launch.
 struct ThawPermissionsView: View {
     @Environment(AppPermissions.self) private var permissions
 

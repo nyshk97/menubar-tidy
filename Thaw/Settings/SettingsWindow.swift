@@ -16,14 +16,6 @@ struct SettingsWindow: Scene {
     var body: some Scene {
         IceWindow(id: .settings) {
             SettingsView(appState: appState, navigationState: appState.navigationState)
-                .sheet(isPresented: $appState.isOnboardingPresented) {
-                    ThawOnboardingView {
-                        Defaults.set(true, forKey: .hasSeenOnboarding)
-                        appState.isOnboardingPresented = false
-                    }
-                    .environment(appState.permissions)
-                    .frame(width: ThawOnboardingWindowMetrics.width, height: ThawOnboardingWindowMetrics.height)
-                }
                 .frame(minWidth: 850, minHeight: 600)
         }
         .windowResizability(.contentSize)

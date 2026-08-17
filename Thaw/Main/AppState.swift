@@ -22,9 +22,6 @@ final class AppState {
     /// A Boolean value that indicates whether the user is dragging a menu bar item.
     private(set) var isDraggingMenuBarItem = false
 
-    /// Tracks presentation of the onboarding sheet.
-    var isOnboardingPresented = false
-
     /// Model for the app's settings.
     let settings = AppSettings()
 
@@ -128,16 +125,9 @@ final class AppState {
         diagLog.debug("setupTask: AppState setup sequence complete")
     }
 
-    /// Presents the onboarding sheet if the user hasn't seen it yet.
-    func presentOnboardingIfNeeded() {
-        if !Defaults.bool(forKey: .hasSeenOnboarding) {
-            isOnboardingPresented = true
-        }
-    }
-
     /// Completes first-launch setup based on the permissions currently granted,
-    /// then brings the app to regular activation and opens Settings. Shared by
-    /// the permissions window's Continue button and onboarding's final slide.
+    /// then brings the app to regular activation and opens Settings. Reached
+    /// from the permissions window's Continue button.
     func completeFirstLaunchSetup() {
         dismissWindow(.permissions)
         Defaults.set(true, forKey: .hasSeenOnboarding)
@@ -248,7 +238,6 @@ final class AppState {
                 // Update openWindows tracking based on actual window visibility
                 if isPresented {
                     self.openWindows.insert(.settings)
-                    self.presentOnboardingIfNeeded()
                 } else {
                     self.openWindows.remove(.settings)
                     self.deactivate(withPolicy: .accessory)

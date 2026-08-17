@@ -4902,16 +4902,112 @@ extension MenuBarItemManager {
         }
     }
 
+    /// The margin kept between an off-screen move's mouse-down and the notch.
+    ///
+    /// The notch has no clickable UI of its own, but notch utilities
+    /// (NotchDrop and the apps built on the same pattern) watch the global
+    /// event stream for a left mouse-down and open their panel when the
+    /// cursor sits inside the notch rect — expanded by a few points first,
+    /// 4 in NotchDrop's case. Posting our mouse-down there reads to them as
+    /// the user clicking the notch, so the band we aim for has to clear that
+    /// expansion, not just the notch itself.
+    private static nonisolated let notchWatcherMargin: CGFloat = 8
+
+    /// The margin kept between an off-screen move's mouse-down and the
+    /// nearest part of the menu bar that reacts to a click: a status item
+    /// on one side, the application menu on the other.
+    private static nonisolated let menuBarClickableMargin: CGFloat = 8
+
+    /// The narrowest span of empty menu bar this will aim a mouse-down into.
+    ///
+    /// Below this the midpoint sits too close to whatever bounds the span for
+    /// the margins above to mean anything.
+    private static nonisolated let minimumInertBandWidth: CGFloat = 16
+
     /// Returns a safe location for an off-screen move's initial mouse-down.
+    ///
+    /// The point has to hit-test against nothing: an off-screen target's own
+    /// coordinate would clamp to the display's left edge and route stray
+    /// clicks under the Apple menu (#774), so the event is aimed at empty
+    /// menu bar instead. Preference order is the gap between the notch and
+    /// the leftmost status item, then the gap between the application menu
+    /// and the notch, then — when neither is wide enough — the notch itself,
+    /// which is where this always aimed before notch utilities turned out to
+    /// be watching it.
     ///
     /// `NSScreen` frames use AppKit coordinates, while `CGEvent` locations use
     /// Core Graphics coordinates. Their horizontal axes align, so the notch
     /// supplies only the x-coordinate; the target supplies the event's y-coordinate.
-    static nonisolated func notchMouseDownPoint(
+    ///
+    /// - Parameters:
+    ///   - notchFrameAppKit: The frame of the display's notch.
+    ///   - displayBounds: The bounds of the display the move runs on.
+    ///   - applicationMenuMaxX: The right edge of the application menu, if known.
+    ///   - menuBarItemBounds: The bounds of the display's menu bar items,
+    ///     which the returned point must avoid. Taken from the active space
+    ///     rather than the on-screen list so the spans can still be measured
+    ///     while the menu bar is hidden behind a fullscreen window.
+    ///   - targetPointCoreGraphics: The move's real target point, which
+    ///     supplies the y-coordinate.
+    static nonisolated func offscreenMoveMouseDownPoint(
         notchFrameAppKit: CGRect,
+        displayBounds: CGRect,
+        applicationMenuMaxX: CGFloat?,
+        menuBarItemBounds: [CGRect],
         targetPointCoreGraphics: CGPoint
     ) -> CGPoint {
-        CGPoint(x: notchFrameAppKit.midX, y: targetPointCoreGraphics.y)
+        // A collapsed section is held off-screen by a control item stretched
+        // wider than the whole display. That window overlaps every candidate
+        // span here while being nothing a click can land on, so measuring
+        // against it would veto the lot and send us back to the notch.
+        let itemBounds = menuBarItemBounds.filter { $0.width < displayBounds.width }
+
+        /// The midpoint of the span, or `nil` if the span is too narrow to use.
+        func midpoint(from lower: CGFloat, to upper: CGFloat) -> CGFloat? {
+            guard upper - lower >= minimumInertBandWidth else {
+                return nil
+            }
+            return (lower + upper) / 2
+        }
+
+        /// Whether an x-coordinate clears every item.
+        ///
+        /// The spans below are already bounded by the items that neighbor
+        /// them, so this only catches an item that overlaps the notch's own
+        /// edges — the ones macOS parks behind it on a crowded bar — and
+        /// therefore fell out of both bounding filters.
+        func isInert(_ x: CGFloat) -> Bool {
+            !itemBounds.contains { bounds in
+                x >= bounds.minX - menuBarClickableMargin && x <= bounds.maxX + menuBarClickableMargin
+            }
+        }
+
+        let rightOfNotch = itemBounds
+            .filter { $0.minX >= notchFrameAppKit.maxX }
+            .map(\.minX)
+            .min()
+            .flatMap {
+                midpoint(from: notchFrameAppKit.maxX + notchWatcherMargin, to: $0 - menuBarClickableMargin)
+            }
+
+        // The application menu is capped at the notch, so anything parked to
+        // its right and left of the notch is a status item.
+        let leftOfNotchLowerBound = [
+            applicationMenuMaxX,
+            itemBounds.filter { $0.maxX <= notchFrameAppKit.minX }.map(\.maxX).max(),
+        ]
+        .compactMap(\.self)
+        .max()
+        let leftOfNotch = leftOfNotchLowerBound.flatMap {
+            midpoint(from: $0 + menuBarClickableMargin, to: notchFrameAppKit.minX - notchWatcherMargin)
+        }
+
+        let x = [rightOfNotch, leftOfNotch]
+            .compactMap(\.self)
+            .first(where: isInert)
+            ?? notchFrameAppKit.midX
+
+        return CGPoint(x: x, y: targetPointCoreGraphics.y)
     }
 
     /// Returns the default timeout for move operations associated
@@ -5265,15 +5361,15 @@ extension MenuBarItemManager {
             await eventSleep(for: .milliseconds(20))
         }
         // For notched displays, when the target is offscreen, redirect
-        // mouseDown's horizontal hit-test location into the notch itself. The
-        // notch is hardware with no clickable UI, so the OS hit-test there has
-        // nothing to dismiss, no menu to open, and no app window to surface a
-        // click against. Keep the Core Graphics y-coordinate inside the menu
-        // bar; frameOfNotch is in AppKit coordinates and its y-coordinate would
-        // instead point near the bottom of the display. mouseUp keeps its
-        // original location (the drop position the receiving app uses to place
-        // the item). For non-notched displays the original behaviour is
-        // preserved (no override).
+        // mouseDown's horizontal hit-test location into a stretch of menu bar
+        // that reacts to nothing, so the OS hit-test has nothing to dismiss,
+        // no menu to open, and no app window to surface a click against. Keep
+        // the Core Graphics y-coordinate inside the menu bar; frameOfNotch is
+        // in AppKit coordinates and its y-coordinate would instead point near
+        // the bottom of the display. mouseUp keeps its original location (the
+        // drop position the receiving app uses to place the item). For
+        // non-notched displays the original behaviour is preserved (no
+        // override).
         if !warpIsOnScreen {
             let activeScreen = NSScreen.screens.first(where: { $0.displayID == displayID })
                 ?? NSScreen.main
@@ -5281,10 +5377,33 @@ extension MenuBarItemManager {
                activeScreen.hasNotch,
                let notch = activeScreen.frameOfNotch
             {
-                mouseDown.location = Self.notchMouseDownPoint(
+                // Read here rather than passed in, so the point math itself
+                // stays pure and testable. Both queries are cheap: the item
+                // list is one window-list call with source PIDs left
+                // unresolved, and the application menu frame is cached until
+                // the frontmost app changes.
+                let menuBarItemBounds = await MenuBarItem
+                    .getMenuBarItems(on: displayID, option: .activeSpace, resolveSourcePID: false)
+                    .map(\.bounds)
+                let point = Self.offscreenMoveMouseDownPoint(
                     notchFrameAppKit: notch,
+                    displayBounds: CGDisplayBounds(displayID),
+                    applicationMenuMaxX: activeScreen.getApplicationMenuFrame()?.maxX,
+                    menuBarItemBounds: menuBarItemBounds,
                     targetPointCoreGraphics: targetPoints.start
                 )
+                if point.x == notch.midX {
+                    // The notch is the last resort: a notch utility watching
+                    // the global event stream reads this as a click on the
+                    // notch and opens its panel.
+                    MenuBarItemManager.diagLog.warning(
+                        """
+                        No inert menu bar span for \(item.logString)'s offscreen mouse-down; \
+                        falling back to the notch at x=\(point.x)
+                        """
+                    )
+                }
+                mouseDown.location = point
             }
         }
         defer {

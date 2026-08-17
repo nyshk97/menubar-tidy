@@ -137,19 +137,125 @@ struct MoveEventCoordinatesTests {
         #expect(point == CGPoint(x: bounds.minX, y: bounds.minY))
     }
 
-    /// The notch frame comes from AppKit, so only its horizontal position is
-    /// safe to reuse in a Core Graphics event.
-    @Test("A notch mouse-down keeps the Core Graphics menu bar Y coordinate")
-    func notchMouseDownKeepsCoreGraphicsMenuBarYCoordinate() {
-        let notchFrameAppKit = CGRect(x: 646, y: 924, width: 179, height: 32)
-        let targetPointCoreGraphics = CGPoint(x: -4193, y: 16.5)
+    /// The gap between the notch and the leftmost status item is the widest
+    /// stretch of menu bar that reacts to nothing, so it is preferred. Aiming
+    /// at the notch instead is what made a notch utility (NotchDrop) open its
+    /// panel on every move into the hidden section.
+    @Test("An off-screen mouse-down aims at the span between the notch and the leftmost item")
+    func offscreenMouseDownPrefersTheSpanRightOfTheNotch() {
+        let notchFrameAppKit = CGRect(x: 763, y: 1074, width: 185, height: 33)
+        let targetPointCoreGraphics = CGPoint(x: -3714, y: 16.5)
 
-        let point = MenuBarItemManager.notchMouseDownPoint(
+        let point = MenuBarItemManager.offscreenMoveMouseDownPoint(
             notchFrameAppKit: notchFrameAppKit,
+            displayBounds: CGRect(x: 0, y: 0, width: 1710, height: 1107),
+            applicationMenuMaxX: 400,
+            menuBarItemBounds: [
+                CGRect(x: 1303, y: 0, width: 35, height: 33),
+                CGRect(x: 1382, y: 0, width: 33, height: 33),
+            ],
             targetPointCoreGraphics: targetPointCoreGraphics
         )
 
-        #expect(point == CGPoint(x: notchFrameAppKit.midX, y: targetPointCoreGraphics.y))
+        // (948 + 8) ... (1303 - 8), midpoint.
+        #expect(point == CGPoint(x: 1125.5, y: targetPointCoreGraphics.y))
+        // The notch frame comes from AppKit, so only its horizontal position
+        // is safe to reuse in a Core Graphics event.
         #expect(point.y != notchFrameAppKit.midY)
+    }
+
+    /// A status item parked right against the notch leaves no room on that
+    /// side, so the span between the application menu and the notch is used.
+    @Test("An off-screen mouse-down falls back to the span left of the notch")
+    func offscreenMouseDownFallsBackToTheSpanLeftOfTheNotch() {
+        let notchFrameAppKit = CGRect(x: 763, y: 1074, width: 185, height: 33)
+
+        let point = MenuBarItemManager.offscreenMoveMouseDownPoint(
+            notchFrameAppKit: notchFrameAppKit,
+            displayBounds: CGRect(x: 0, y: 0, width: 1710, height: 1107),
+            applicationMenuMaxX: 400,
+            menuBarItemBounds: [CGRect(x: 950, y: 0, width: 35, height: 33)],
+            targetPointCoreGraphics: CGPoint(x: -3714, y: 16.5)
+        )
+
+        // (400 + 8) ... (763 - 8), midpoint.
+        #expect(point.x == 581.5)
+    }
+
+    /// An item overlapping the notch's edge bounds neither span, so the
+    /// candidate it covers has to be rejected on its own.
+    @Test("An off-screen mouse-down skips a span covered by an item that overlaps the notch")
+    func offscreenMouseDownSkipsASpanCoveredByAnOverlappingItem() {
+        let notchFrameAppKit = CGRect(x: 763, y: 1074, width: 185, height: 33)
+
+        let point = MenuBarItemManager.offscreenMoveMouseDownPoint(
+            notchFrameAppKit: notchFrameAppKit,
+            displayBounds: CGRect(x: 0, y: 0, width: 1710, height: 1107),
+            applicationMenuMaxX: 400,
+            menuBarItemBounds: [
+                CGRect(x: 940, y: 0, width: 300, height: 33),
+                CGRect(x: 1303, y: 0, width: 35, height: 33),
+            ],
+            targetPointCoreGraphics: CGPoint(x: -3714, y: 16.5)
+        )
+
+        #expect(point.x == 581.5)
+    }
+
+    /// With both spans too narrow the notch remains the last resort: a click
+    /// there still hit-tests against nothing in the OS, which is what the
+    /// screen-corner fix (#774) needed.
+    @Test("An off-screen mouse-down falls back to the notch when no span is wide enough")
+    func offscreenMouseDownFallsBackToTheNotch() {
+        let notchFrameAppKit = CGRect(x: 763, y: 1074, width: 185, height: 33)
+
+        let point = MenuBarItemManager.offscreenMoveMouseDownPoint(
+            notchFrameAppKit: notchFrameAppKit,
+            displayBounds: CGRect(x: 0, y: 0, width: 1710, height: 1107),
+            applicationMenuMaxX: 760,
+            menuBarItemBounds: [CGRect(x: 950, y: 0, width: 35, height: 33)],
+            targetPointCoreGraphics: CGPoint(x: -3714, y: 16.5)
+        )
+
+        #expect(point.x == notchFrameAppKit.midX)
+    }
+
+    /// Without a known application menu frame the left span has no lower
+    /// bound to measure from, so it is not a candidate at all.
+    @Test("An off-screen mouse-down ignores the left span when the application menu is unknown")
+    func offscreenMouseDownIgnoresTheLeftSpanWithoutAnApplicationMenu() {
+        let notchFrameAppKit = CGRect(x: 763, y: 1074, width: 185, height: 33)
+
+        let point = MenuBarItemManager.offscreenMoveMouseDownPoint(
+            notchFrameAppKit: notchFrameAppKit,
+            displayBounds: CGRect(x: 0, y: 0, width: 1710, height: 1107),
+            applicationMenuMaxX: nil,
+            menuBarItemBounds: [CGRect(x: 950, y: 0, width: 35, height: 33)],
+            targetPointCoreGraphics: CGPoint(x: -3714, y: 16.5)
+        )
+
+        #expect(point.x == notchFrameAppKit.midX)
+    }
+
+    /// The control item that holds a collapsed section off-screen is a window
+    /// wider than the display, spanning every candidate span without being
+    /// anything a click can land on. Measuring against it would leave no span
+    /// at all and send the mouse-down back to the notch.
+    @Test("An off-screen mouse-down ignores the control item that parks a collapsed section")
+    func offscreenMouseDownIgnoresTheOffscreenParkingControlItem() {
+        let notchFrameAppKit = CGRect(x: 763, y: 1074, width: 185, height: 33)
+
+        let point = MenuBarItemManager.offscreenMoveMouseDownPoint(
+            notchFrameAppKit: notchFrameAppKit,
+            displayBounds: CGRect(x: 0, y: 0, width: 1710, height: 1107),
+            applicationMenuMaxX: 400,
+            menuBarItemBounds: [
+                CGRect(x: -3713, y: 0, width: 5016, height: 33),
+                CGRect(x: 1303, y: 0, width: 35, height: 33),
+            ],
+            targetPointCoreGraphics: CGPoint(x: -3714, y: 16.5)
+        )
+
+        #expect(point.x == 1125.5)
     }
 }

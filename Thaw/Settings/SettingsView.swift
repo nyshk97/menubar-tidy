@@ -24,5 +24,8 @@ struct SettingsView: View {
             advancedSettings: appState.settings.advanced
         )
         .navigationTitle("メニューバーのレイアウト")
+        // The window is the only place the app surfaces itself, so the running
+        // version belongs where it is visible without hunting for it.
+        .navigationSubtitle("バージョン \(Constants.versionString)")
     }
 }

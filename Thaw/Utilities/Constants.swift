@@ -19,6 +19,13 @@ nonisolated enum Constants {
     /// The build string in the app's bundle.
     static let buildString = Bundle.main.buildString!
 
+    /// The short git SHA stamped into the bundle by the "Stamp Git SHA" build
+    /// phase, with a `-dirty` suffix when the tree was not clean at build time.
+    ///
+    /// `nil` when the phase did not run, which is the signal that the binary
+    /// cannot be tied back to a commit.
+    static let gitCommitSHA = Bundle.main.object(forInfoDictionaryKey: "GitCommitSHA") as? String
+
     /// The user-readable copyright string in the app's bundle.
     static let copyrightString = Bundle.main.copyrightString!
 

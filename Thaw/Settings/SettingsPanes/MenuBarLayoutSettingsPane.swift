@@ -195,6 +195,8 @@ struct MenuBarLayoutSettingsPane: View {
                     .foregroundStyle(resetStatus.isError ? .red : .secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
+        } footer: {
+            versionFooter
         }
     }
 
@@ -216,6 +218,31 @@ struct MenuBarLayoutSettingsPane: View {
             }
             .buttonStyle(.bordered)
         }
+    }
+
+    /// The running build, spelled out at the bottom of the pane.
+    ///
+    /// The title bar carries the marketing version; this repeats it with the
+    /// build number and commit so a dev build (which also renames itself) can
+    /// be told apart from the release one, and so the string can be copied
+    /// into a bug report. It rides the last section's footer rather than a
+    /// section of its own: a footer draws outside the grouped card, which is
+    /// what a version line should look like.
+    private var versionFooter: some View {
+        Text(versionFooterText)
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+            .textSelection(.enabled)
+            .frame(maxWidth: .infinity, alignment: .center)
+            .padding(.top, 8)
+    }
+
+    private var versionFooterText: String {
+        let base = "\(Constants.displayName) \(Constants.versionString) (\(Constants.buildString))"
+        guard let sha = Constants.gitCommitSHA else {
+            return base
+        }
+        return "\(base) · \(sha)"
     }
 
     private var cannotArrange: some View {

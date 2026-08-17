@@ -471,10 +471,23 @@ struct MenuBarItemValueTests {
             )
 
             #expect(first.autoDetectedName == second.autoDetectedName)
+            #expect(!first.autoDetectedName.isEmpty)
+
             // These agents are named after their owning application; the
             // window title never reaches the user-visible name.
-            #expect(first.autoDetectedName == sourceName)
-            #expect(!first.autoDetectedName.isEmpty)
+            #expect(!first.autoDetectedName.contains("PasswordsMenuBarExtra"))
+            #expect(!second.autoDetectedName.contains("SomethingElseEntirely"))
+
+            // The name comes from the application, but not verbatim: the
+            // namespace drops a trailing "Menu…" and title-cases what is
+            // left, so "TextInputMenuAgent" becomes "Text Input". Asserting
+            // equality with the runner's own name only held while that name
+            // happened to survive both transforms untouched. Compare the
+            // forms both transforms preserve instead — inserted spaces and a
+            // dropped suffix leave a prefix of the application's name.
+            let squashed = first.autoDetectedName.replacing(" ", with: "")
+            let application = sourceName.replacing(" ", with: "")
+            #expect(application.hasPrefix(squashed))
         }
 
         @Test("The Control Center BentoBox is named after Control Center itself")

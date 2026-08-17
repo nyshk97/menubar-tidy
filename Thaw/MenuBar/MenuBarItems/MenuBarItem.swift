@@ -187,6 +187,17 @@ nonisolated struct MenuBarItem: CustomStringConvertible {
             String(s).replacing(/([a-z]{2})([A-Z])/) { $0.output.1 + " " + $0.output.2 }
         }
 
+        /// Drops the trailing "Menu…" that turns "TextInputMenuAgent" into
+        /// "Text Input", keeping the whole name when that would leave nothing.
+        ///
+        /// The strip consumes everything when the owner's name *starts* with
+        /// "Menu" — as this app's own does — and an empty auto-detected name
+        /// renders as a blank row rather than a missing one.
+        func withoutMenuSuffix(_ s: String) -> String {
+            let stripped = s.replacing(/Menu.*/, with: "")
+            return stripped.isEmpty ? s : stripped
+        }
+
         guard !isControlItem else {
             return Constants.displayName
         }
@@ -214,7 +225,7 @@ nonisolated struct MenuBarItem: CustomStringConvertible {
 
         let displayName = switch tag.namespace {
         case .passwords, .weather, .textInputMenuAgent:
-            toTitleCase(bestName.replacing(/Menu.*/, with: ""))
+            toTitleCase(withoutMenuSuffix(bestName))
         case .controlCenter:
             if let match = title.prefixMatch(of: /Hearing/) {
                 toTitleCase(match.output)

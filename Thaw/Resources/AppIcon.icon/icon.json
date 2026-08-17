@@ -41,75 +41,6 @@
 	],
 	"groups": [
 		{
-			"layers": [
-				{
-					"fill-specializations": [
-						{
-							"value": {
-								"linear-gradient": [
-									"display-p3:0.94118,0.94118,0.94118,1.00000",
-									"srgb:0.94118,0.94118,0.94118,1.00000"
-								],
-								"orientation": {
-									"start": {
-										"x": 0.5,
-										"y": 0
-									},
-									"stop": {
-										"x": 0.5,
-										"y": 0.7
-									}
-								}
-							}
-						},
-						{
-							"appearance": "dark",
-							"value": {
-								"linear-gradient": [
-									"display-p3:0.40000,0.80000,1.00000,1.00000",
-									"display-p3:0.20000,0.55294,0.92157,1.00000"
-								],
-								"orientation": {
-									"start": {
-										"x": 0.5,
-										"y": 0
-									},
-									"stop": {
-										"x": 0.5,
-										"y": 0.7
-									}
-								}
-							}
-						}
-					],
-					"glass-specializations": [
-						{
-							"value": true
-						},
-						{
-							"appearance": "dark",
-							"value": true
-						}
-					],
-					"hidden": false,
-					"image-name": "innards.svg",
-					"name": "innards",
-					"position": {
-						"scale": 1.15,
-						"translation-in-points": [-1.2219968184767822, -14.5625]
-					}
-				}
-			],
-			"shadow": {
-				"kind": "neutral",
-				"opacity": 0.5
-			},
-			"translucency": {
-				"enabled": true,
-				"value": 0.75
-			}
-		},
-		{
 			"blur-material": 0.5,
 			"layers": [
 				{
@@ -186,10 +117,11 @@
 							"value": true
 						}
 					],
-					"image-name": "cube.svg",
-					"name": "cube",
+					"hidden": false,
+					"image-name": "bar.svg",
+					"name": "bar",
 					"position": {
-						"scale": 1.2,
+						"scale": 1,
 						"translation-in-points": [0, 0]
 					}
 				}

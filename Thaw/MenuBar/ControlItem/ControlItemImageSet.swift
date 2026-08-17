@@ -19,7 +19,7 @@ nonisolated struct ControlItemImageSet: Codable, Hashable, Identifiable {
         case door = "Door"
         case dot = "Dot"
         case ellipsis = "Ellipsis"
-        case iceCube = "Ice Cube"
+        case tidyBar = "Tidy Bar"
         case sunglasses = "Sunglasses"
         case custom = "Custom"
 
@@ -32,7 +32,7 @@ nonisolated struct ControlItemImageSet: Codable, Hashable, Identifiable {
             case .door: "ドア"
             case .dot: "ドット"
             case .ellipsis: "省略記号"
-            case .iceCube: "Ice Cube"
+            case .tidyBar: "Tidy バー"
             case .sunglasses: "サングラス"
             case .custom: "カスタム"
             }
@@ -60,10 +60,14 @@ nonisolated struct ControlItemImageSet: Codable, Hashable, Identifiable {
 
 nonisolated extension ControlItemImageSet {
     /// The default image set for the Ice icon.
+    ///
+    /// The app icon's emblem, minus the bar around it: a chevron for the
+    /// divider and two dots for the items beside it. Filled dots mean the
+    /// items are tucked away, hollow ones mean they are out on the bar.
     static let defaultIceIcon = ControlItemImageSet(
-        name: .iceCube,
-        hidden: .catalog("IceCubeStroke"),
-        visible: .catalog("IceCubeFill")
+        name: .tidyBar,
+        hidden: .catalog("TidyBarStroke"),
+        visible: .catalog("TidyBarFill")
     )
 
     /// The image sets that the user can choose to display in the Ice icon.
@@ -99,9 +103,9 @@ nonisolated extension ControlItemImageSet {
             visible: .catalog("EllipsisStroke")
         ),
         ControlItemImageSet(
-            name: .iceCube,
-            hidden: .catalog("IceCubeStroke"),
-            visible: .catalog("IceCubeFill")
+            name: .tidyBar,
+            hidden: .catalog("TidyBarStroke"),
+            visible: .catalog("TidyBarFill")
         ),
         ControlItemImageSet(
             name: .sunglasses,

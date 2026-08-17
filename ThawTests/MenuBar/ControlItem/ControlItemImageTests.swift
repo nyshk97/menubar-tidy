@@ -39,7 +39,7 @@ struct ControlItemImageTests {
         .builtin(.chevronLarge),
         .builtin(.chevronSmall),
         .symbol("circle.fill"),
-        .catalog("IceCube"),
+        .catalog("TidyBar"),
         .data(Data([0x00, 0x01, 0x02])),
     ]
 
@@ -169,7 +169,7 @@ struct ControlItemImageTests {
     /// stores catalog and symbol names side by side.
     @Test("The same name in different cases stays distinct")
     func sameNameInDifferentCasesStaysDistinct() {
-        #expect(ControlItemImage.symbol("IceCube") != ControlItemImage.catalog("IceCube"))
+        #expect(ControlItemImage.symbol("TidyBar") != ControlItemImage.catalog("TidyBar"))
     }
 
     @Test("Equal images hash alike")

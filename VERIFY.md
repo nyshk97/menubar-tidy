@@ -116,6 +116,36 @@ cp -R "Build/Build/Products/Debug/MenuBar Tidy.app" "$FRESH/check.app"
 # NSWorkspace.shared.icon(forFile:) で PNG 化して目視
 ```
 
+Debug ビルドは `Contents/Resources/AppIcon.icns` を持つので、そちらを展開するほうが速い:
+
+```sh
+sips -s format png --resampleWidth 512 \
+  "Build/Build/Products/Debug/MenuBar Tidy.app/Contents/Resources/AppIcon.icns" --out /tmp/appicon.png
+```
+
+### メニューバーの状態アイコン
+
+**アプリを起動して目視しない。** 権限が要るうえ、実メニューバーを掴んで作業中の環境を壊す。
+ビルド成果物の `Assets.car` から読んで、`ControlItemImage.catalog` と同じリサイズを通した絵を書き出す:
+
+```sh
+swift scripts/render-status-icons.swift "Build/Build/Products/Debug/MenuBar Tidy.app" /tmp/icons
+```
+
+- 出力の `ratio` は **1.0 が正**。アセットは 34x34px @2x = 17x17pt で作ってあり、
+  `max(幅/25, 高さ/17)` がちょうど 1.0 になってリサンプリングが起きない
+  （40x40 で作ると 40→34 の縮小が入って輪郭が甘くなる）
+- カタログに入ったかどうかだけなら `assetutil` で足りる:
+
+```sh
+xcrun --sdk macosx assetutil --info \
+  "Build/Build/Products/Debug/MenuBar Tidy.app/Contents/Resources/Assets.car" \
+  | grep -A2 TidyBar
+```
+
+グリフの大きさは実機のメニューバーを実測して合わせる（現状: Bluetooth 8.5x14.5pt /
+Wi-Fi 17x12.5pt / バッテリー 16x12pt に対して TidyBar は 14.7x11pt）。
+
 ---
 
 ## 5. 5つの中核機能（実機確認）
@@ -132,7 +162,7 @@ open "Build/Build/Products/Debug/MenuBar Tidy.app"
 
 | # | 確認項目 | 期待 |
 |---|---|---|
-| 1 | 自アプリのアイコン | Control Center の左にキューブが1個 |
+| 1 | 自アプリのアイコン | Control Center の左にシェブロン＋ドット2つが1個 |
 | 2 | 押し出し | 仕切りより左の項目がメニューバーから消える |
 | 3 | 空欄クリック | ThawBar（独立バー）が出る |
 | 4 | **ThawBar 上のクリック転送** | アイコンを押すとそのアプリのメニューが開く |

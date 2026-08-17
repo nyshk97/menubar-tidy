@@ -63,21 +63,29 @@ struct ControlItemImageConversionTests {
 
     // MARK: Catalog
 
-    @Test("A known catalog asset converts and is resized to menu bar scale")
-    func knownCatalogAssetConvertsAndResizes() throws {
-        // A real asset the default icon set ships (see ControlItemImageSet).
-        let name = "IceCubeStroke"
+    /// Real assets the icon sets ship (see `ControlItemImageSet`).
+    ///
+    /// `TidyBarStroke` is the default set's asset and is authored at exactly
+    /// 25x17 scale, so it passes through untouched; `EllipsisStroke` is larger
+    /// and exercises the downscale.
+    @Test(
+        "A known catalog asset converts and is fitted to menu bar scale",
+        arguments: ["TidyBarStroke", "EllipsisStroke"]
+    )
+    func knownCatalogAssetConvertsAndFits(name: String) throws {
         let original = try #require(NSImage(named: name))
 
         let image = try #require(
             ControlItemImage.catalog(name).nsImage(customIceIconIsTemplate: false)
         )
 
-        // The conversion scales the asset down to fit the 25x17 menu bar
-        // box, preserving aspect ratio.
+        // The conversion fits the asset into the 25x17 menu bar box,
+        // preserving aspect ratio.
         let ratio = max(original.size.width / 25, original.size.height / 17)
         #expect(image.size.width == original.size.width / ratio)
         #expect(image.size.height == original.size.height / ratio)
+        #expect(image.size.width <= 25)
+        #expect(image.size.height <= 17)
     }
 
     @Test("An unknown catalog name converts to nil")

@@ -36,28 +36,3 @@ struct VisualEffectBackground: NSViewRepresentable {
         }
     }
 }
-
-/// A small SF Symbol glyph, optionally drawn on a frosted circular badge —
-/// the welcome orbit's "planet" look wants a badge (so it reads as a
-/// floating object), but a real macOS menu bar icon is just a plain
-/// monochrome glyph with no background shape at all. Set
-/// `showBackground: false` for the demo menu bar mockups so they look like
-/// an authentic bar instead of a row of buttons.
-struct GlassIconBubble: View {
-    let symbol: String
-    var size: CGFloat = 30
-    var tint: Color = .primary
-    var showBackground: Bool = true
-
-    var body: some View {
-        Image(systemName: symbol)
-            .font(.system(size: size * 0.46, weight: .medium))
-            .foregroundStyle(tint.opacity(0.75))
-            .frame(width: size, height: size)
-            .background {
-                if showBackground {
-                    Circle().fill(.regularMaterial)
-                }
-            }
-    }
-}

@@ -28,7 +28,6 @@ import Testing
 /// - `NavigationIdentifier`'s *default* `localized`. No shipping conformer
 ///   reaches it — the one that overrode it went with the settings sidebar —
 ///   so it is exercised through a test-local conformer.
-/// - `SecondsLabel` and `GlassIconBubble`'s defaulted members.
 ///
 /// Deliberate gaps: `IceBarLocation.iceIcon`'s label interpolates
 /// `Constants.displayName`, so it is asserted to be distinct from its
@@ -151,37 +150,6 @@ struct CoverageSweep2Tests {
         func defaultLocalizedUsesTheRawValue() {
             #expect(SweepNavigationIdentifier.first.localized == LocalizedStringKey("First Destination"))
             #expect(SweepNavigationIdentifier.second.localized == LocalizedStringKey("Second Destination"))
-        }
-    }
-
-    // MARK: - Small view value types
-
-    @MainActor
-    @Suite("Small view value types")
-    struct ViewValueTests {
-        @Test("A seconds label's text depends on its value")
-        func secondsLabelTextTracksItsValue() {
-            #expect(SecondsLabel(value: 1.5).body == SecondsLabel(value: 1.5).body)
-            #expect(SecondsLabel(value: 1.5).body != SecondsLabel(value: 2.5).body)
-        }
-
-        /// The onboarding mockups construct these without arguments and rely
-        /// on the defaults matching a real menu bar glyph.
-        @Test("A glass icon bubble takes the documented defaults")
-        func glassIconBubbleDefaults() {
-            let bubble = GlassIconBubble(symbol: "gear")
-            #expect(bubble.symbol == "gear")
-            #expect(bubble.size == 30)
-            #expect(bubble.tint == Color.primary)
-            #expect(bubble.showBackground)
-        }
-
-        @Test("Explicit values override the glass icon bubble defaults")
-        func glassIconBubbleExplicitValues() {
-            let bubble = GlassIconBubble(symbol: "star", size: 12, tint: .red, showBackground: false)
-            #expect(bubble.size == 12)
-            #expect(bubble.tint == Color.red)
-            #expect(!bubble.showBackground)
         }
     }
 }

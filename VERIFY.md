@@ -145,48 +145,32 @@ grep -iE "controlitem|occlu|temporarilyShow|AX activation" ~/Library/Logs/Thaw/<
 
 ---
 
-## 6. ローカライズ
+## 6. 文字列
 
-文字列カタログ（`Thaw/Resources/Localizable.xcstrings`）は **en + ja のみ**。翻訳の欠けと
-未使用キーはビルド生成物から機械的に確認できる。
+**ローカライズは廃止した。** 文字列カタログは無く、UI に出る文字列は Swift のリテラルに
+日本語で直接書いてある。`String(localized:)` も `LocalizedStringKey` もコードに存在しない。
 
-ビルドすると、Swift から抽出されたキーが 1 ソースファイルにつき 1 つの JSON として出る:
-
-```sh
-python3 - <<'EOF'
-import json, glob, os
-base = 'Build/Build/Intermediates.noindex/Thaw.build/Debug/Thaw.build/Objects-normal/arm64/'
-used = set()
-for f in glob.glob(base + '*.stringsdata'):
-    if os.path.basename(f).startswith('GeneratedStringSymbols'):
-        continue  # カタログ自身から生成されたシンボル表。使用箇所ではない
-    d = json.load(open(f))
-    src = d.get('source', '')
-    if src and not os.path.exists(src):
-        continue  # 削除済みファイルの残骸
-    for entries in d.get('tables', {}).values():
-        used |= {e['key'] for e in entries}
-cat = set(json.load(open('Thaw/Resources/Localizable.xcstrings'))['strings'])
-print('未使用キー:', len(cat - used))
-print('コードにあるがカタログに無い:', sorted(used - cat))
-EOF
-```
-
-- **`GeneratedStringSymbols_Localizable.stringsdata` は必ず除外する**。カタログのキーのうち
-  識別子として妥当なものを Xcode が機械的に列挙したもので、使用箇所ではない。含めると
-  死んだキーが「使用中」に見える
-- **`LocalizedStringKey(変数)` で解決されるキーはこの抽出に出ない**。現状 `IceWindow.titleKey`
-  の `"Permissions"` が該当。刈るときは手で足す
-
-コンパイル結果も確認する（`en` は development region なので `en.lproj` は作られない）:
+英語が紛れ込んでいないかの走査:
 
 ```sh
-ls -d Build/Build/Products/Debug/Thaw.app/Contents/Resources/*.lproj   # ja.lproj のみ
-plutil -p Build/Build/Products/Debug/Thaw.app/Contents/Resources/ja.lproj/Localizable.strings | grep -c "=>"
+grep -rnE '(Text|Label|Button|Toggle)\(\s*"[A-Za-z]|withTitle: "[A-Za-z]|\btitle: "[A-Za-z]|(messageText|informativeText)\s*=\s*"[A-Za-z]' --include="*.swift" Thaw \
+  | grep -vE 'MenuBarItemTag|iconName|systemSymbolName|accessibilityDescription'
 ```
 
-**インクリメンタルビルドでは消した言語の空 `.lproj` が残る**ので、言語を削った直後の確認は
-`rm -rf Build` してからにする。
+- 除外している `MenuBarItemTag` / `iconName` / `systemSymbolName` は**システム側の識別子**で
+  UI に出ない。訳してはいけない
+- `macOS ...` で始まる行は日本語文の中の英単語なので正常
+
+ローカライズ API が復活していないこと、リソースが混入していないことの確認:
+
+```sh
+grep -rn "String(localized\|LocalizedStringKey" --include="*.swift" Thaw   # 0 件
+ls -d Build/Build/Products/Debug/Thaw.app/Contents/Resources/*.lproj        # 「no matches」が正
+```
+
+- **`Text("日本語")` は今も `LocalizedStringKey` を経由する**（SwiftUI の型がそうなっている）。
+  カタログが無いのでキー自身にフォールバックし、日本語がそのまま出る。ビルド生成物の
+  `*.stringsdata` に日本語キーが並ぶのはこのため。異常ではない
 
 ---
 

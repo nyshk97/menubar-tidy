@@ -924,17 +924,6 @@ final class ControlItem {
 
         menu.addItem(.separator())
 
-        let supportItem = NSMenuItem(
-            title: "\(Constants.displayName) をサポート…",
-            action: #selector(openDonateURL),
-            keyEquivalent: ""
-        )
-        supportItem.image = NSImage(systemSymbolName: "heart.circle.fill", accessibilityDescription: "Support")
-        supportItem.target = self
-        menu.addItem(supportItem)
-
-        menu.addItem(.separator())
-
         let quitItem = NSMenuItem(
             title: "\(Constants.displayName) を終了",
             action: #selector(NSApp.terminate),
@@ -994,11 +983,6 @@ final class ControlItem {
             profileManager.activeProfileID = profileID
             profileManager.applyProfile(profile, to: appState, previousProfileID: previousID)
         }
-    }
-
-    /// Opens the donate URL.
-    @objc private func openDonateURL() {
-        NSWorkspace.shared.open(Constants.donateURL)
     }
 }
 

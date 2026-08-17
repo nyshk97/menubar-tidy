@@ -42,15 +42,9 @@ nonisolated enum Constants {
 
     // MARK: - App URLs (from Info.plist)
 
-    /// Info.plist key used to configure the donation URL.
-    static let donateURLInfoPlistKey = "ThawDonateURL"
-
     /// Info.plist key used to configure the executable URI for
     /// `MenuBarItemSpacingManager` shell commands.
     static let menuBarItemSpacingExecutableURIInfoPlistKey = "ThawMenuBarItemSpacingExecutableURI"
-
-    /// The URL for sponsoring/donating.
-    static let donateURL: URL = requiredInfoPlistURL(donateURLInfoPlistKey)
 
     /// The executable URL used by `MenuBarItemSpacingManager`.
     static let menuBarItemSpacingExecutableURL: URL = requiredInfoPlistURL(menuBarItemSpacingExecutableURIInfoPlistKey)

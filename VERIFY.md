@@ -3,6 +3,9 @@
 `thaw-app/Thaw` のフォークを最小構成に削り込む作業（`INVESTIGATION.md` 参照）用の確認手順。
 変更内容に関係する項目だけ実行すればよい。全部を毎回やる必要はない。
 
+以下のコマンドは `.mise.toml` のタスクにまとめてある（`mise tasks` で一覧）。
+`mise run test` はテスト後の後始末（§2）を自動で行う。
+
 ---
 
 ## 0. 前提
@@ -45,7 +48,10 @@ xcodebuild -project Thaw.xcodeproj -scheme Thaw -configuration Debug -derivedDat
 - **同時に2本走らせない**。同じ `-derivedDataPath` を指す `xcodebuild test` を並行起動すると、
   2つのテストホストがビルド成果物と UserDefaults ドメインを奪い合い、片方が途中で打ち切られて
   `TEST FAILED` を返す（実例: 2235 tests のはずが 782 tests で終了）。**コードの問題と見分けが
-  つかない**。実行前に `pgrep -c xcodebuild` で 0 を確認する。件数が想定と違ったら並行実行を疑う
+  つかない**。実行前に `pgrep -x xcodebuild` が何も出さないことを確認する（macOS の `pgrep` に
+  `-c` は無い）。件数が想定と違ったら並行実行を疑う
+- **ローカルでは `-destination 'platform=macOS'` を付けない**。付けると対象が一部（557 件）に
+  絞られたうえ `TEST FAILED` になる。CI がこれを付けているのは runner 側の事情
 
 ### ⚠ テストの後始末（必須）
 

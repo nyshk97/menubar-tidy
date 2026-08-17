@@ -1,0 +1,174 @@
+[tools]
+swiftformat = "0.62.1"
+swiftlint = "0.65.0"
+
+[env]
+PROJECT = "Thaw.xcodeproj"
+SCHEME = "Thaw"
+CONFIGURATION = "Debug"
+DERIVED_DATA = "Build"
+APP = "Build/Build/Products/Debug/MenuBar Tidy.app"
+BUNDLE_ID = "com.nyshk97.Thaw"
+# 整形の対象。Build/ 配下には SwiftPM の checkout（他人のコード）が入るので、
+# `swiftformat .` にはしない。
+SOURCES = "MenuBarItemService Shared Thaw ThawTests"
+
+# --- ビルドと実行 ---------------------------------------------------------
+
+[tasks.build]
+description = "Debug ビルド"
+run = '''
+set -uo pipefail
+xcodebuild -project "$PROJECT" -scheme "$SCHEME" \
+    -configuration "$CONFIGURATION" -derivedDataPath "$DERIVED_DATA" build
+'''
+
+[tasks.run]
+description = "ビルドして起動する（起動中のものは先に終了）"
+depends = ["kill", "build"]
+run = 'open "$APP"'
+
+[tasks.kill]
+description = "ビルド済みアプリとテストホストの常駐を止める"
+run = 'pkill -f "menubar-tidy/Build.*MenuBar Tidy" || true'
+
+[tasks.clean]
+description = "ビルド成果物を捨てる"
+run = 'rm -rf "$DERIVED_DATA" 2>/dev/null || true'
+
+# --- テスト ---------------------------------------------------------------
+
+[tasks.test]
+description = "テストを実行する（終了時に UserDefaults の汚染を自動で後始末）"
+# PIPESTATUS を使うので既定の sh ではなく bash で走らせる。
+shell = "bash -c"
+run = '''
+set -uo pipefail
+
+# 同じ derivedDataPath を指す xcodebuild が2本走ると、テストホストが成果物と
+# UserDefaults を奪い合って途中で打ち切られる。コードの問題と見分けがつかない。
+# macOS の pgrep に -c は無いので、終了コードで判定する。
+if pgrep -x xcodebuild > /dev/null; then
+    echo "error: xcodebuild が既に走っている。終わるまで待つこと（VERIFY.md §2）" >&2
+    exit 1
+fi
+
+trap 'mise run test:cleanup' EXIT
+
+# -destination は付けない。付けるとテスト対象が一部（557 件）に絞られて
+# TEST FAILED になる。CI が付けているのは runner 側の事情。
+xcodebuild -project "$PROJECT" -scheme "$SCHEME" \
+    -configuration "$CONFIGURATION" -derivedDataPath "$DERIVED_DATA" test 2>&1 \
+    | grep -E "✘|error:|Test run with|TEST (SUCCEEDED|FAILED)"
+status=${PIPESTATUS[0]}
+
+# 「Executed 0 tests」は XCTest 側のカウントで無視してよい。実数は
+# 「Test run with N tests」の行に出る（このプロジェクトは swift-testing）。
+exit "$status"
+'''
+
+[tasks."test:cleanup"]
+description = "テストが残す常駐プロセスと UserDefaults の汚染を掃除する"
+run = '''
+set -uo pipefail
+
+pkill -f "menubar-tidy/Build.*MenuBar Tidy" || true
+
+# ShowOnHover の既定は false。1 が読めたらテストの書き込みが実ドメインに
+# 落ちている（アイコンが潰れる・空欄クリックが効かない等の原因になる）。
+if [ "$(defaults read "$BUNDLE_ID" ShowOnHover 2>/dev/null || echo 0)" = "1" ]; then
+    echo "UserDefaults が汚染されている。退避して削除する。"
+    defaults export "$BUNDLE_ID" /tmp/thaw-domain-backup.plist
+    defaults delete "$BUNDLE_ID"
+    echo "退避先: /tmp/thaw-domain-backup.plist"
+else
+    echo "UserDefaults の汚染なし。"
+fi
+'''
+
+# --- 静的検査 -------------------------------------------------------------
+
+[tasks.lint]
+description = "SwiftLint を回す"
+run = "swiftlint lint --quiet"
+
+[tasks."lint:fix"]
+description = "SwiftLint の自動修正をかける"
+run = "swiftlint lint --fix"
+
+[tasks.format]
+description = "SwiftFormat で整形する"
+run = "swiftformat $SOURCES"
+
+[tasks."format:check"]
+description = "SwiftFormat の差分だけ見る（書き換えない）"
+run = "swiftformat $SOURCES --lint"
+
+[tasks."lint:inputs"]
+description = "SwiftLint の入力ファイルリストを再生成する"
+run = "scripts/generate-swiftlint-inputs.sh"
+
+[tasks."lint:inputs:verify"]
+description = "入力ファイルリストが最新か確認する（CI と同じ検査）"
+run = '''
+set -euo pipefail
+scripts/generate-swiftlint-inputs.sh /tmp/swiftlint-inputs.xcfilelist
+diff -u scripts/swiftlint-inputs.xcfilelist /tmp/swiftlint-inputs.xcfilelist
+echo "入力リストは最新。"
+'''
+
+[tasks.check]
+description = "整形・lint・入力リストの鮮度をまとめて確認する（書き換えない）"
+depends = ["format:check", "lint", "lint:inputs:verify"]
+
+[tasks.strings]
+description = "UI 文字列に英語が紛れ込んでいないか走査する（このアプリは日本語直書き）"
+run = '''
+set -uo pipefail
+
+echo "== 英語リテラルの疑い（macOS ... で始まる行は日本語文中の英単語で正常）=="
+grep -rnE '(Text|Label|Button|Toggle)\(\s*"[A-Za-z]|withTitle: "[A-Za-z]|\btitle: "[A-Za-z]|(messageText|informativeText)\s*=\s*"[A-Za-z]' --include="*.swift" Thaw \
+    | grep -vE 'MenuBarItemTag|iconName|systemSymbolName|accessibilityDescription' || echo "（なし）"
+
+echo
+echo "== ローカライズ API の復活（0 件が正）=="
+grep -rn "String(localized\|LocalizedStringKey" --include="*.swift" Thaw || echo "（なし）"
+'''
+
+# --- 実機での確認 ---------------------------------------------------------
+
+[tasks.items]
+description = "メニューバー項目の実際の座標と幅を出す（スクショでは判断できない）"
+run = "swift scripts/list-menu-bar-items.swift"
+
+[tasks.logs]
+description = "最新のアプリログを追う。引数を渡すとその正規表現で絞り込む"
+usage = 'arg "<pattern>" help="絞り込む正規表現" default=""'
+run = '''
+set -uo pipefail
+log_dir="$HOME/Library/Logs/Thaw"
+latest="$log_dir/$(ls -t "$log_dir" 2>/dev/null | head -1)"
+if [ ! -f "$latest" ]; then
+    echo "error: ログがない（アプリを一度起動すること）: $log_dir" >&2
+    exit 1
+fi
+echo "== $latest ==" >&2
+if [ -z "$usage_pattern" ]; then
+    tail -f "$latest"
+else
+    grep -iE "$usage_pattern" "$latest"
+fi
+'''
+
+[tasks.info]
+description = "ビルド済みバンドルの表示名と署名を確認する"
+run = '''
+set -uo pipefail
+/usr/libexec/PlistBuddy -c "Print :CFBundleDisplayName" "$APP/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP/Contents/Info.plist"
+codesign -dvv "$APP" 2>&1 | grep -E "Identifier|TeamIdentifier"
+'''
+
+[tasks.defaults]
+description = "アプリの UserDefaults を丸ごと読む"
+run = 'defaults read "$BUNDLE_ID"'

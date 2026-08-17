@@ -133,7 +133,7 @@ final class ProfileManager {
         focusFilterActivatedTask?.cancel()
         focusFilterActivatedTask = debouncedNotificationTask(
             center: DistributedNotificationCenter.default(),
-            name: Notification.Name("com.stonerl.Thaw.focusFilterActivated"),
+            name: Notification.Name("com.nyshk97.Thaw.focusFilterActivated"),
             interval: .seconds(0.5)
         ) { [weak self] in
             await self?.applyFocusFilterProfile()
@@ -143,7 +143,7 @@ final class ProfileManager {
         focusFilterDeactivatedTask?.cancel()
         focusFilterDeactivatedTask = debouncedNotificationTask(
             center: DistributedNotificationCenter.default(),
-            name: Notification.Name("com.stonerl.Thaw.focusFilterDeactivated"),
+            name: Notification.Name("com.nyshk97.Thaw.focusFilterDeactivated"),
             interval: .seconds(0.5)
         ) { [weak self] in
             await self?.handleFocusFilterDeactivated()

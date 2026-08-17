@@ -453,8 +453,28 @@ enum ProfileLayoutLogReplay {
         let provisionalIdentityOrphans: Set<String>
     }
 
-    private static let visibleCtrlUID = "com.stonerl.Thaw:Thaw.ControlItem.Visible"
-    private static let hiddenCtrlUID = "com.stonerl.Thaw:Thaw.ControlItem.Hidden"
+    /// The bundle identifier the captured field logs were recorded under.
+    ///
+    /// The fixtures are real logs from upstream Thaw builds and cannot be
+    /// regenerated, but a control item's UID is namespaced by the bundle
+    /// identifier of whichever build emitted it, and this fork ships its own.
+    /// Left alone, every replay would compare a recorded upstream UID against
+    /// a live fork UID and fail on a difference that says nothing about the
+    /// layout logic under test.
+    private static let capturedBundleID = "com.stonerl.Thaw"
+
+    /// Rewrites the recorded namespace to the running one, so a replayed log
+    /// and a live ``MenuBarItemTag`` describe the same control item.
+    ///
+    /// Applied on the way into ``parse(_:)`` rather than to the fixtures
+    /// themselves: the field logs stay verbatim on disk, which is what makes
+    /// them evidence.
+    private static func retargeted(_ text: String) -> String {
+        text.replacingOccurrences(of: capturedBundleID, with: Constants.bundleIdentifier)
+    }
+
+    private static let visibleCtrlUID = "\(Constants.bundleIdentifier):Thaw.ControlItem.Visible"
+    private static let hiddenCtrlUID = "\(Constants.bundleIdentifier):Thaw.ControlItem.Hidden"
 
     /// Parses a captured diagnostic log into replayable cycles.
     ///
@@ -468,6 +488,8 @@ enum ProfileLayoutLogReplay {
     /// The checked-in fixtures are real captured field logs that cannot be
     /// regenerated, so the production messages must not be reworded.
     static func parse(_ text: String) -> Parsed {
+        let text = retargeted(text)
+
         var cycles = [Cycle]()
         var unresolved = Set<String>()
         var current: Cycle?

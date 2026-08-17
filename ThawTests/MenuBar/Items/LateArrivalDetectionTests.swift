@@ -162,7 +162,7 @@ struct LateArrivalDetectionTests {
     func controlItemsAreNeverLateArrivals() {
         let divider = MenuBarItem.fixture(
             tag: MenuBarItemTag(
-                namespace: .string("com.stonerl.Thaw"),
+                namespace: .string(Constants.bundleIdentifier),
                 title: "Thaw.ControlItem.Hidden"
             ),
             windowID: 27481,

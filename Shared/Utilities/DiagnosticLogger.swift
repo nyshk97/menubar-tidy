@@ -90,7 +90,7 @@ final nonisolated class DiagnosticLogger: @unchecked Sendable {
 
     /// Internal logger for DiagnosticLogger's own messages.
     private let osLog = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.stonerl.Thaw",
+        subsystem: Bundle.main.bundleIdentifier ?? "com.nyshk97.Thaw",
         category: "DiagnosticLogger"
     )
 
@@ -112,7 +112,7 @@ final nonisolated class DiagnosticLogger: @unchecked Sendable {
 
     /// Serial queue for file I/O.
     private let writeQueue = DispatchQueue(
-        label: "com.stonerl.Thaw.DiagnosticLogger.writeQueue",
+        label: "com.nyshk97.Thaw.DiagnosticLogger.writeQueue",
         qos: .utility
     )
 
@@ -345,7 +345,7 @@ nonisolated struct DiagLog {
 
     init(category: String) {
         self.osLogger = Logger(
-            subsystem: Bundle.main.bundleIdentifier ?? "com.stonerl.Thaw",
+            subsystem: Bundle.main.bundleIdentifier ?? "com.nyshk97.Thaw",
             category: category
         )
         self.category = category

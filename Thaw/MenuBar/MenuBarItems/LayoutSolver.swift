@@ -1573,7 +1573,7 @@ nonisolated enum LayoutSolver {
     ///
     /// **Misattributed own-namespace entries (#927).** Source-PID resolution
     /// occasionally hands a foreign window Thaw's own PID, and the layout then
-    /// holds e.g. `com.stonerl.Thaw:WiFi` for an item Control Center owns.
+    /// holds e.g. `com.nyshk97.Thaw:WiFi` for an item Control Center owns.
     /// Only the control items and spacers belong under this namespace, so
     /// everything else is dropped.
     ///
@@ -1601,7 +1601,7 @@ nonisolated enum LayoutSolver {
         // and counting it as one is worse than leaving it alone: it makes the
         // provisional-duplicate rule below delete the *genuine* Control Center
         // twin. #927's reporter lost `com.apple.controlcenter:WiFi` that way
-        // and kept `com.stonerl.Thaw:WiFi`, so the live WiFi item was planned
+        // and kept `com.nyshk97.Thaw:WiFi`, so the live WiFi item was planned
         // as unmanaged on every apply.
         var titlesWithRealOwner = Set<String>()
         for identifiers in savedSectionOrder.values {

@@ -14,7 +14,7 @@ nonisolated enum Defaults {
     ///
     /// Production never assigns this; it stays `.standard` for the life of
     /// the process. It exists so tests can point the whole `Defaults` facade
-    /// at a scratch suite instead of the user's real `com.stonerl.Thaw`
+    /// at a scratch suite instead of the user's real `com.nyshk97.Thaw`
     /// domain. Without it, exercising anything that persists a setting
     /// rewrites the defaults of whoever is running the tests, and the suite
     /// has to defend itself with per-key snapshot/restore that is not safe

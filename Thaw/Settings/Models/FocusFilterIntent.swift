@@ -87,7 +87,7 @@ struct ThawFocusFilter: SetFocusFilterIntent {
             // Focus deactivated — clear the stored profile and notify.
             Defaults.removeObject(forKey: .focusFilterRequestedProfileID)
             DistributedNotificationCenter.default().postNotificationName(
-                Notification.Name("com.stonerl.Thaw.focusFilterDeactivated"),
+                Notification.Name("com.nyshk97.Thaw.focusFilterDeactivated"),
                 object: nil,
                 deliverImmediately: true
             )
@@ -96,7 +96,7 @@ struct ThawFocusFilter: SetFocusFilterIntent {
 
         Defaults.set(profile.id, forKey: .focusFilterRequestedProfileID)
         DistributedNotificationCenter.default().postNotificationName(
-            Notification.Name("com.stonerl.Thaw.focusFilterActivated"),
+            Notification.Name("com.nyshk97.Thaw.focusFilterActivated"),
             object: nil,
             userInfo: ["profileID": profile.id],
             deliverImmediately: true

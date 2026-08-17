@@ -47,7 +47,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // seconds — the delay behind #767. Healthy calls return in well under
         // 100 ms, so a one second ceiling costs nothing and lets the fallback
         // paths run while the user is still watching. Override with:
-        //   defaults write com.stonerl.Thaw axMessagingTimeout -float <seconds>
+        //   defaults write com.nyshk97.Thaw axMessagingTimeout -float <seconds>
         UIElement.defaultMessagingTimeout = Float(
             max(0, (Defaults.object(forKey: .axMessagingTimeout) as? Double) ?? Defaults.DefaultValue.axMessagingTimeout)
         )

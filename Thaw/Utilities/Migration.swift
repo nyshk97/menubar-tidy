@@ -12,8 +12,9 @@ import Foundation
 /// the current format.
 ///
 /// Migrations for Ice's `0.8.0` through `0.11.13.1` releases used to live here.
-/// Thaw has only ever read its own defaults domain, `com.stonerl.Thaw`, and no
-/// Thaw release wrote those older formats into it, so none of them could run.
+/// Thaw has only ever read its own defaults domain — `com.stonerl.Thaw`
+/// upstream, `com.nyshk97.Thaw` in this fork — and no Thaw release wrote those
+/// older formats into it, so none of them could run.
 /// Settings that do come from Ice arrive through ``IceSettingsImporter``, which
 /// converts them as it reads them.
 @MainActor

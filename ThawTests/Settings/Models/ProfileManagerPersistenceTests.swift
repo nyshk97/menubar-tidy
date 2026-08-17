@@ -430,21 +430,6 @@ struct ProfileManagerPersistenceTests {
 
     // MARK: - Remaining Error Paths
 
-    @Test("Setting a hook on a profile whose file is missing throws")
-    func settingAHookOnAMissingProfileThrows() throws {
-        let gone = makeProfile(named: "Gone")
-
-        try withManager(seeding: [gone], omittingFilesFor: [gone.id]) { manager, _ in
-            #expect(throws: CocoaError.self) {
-                try manager.setHook(
-                    HookScript(path: "/tmp/pre.sh", timeoutSeconds: 5),
-                    phase: .pre,
-                    forProfileID: gone.id
-                )
-            }
-        }
-    }
-
     @Test("Exporting an unknown profile throws")
     func exportingAnUnknownProfileThrows() throws {
         try withManager(seeding: []) { manager, tmp in
@@ -474,57 +459,6 @@ struct ProfileManagerPersistenceTests {
 
     // MARK: - Inert Without an App State
 
-    @Test("A focus filter request that was never recorded leaves the active profile alone")
-    func focusFilterWithoutARequestIsIgnored() async throws {
-        try await withTemporaryDirectory { tmp in
-            try seedManifest(with: [], omittingFilesFor: [], into: tmp)
-            let manager = ProfileManager(profilesDirectory: tmp)
-
-            try await withScratchDefaults { _ in
-                await manager.applyFocusFilterProfile()
-            }
-
-            #expect(manager.activeProfileID == nil)
-            #expect(manager.layoutTask == nil)
-        }
-    }
-
-    @Test("A focus filter request naming an unparsable identifier is ignored")
-    func focusFilterWithAnUnparsableIdentifierIsIgnored() async throws {
-        try await withTemporaryDirectory { tmp in
-            try seedManifest(with: [], omittingFilesFor: [], into: tmp)
-            let manager = ProfileManager(profilesDirectory: tmp)
-
-            try await withScratchDefaults { suite in
-                suite.set("not-a-uuid", forKey: "FocusFilterRequestedProfileID")
-                await manager.applyFocusFilterProfile()
-            }
-
-            #expect(manager.activeProfileID == nil)
-            #expect(manager.layoutTask == nil)
-        }
-    }
-
-    @Test("A focus filter request cannot activate a profile before setup has run")
-    func focusFilterWithoutAnAppStateActivatesNothing() async throws {
-        let seed = makeProfile(named: "Focused")
-
-        try await withTemporaryDirectory { tmp in
-            try seedManifest(with: [seed], omittingFilesFor: [], into: tmp)
-            let manager = ProfileManager(profilesDirectory: tmp)
-            let requestedID = seed.id.uuidString
-
-            try await withScratchDefaults { suite in
-                suite.set(requestedID, forKey: "FocusFilterRequestedProfileID")
-                await manager.applyFocusFilterProfile()
-            }
-
-            // Marking the profile active without ever pushing it into the app
-            // would leave the UI claiming a profile that is not applied.
-            #expect(manager.activeProfileID == nil)
-            #expect(manager.layoutTask == nil)
-        }
-    }
 
     @Test("Re-applying the active profile before setup has run schedules no layout work")
     func reapplyWithoutAnAppStateSchedulesNothing() throws {

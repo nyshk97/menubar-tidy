@@ -259,10 +259,6 @@ final class AdvancedSettings {
         }
     }
 
-    /// Storage for internal observers.
-    @ObservationIgnored
-    private var cancellables = Set<AnyCancellable>()
-
     /// The shared app state.
     @ObservationIgnored
     private(set) weak var appState: AppState?
@@ -270,13 +266,12 @@ final class AdvancedSettings {
     /// Performs the initial setup of the model.
     ///
     /// The app state is only stored, never read, by this model: the setup it
-    /// performs is reading `Defaults` and subscribing to the Settings-URI
-    /// notification. The parameter is optional so that setup can be driven
-    /// without standing up an ``AppState``; the app always passes one.
+    /// performs is reading `Defaults`. The parameter is optional so that setup
+    /// can be driven without standing up an ``AppState``; the app always
+    /// passes one.
     func performSetup(with appState: AppState? = nil) {
         self.appState = appState
         loadInitialState()
-        configureObservers()
     }
 
     /// Loads the model's initial state.
@@ -322,80 +317,5 @@ final class AdvancedSettings {
             rawValues.compactMap(MenuBarSection.Name.init(rawValue:)).uniqued()
         )
         return preferred + MenuBarSection.Name.allCases.filter { !preferred.contains($0) }
-    }
-
-    /// Configures the internal observers for the model.
-    ///
-    /// Persistence for most properties is now driven by `didSet` on each
-    /// property (see above), replacing the previous `$property.persistToDefaults`
-    /// Combine pipelines. Only the Settings-URI notification subscription
-    /// remains Combine-based here.
-    private func configureObservers() {
-        cancellables = [
-            NotificationCenter.observeSettingsChangesViaURI { [weak self] change in
-                self?.handleExternalSettingsChange(change)
-            },
-        ]
-    }
-
-    /// Handles settings changed externally via Settings URI scheme.
-    private func handleExternalSettingsChange(_ change: ExternalSettingsChange) {
-        // Handle boolean values
-        if let boolValue = change.boolValue {
-            switch change.key {
-            case "enableAlwaysHiddenSection":
-                enableAlwaysHiddenSection = boolValue
-            case "useOptionClickToShowAlwaysHiddenSection":
-                useOptionClickToShowAlwaysHiddenSection = boolValue
-            case "useDoubleClickToShowAlwaysHiddenSection":
-                useDoubleClickToShowAlwaysHiddenSection = boolValue
-            case "showAllSectionsOnUserDrag":
-                showAllSectionsOnUserDrag = boolValue
-            case "hideApplicationMenus":
-                hideApplicationMenus = boolValue
-            case "enableSecondaryContextMenu":
-                enableSecondaryContextMenu = boolValue
-            case "enableSecondaryContextMenuQuit":
-                enableSecondaryContextMenuQuit = boolValue
-            case "showMenuBarTooltips":
-                showMenuBarTooltips = boolValue
-            case "enableDiagnosticLogging":
-                enableDiagnosticLogging = boolValue
-            case "enableMenuBarItemOverflow":
-                enableMenuBarItemOverflow = boolValue
-            case "automaticArrangementEnabled":
-                automaticArrangementEnabled = boolValue
-            case "useThawBarOnNotchOverflow":
-                useThawBarOnNotchOverflow = boolValue
-            case "useAXClickDelivery":
-                useAXClickDelivery = boolValue
-            case "searchIncludeVisible":
-                searchIncludeVisible = boolValue
-            case "searchIncludeHidden":
-                searchIncludeHidden = boolValue
-            case "searchIncludeAlwaysHidden":
-                searchIncludeAlwaysHidden = boolValue
-            case "moveCursorToRevealedItem":
-                moveCursorToRevealedItem = boolValue
-            default:
-                // Key not handled by AdvancedSettings
-                break
-            }
-        }
-
-        // Handle double values
-        if let doubleValue = change.doubleValue {
-            switch change.key {
-            case "showOnHoverDelay":
-                showOnHoverDelay = doubleValue
-            case "tooltipDelay":
-                tooltipDelay = doubleValue
-            case "iconRefreshInterval":
-                iconRefreshInterval = doubleValue
-            default:
-                // Key not handled by AdvancedSettings
-                break
-            }
-        }
     }
 }

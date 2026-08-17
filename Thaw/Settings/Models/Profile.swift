@@ -403,7 +403,6 @@ nonisolated struct ProfileContent {
     var unconfirmedSpacingProfileScope = Defaults.DefaultValue.unconfirmedSpacingProfileScope
     var appearanceConfiguration: MenuBarAppearanceConfigurationV2
     var menuBarLayout: MenuBarLayoutSnapshot
-    var automation: ProfileAutomation?
 }
 
 // MARK: - Profile
@@ -423,7 +422,6 @@ nonisolated struct Profile: Codable, Identifiable {
     var unconfirmedSpacingProfileScope: SpacingProfileSaveScope
     var appearanceConfiguration: MenuBarAppearanceConfigurationV2
     var menuBarLayout: MenuBarLayoutSnapshot
-    var automation: ProfileAutomation?
 
     /// Returns lightweight metadata for this profile.
     var metadata: ProfileMetadata {
@@ -446,8 +444,7 @@ nonisolated struct Profile: Codable, Identifiable {
             confirmSpacingRelaunch: confirmSpacingRelaunch,
             unconfirmedSpacingProfileScope: unconfirmedSpacingProfileScope,
             appearanceConfiguration: appearanceConfiguration,
-            menuBarLayout: menuBarLayout,
-            automation: automation
+            menuBarLayout: menuBarLayout
         )
     }
 
@@ -467,7 +464,6 @@ nonisolated struct Profile: Codable, Identifiable {
         case unconfirmedSpacingProfileScope
         case appearanceConfiguration
         case menuBarLayout
-        case automation
     }
 
     init(
@@ -490,7 +486,6 @@ nonisolated struct Profile: Codable, Identifiable {
         self.unconfirmedSpacingProfileScope = content.unconfirmedSpacingProfileScope
         self.appearanceConfiguration = content.appearanceConfiguration
         self.menuBarLayout = content.menuBarLayout
-        self.automation = content.automation
     }
 
     init(from decoder: Decoder) throws {
@@ -585,11 +580,6 @@ nonisolated struct Profile: Codable, Identifiable {
             pinnedHiddenBundleIDs: [],
             pinnedAlwaysHiddenBundleIDs: [],
             customNames: [:]
-        )
-
-        automation = try container.decodeIfPresent(
-            ProfileAutomation.self,
-            forKey: .automation
         )
     }
 }

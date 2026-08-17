@@ -217,15 +217,6 @@ extension DisplaySettingsManager {
         // `configurations`'s `didSet`. The no-op guard inside applyOffset()
         // makes this free when on-disk already matches.
 
-        // Listen for external per-display settings changes via Settings URI
-        NotificationCenter.default
-            .publisher(for: .perDisplaySettingsDidChangeViaURI)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] notification in
-                self?.handleExternalPerDisplaySettingsChange(notification)
-            }
-            .store(in: &c)
-
         cancellables = c
     }
 

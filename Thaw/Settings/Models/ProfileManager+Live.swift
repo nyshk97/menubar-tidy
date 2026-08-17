@@ -34,22 +34,8 @@ extension ProfileManager {
 
         startObservationTasks()
 
-        // Check if a Focus Filter is currently active. If so, apply it;
-        // otherwise fall back to display-based profile.
         Task { [weak self] in
             guard let self else { return }
-            do {
-                let current = try await ThawFocusFilter.current
-                if current.profile != nil {
-                    // Re-run perform() to apply the Focus Filter profile.
-                    _ = try await current.perform()
-                    await self.applyFocusFilterProfile()
-                    return
-                }
-            } catch {
-                diagLog.debug("No active Focus Filter on startup: \(error)")
-            }
-            // No Focus Filter; fall back to display-based profile.
             // The spacing apply runs unconditionally; its no-op guard
             // skips the relaunch when on-disk values already match the
             // active profile's offset, but if the user is booting on a
@@ -130,46 +116,7 @@ extension ProfileManager {
         let itemSectionMap = profile.menuBarLayout.resolvedItemSectionMap
         let itemOrder = profile.menuBarLayout.resolvedItemOrder
 
-        // Snapshot hook config before entering the task. Resolving
-        // global hooks inside the Task would still work; doing it now
-        // keeps the read on the main actor with the rest of the prep.
-        let globalPre = HookScript.loadGlobal(.pre)
-        let globalPost = HookScript.loadGlobal(.post)
-        let profilePre = profile.automation?.preHook
-        let profilePost = profile.automation?.postHook
-
-        let previousName = previousProfileID.flatMap { id in
-            profiles.first(where: { $0.id == id })?.name
-        }
-        let baseContext = (
-            profileID: profile.id,
-            profileName: profile.name,
-            previousID: previousProfileID,
-            previousName: previousName
-        )
-
         layoutTask = Task { [weak self] in
-            // 1. Pre-hooks. Global runs first so it can do common setup;
-            //    profile-specific runs second so it can override or extend.
-            await HookRunner.runIfEnabled(globalPre, context: HookRunner.Context(
-                phase: .pre,
-                scope: .global,
-                profileID: baseContext.profileID,
-                profileName: baseContext.profileName,
-                previousProfileID: baseContext.previousID,
-                previousProfileName: baseContext.previousName
-            ))
-            if Task.isCancelled {
-                return
-            }
-            await HookRunner.runIfEnabled(profilePre, context: HookRunner.Context(
-                phase: .pre,
-                scope: .profile,
-                profileID: baseContext.profileID,
-                profileName: baseContext.profileName,
-                previousProfileID: baseContext.previousID,
-                previousProfileName: baseContext.previousName
-            ))
             if Task.isCancelled {
                 return
             }
@@ -260,32 +207,6 @@ extension ProfileManager {
                 }
                 return
             }
-            await HookRunner.runIfEnabled(profilePost, context: HookRunner.Context(
-                phase: .post,
-                scope: .profile,
-                profileID: baseContext.profileID,
-                profileName: baseContext.profileName,
-                previousProfileID: baseContext.previousID,
-                previousProfileName: baseContext.previousName
-            ))
-            // A newer apply may have cancelled this task while the
-            // profile post-hook was awaiting (long-running script);
-            // skip the global post-hook in that case so the cancelled
-            // apply doesn't also fire the outer teardown.
-            if Task.isCancelled {
-                if self?.layoutGeneration == generation {
-                    self?.layoutTask = nil
-                }
-                return
-            }
-            await HookRunner.runIfEnabled(globalPost, context: HookRunner.Context(
-                phase: .post,
-                scope: .global,
-                profileID: baseContext.profileID,
-                profileName: baseContext.profileName,
-                previousProfileID: baseContext.previousID,
-                previousProfileName: baseContext.previousName
-            ))
 
             if self?.layoutGeneration == generation {
                 self?.layoutTask = nil
@@ -340,47 +261,7 @@ extension ProfileManager {
         guard currentUUID != lastActiveDisplayUUID else { return }
         lastActiveDisplayUUID = currentUUID
 
-        // Don't override a Focus Filter profile with a display switch.
-        guard !focusFilterActive else { return }
-
         await applyProfileForDisplay(uuid: currentUUID)
-    }
-
-    /// Applies the profile requested by a Focus Filter activation.
-    func applyFocusFilterProfile() async {
-        guard let idString = Defaults.string(forKey: .focusFilterRequestedProfileID),
-              let profileID = UUID(uuidString: idString)
-        else { return }
-
-        guard profileID != activeProfileID else {
-            focusFilterActive = true
-            return
-        }
-        guard let appState else { return }
-
-        diagLog.info("Focus Filter: applying profile \(idString)")
-        do {
-            let profile = try loadProfile(id: profileID)
-            let previousID = activeProfileID
-            activeProfileID = profileID
-            focusFilterActive = true
-            applyProfile(profile, to: appState, previousProfileID: previousID)
-        } catch {
-            diagLog.error("Focus Filter apply failed: \(error)")
-        }
-    }
-
-    /// Called when the Focus Filter deactivates (Focus mode turned off).
-    /// Reverts to the display-based profile.
-    ///
-    /// Internal for the same reason as ``checkDisplayAndAutoSwitch()``.
-    func handleFocusFilterDeactivated() async {
-        guard focusFilterActive else { return }
-        focusFilterActive = false
-        diagLog.info("Focus Filter deactivated; reverting to display profile")
-        if let uuid = Bridging.getActiveMenuBarDisplayUUID() {
-            await applyProfileForDisplay(uuid: uuid)
-        }
     }
 
     /// Re-applies the currently active profile, driving its layout pass

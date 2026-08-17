@@ -170,10 +170,6 @@ final class GeneralSettings {
     @ObservationIgnored
     private let decoder = JSONDecoder()
 
-    /// Storage for internal observers.
-    @ObservationIgnored
-    private var cancellables = Set<AnyCancellable>()
-
     /// The shared app state.
     @ObservationIgnored
     private(set) weak var appState: AppState?
@@ -181,13 +177,12 @@ final class GeneralSettings {
     /// Performs the initial setup of the model.
     ///
     /// The app state is only stored, never read, by this model: the setup it
-    /// performs is reading `Defaults` and subscribing to the Settings-URI
-    /// notification. The parameter is optional so that setup can be driven
-    /// without standing up an ``AppState``; the app always passes one.
+    /// performs is reading `Defaults`. The parameter is optional so that setup
+    /// can be driven without standing up an ``AppState``; the app always
+    /// passes one.
     func performSetup(with appState: AppState? = nil) {
         self.appState = appState
         loadInitialState()
-        configureObservers()
     }
 
     /// Loads the model's initial state.
@@ -223,77 +218,6 @@ final class GeneralSettings {
             }
             if case .custom = iceIcon.name {
                 lastCustomIceIcon = iceIcon
-            }
-        }
-    }
-
-    /// Configures the internal observers for the model.
-    ///
-    /// Persistence for most properties is now driven by `didSet` on each
-    /// property (see above), replacing the previous `$property.persistToDefaults`
-    /// Combine pipelines. Only the Settings-URI notification subscription
-    /// remains Combine-based here.
-    private func configureObservers() {
-        cancellables = [
-            NotificationCenter.observeSettingsChangesViaURI { [weak self] change in
-                self?.handleExternalSettingsChange(change)
-            },
-        ]
-    }
-
-    /// Handles settings changed externally via Settings URI scheme.
-    private func handleExternalSettingsChange(_ change: ExternalSettingsChange) {
-        let key = change.key
-
-        // Handle boolean values
-        if let boolValue = change.boolValue {
-            diagLog.debug("GeneralSettings: Received external change for \(key) = \(boolValue)")
-
-            switch key {
-            case "showIceIcon" where showIceIcon != boolValue:
-                showIceIcon = boolValue
-            case "customIceIconIsTemplate" where customIceIconIsTemplate != boolValue:
-                customIceIconIsTemplate = boolValue
-            case "useIceBar" where useIceBar != boolValue:
-                useIceBar = boolValue
-            case "useIceBarOnlyOnNotchedDisplay" where useIceBarOnlyOnNotchedDisplay != boolValue:
-                useIceBarOnlyOnNotchedDisplay = boolValue
-            case "iceBarLocationOnHotkey" where iceBarLocationOnHotkey != boolValue:
-                iceBarLocationOnHotkey = boolValue
-            case "showOnClick" where showOnClick != boolValue:
-                showOnClick = boolValue
-            case "showOnDoubleClick" where showOnDoubleClick != boolValue:
-                showOnDoubleClick = boolValue
-            case "showOnHover" where showOnHover != boolValue:
-                showOnHover = boolValue
-            case "showOnScroll" where showOnScroll != boolValue:
-                showOnScroll = boolValue
-            case "autoRehide" where autoRehide != boolValue:
-                autoRehide = boolValue
-            default:
-                // Key not handled by GeneralSettings or value unchanged
-                break
-            }
-        }
-
-        // Handle double values
-        if let doubleValue = change.doubleValue {
-            diagLog.debug("GeneralSettings: Received external change for \(key) = \(doubleValue)")
-
-            if key == "rehideInterval", rehideInterval != doubleValue {
-                rehideInterval = doubleValue
-            }
-        }
-
-        // Handle enum values (raw integers)
-        if let rawEnumValue = change.rawEnumValue {
-            diagLog.debug("GeneralSettings: Received external change for \(key) = \(rawEnumValue)")
-
-            if key == "rehideStrategy",
-               let strategy = RehideStrategy(rawValue: rawEnumValue),
-               rehideStrategy != strategy
-            {
-                rehideStrategy = strategy
             }
         }
     }

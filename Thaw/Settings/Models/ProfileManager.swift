@@ -38,13 +38,9 @@ final class ProfileManager {
     /// ``performSetup(with:)``. Each owns its own notification observer and
     /// removes it when the task ends, so `deinit` only has to cancel them.
     private(set) var screenParametersTask: Task<Void, Never>?
-    private(set) var focusFilterActivatedTask: Task<Void, Never>?
-    private(set) var focusFilterDeactivatedTask: Task<Void, Never>?
 
     /// Tracks the last seen active display UUID for auto-switch debouncing.
     var lastActiveDisplayUUID: String?
-    /// Whether a Focus Filter profile is currently applied.
-    var focusFilterActive = false
     /// The in-flight layout apply task. Exposed for callers that need to
     /// wait for the layout to finish (e.g. the Apply button).
     var layoutTask: Task<Void, Never>?
@@ -90,11 +86,9 @@ final class ProfileManager {
         // Each observer task is manually owned, so cancel it here. Ending a
         // task runs its defer, which removes its notification observer.
         screenParametersTask?.cancel()
-        focusFilterActivatedTask?.cancel()
-        focusFilterDeactivatedTask?.cancel()
     }
 
-    /// (Re)starts the three notification observation tasks. The observers
+    /// (Re)starts the notification observation task. The observers
     /// follow the pattern DisplaySettingsManager adopted:
     /// `debouncedNotificationTask` wires a NotificationCenter observer into
     /// an AsyncStream that `.debounce(for:)` coalesces, replacing Combine's
@@ -114,26 +108,6 @@ final class ProfileManager {
             interval: .seconds(1.5)
         ) { [weak self] in
             await self?.checkDisplayAndAutoSwitch()
-        }
-
-        // Listen for Focus Filter activation from the system.
-        focusFilterActivatedTask?.cancel()
-        focusFilterActivatedTask = debouncedNotificationTask(
-            center: DistributedNotificationCenter.default(),
-            name: Notification.Name("com.nyshk97.Thaw.focusFilterActivated"),
-            interval: .seconds(0.5)
-        ) { [weak self] in
-            await self?.applyFocusFilterProfile()
-        }
-
-        // Listen for Focus Filter deactivation (Focus mode turned off).
-        focusFilterDeactivatedTask?.cancel()
-        focusFilterDeactivatedTask = debouncedNotificationTask(
-            center: DistributedNotificationCenter.default(),
-            name: Notification.Name("com.nyshk97.Thaw.focusFilterDeactivated"),
-            interval: .seconds(0.5)
-        ) { [weak self] in
-            await self?.handleFocusFilterDeactivated()
         }
     }
 
@@ -768,33 +742,6 @@ final class ProfileManager {
             }
         }
         saveManifest()
-    }
-
-    // MARK: - Profile Hooks
-
-    /// Returns the automation config (pre/post hooks) attached to the
-    /// given profile. Returns an empty container when the profile has
-    /// no hooks or cannot be loaded.
-    func hooks(forProfileID id: UUID) -> ProfileAutomation {
-        guard let profile = try? loadProfile(id: id) else {
-            return ProfileAutomation()
-        }
-        return profile.automation ?? ProfileAutomation()
-    }
-
-    /// Sets the hook for the given phase on the given profile. Passing
-    /// nil clears the hook. The profile JSON is rewritten in place; the
-    /// manifest's modifiedAt is bumped so the UI reflects the change.
-    func setHook(_ hook: HookScript?, phase: HookPhase, forProfileID id: UUID) throws {
-        var profile = try loadProfile(id: id)
-        var automation = profile.automation ?? ProfileAutomation()
-        switch phase {
-        case .pre: automation.preHook = hook
-        case .post: automation.postHook = hook
-        }
-        profile.automation = automation.isEmpty ? nil : automation
-        profile.modifiedAt = Date()
-        try saveProfileAndUpdateManifest(profile)
     }
 
     /// Exports all profiles as a single JSON file including metadata.

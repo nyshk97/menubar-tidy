@@ -224,65 +224,6 @@ struct ProfileManagerCRUDTests {
         }
     }
 
-    // MARK: Hooks
-
-    @Test("An unset profile reports empty automation")
-    func hooksDefaultToEmpty() throws {
-        try withManager(seeding: [makeProfile(named: "Hooked")]) { manager, _ in
-            let id = try #require(manager.profiles.first?.id)
-
-            #expect(manager.hooks(forProfileID: id).isEmpty)
-        }
-    }
-
-    @Test("An unknown profile reports empty automation rather than throwing")
-    func hooksForAnUnknownProfileAreEmpty() throws {
-        try withManager(seeding: []) { manager, _ in
-            #expect(manager.hooks(forProfileID: UUID()).isEmpty)
-        }
-    }
-
-    @Test("A hook set on one phase persists and leaves the other alone")
-    func settingAHookPersists() throws {
-        try withManager(seeding: [makeProfile(named: "Hooked")]) { manager, tmp in
-            let id = try #require(manager.profiles.first?.id)
-            let hook = HookScript(path: "/tmp/pre.sh", timeoutSeconds: 5)
-
-            try manager.setHook(hook, phase: .pre, forProfileID: id)
-
-            let reloaded = ProfileManager(profilesDirectory: tmp)
-            let automation = reloaded.hooks(forProfileID: id)
-            #expect(automation.preHook?.path == "/tmp/pre.sh")
-            #expect(automation.postHook == nil)
-        }
-    }
-
-    @Test("Clearing the last hook empties the automation entirely")
-    func clearingAHookEmptiesAutomation() throws {
-        try withManager(seeding: [makeProfile(named: "Hooked")]) { manager, tmp in
-            let id = try #require(manager.profiles.first?.id)
-            try manager.setHook(HookScript(path: "/tmp/pre.sh", timeoutSeconds: 5), phase: .pre, forProfileID: id)
-
-            try manager.setHook(nil, phase: .pre, forProfileID: id)
-
-            #expect(ProfileManager(profilesDirectory: tmp).hooks(forProfileID: id).isEmpty)
-        }
-    }
-
-    @Test("Both phases can hold a hook at once")
-    func bothPhasesCanBeSet() throws {
-        try withManager(seeding: [makeProfile(named: "Hooked")]) { manager, tmp in
-            let id = try #require(manager.profiles.first?.id)
-
-            try manager.setHook(HookScript(path: "/tmp/pre.sh", timeoutSeconds: 5), phase: .pre, forProfileID: id)
-            try manager.setHook(HookScript(path: "/tmp/post.sh", timeoutSeconds: 5), phase: .post, forProfileID: id)
-
-            let automation = ProfileManager(profilesDirectory: tmp).hooks(forProfileID: id)
-            #expect(automation.preHook?.path == "/tmp/pre.sh")
-            #expect(automation.postHook?.path == "/tmp/post.sh")
-        }
-    }
-
     // MARK: Broadcast writers
 
     @Test("A spacing broadcast reaches every profile")

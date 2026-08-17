@@ -186,58 +186,6 @@ struct ProfileManagerDeepTests {
         }
     }
 
-    // MARK: - Focus Filter Re-Request
-
-    /// The already-active short circuit has no observable side effect that a
-    /// test without an `AppState` can read back: it flips the private
-    /// `focusFilterActive` flag, which is only consumed by the two private
-    /// auto-switch entry points. What is assertable is that a repeat request
-    /// must not disturb the active profile or schedule a second layout pass —
-    /// the profile is already applied, and re-applying it would churn every
-    /// menu bar item for nothing.
-    @Test("A focus filter request naming the already-active profile changes nothing")
-    func focusFilterRequestForTheActiveProfileIsInert() async throws {
-        let seed = makeProfile(named: "Focused")
-
-        try await withTemporaryDirectory { tmp in
-            try seedManifest(with: [seed], into: tmp)
-            let manager = ProfileManager(profilesDirectory: tmp)
-            manager.activeProfileID = seed.id
-
-            try await withScratchDefaults { suite in
-                suite.set(seed.id.uuidString, forKey: "FocusFilterRequestedProfileID")
-                await manager.applyFocusFilterProfile()
-            }
-
-            #expect(manager.activeProfileID == seed.id)
-            #expect(manager.layoutTask == nil)
-            #expect(manager.profiles.count == 1)
-        }
-    }
-
-    @Test("A focus filter request naming the active profile is inert even when its file is gone")
-    func focusFilterRequestForTheActiveProfileIsInertWithoutItsFile() async throws {
-        let seed = makeProfile(named: "Focused")
-
-        try await withTemporaryDirectory { tmp in
-            try seedManifest(with: [seed], into: tmp)
-            try FileManager.default.removeItem(at: profileURL(for: seed.id, in: tmp))
-
-            let manager = ProfileManager(profilesDirectory: tmp)
-            manager.activeProfileID = seed.id
-
-            // The short circuit runs before the load, so a missing file is
-            // never reached and nothing is logged as a failure.
-            try await withScratchDefaults { suite in
-                suite.set(seed.id.uuidString, forKey: "FocusFilterRequestedProfileID")
-                await manager.applyFocusFilterProfile()
-            }
-
-            #expect(manager.activeProfileID == seed.id)
-            #expect(manager.layoutTask == nil)
-        }
-    }
-
     // MARK: - Helpers
 
     /// Runs `body` against a fresh, empty temporary directory and removes it

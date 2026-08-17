@@ -315,8 +315,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             HotkeyAction.toggleHiddenSection.perform(appState: appState)
         case .toggleAlwaysHidden:
             HotkeyAction.toggleAlwaysHiddenSection.perform(appState: appState)
-        case .search:
-            HotkeyAction.searchMenuBarItems.perform(appState: appState)
         case .toggleThawbar:
             HotkeyAction.enableIceBar.perform(appState: appState)
         case .toggleApplicationMenus:

@@ -15,7 +15,6 @@ import Foundation
 nonisolated enum SettingsURIAction: String, CaseIterable, Equatable, Sendable {
     case toggleHidden = "toggle-hidden"
     case toggleAlwaysHidden = "toggle-always-hidden"
-    case search
     case toggleThawbar = "toggle-thawbar"
     case toggleApplicationMenus = "toggle-application-menus"
     case openSettings = "open-settings"

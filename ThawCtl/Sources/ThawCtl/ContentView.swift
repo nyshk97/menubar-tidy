@@ -52,7 +52,6 @@ struct ContentView: View {
                     actionButton("Always Hidden", action: "toggle-always-hidden")
                 }
                 HStack {
-                    actionButton("Search", action: "search")
                     actionButton("Toggle Bar", action: "toggle-thawbar")
                 }
                 HStack {

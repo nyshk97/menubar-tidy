@@ -297,8 +297,6 @@ nonisolated extension Defaults {
 
         // MARK: Internal
 
-        case menuBarSearchPanelFrame = "MenuBarSearchPanelFrame"
-        case menuBarSearchPanelFrameWithConfig = "MenuBarSearchPanelFrame_"
 
         // MARK: Menu Bar Item Custom Names
 

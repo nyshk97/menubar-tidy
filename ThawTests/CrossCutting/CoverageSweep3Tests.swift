@@ -85,9 +85,9 @@ struct CoverageSweep3Tests {
     @Test("url(forKey:) resolves a stored path")
     func urlForKeyResolvesAStoredPath() throws {
         try withScratchDefaults { suite in
-            suite.set("/nonexistent/thaw-coverage-sweep/file.txt", forKey: Defaults.Key.menuBarSearchPanelFrame.rawValue)
+            suite.set("/nonexistent/thaw-coverage-sweep/file.txt", forKey: Defaults.Key.globalPreProfileHook.rawValue)
 
-            let url = try #require(Defaults.url(forKey: .menuBarSearchPanelFrame))
+            let url = try #require(Defaults.url(forKey: .globalPreProfileHook))
 
             #expect(url.path == "/nonexistent/thaw-coverage-sweep/file.txt")
             #expect(url.lastPathComponent == "file.txt")
@@ -97,7 +97,7 @@ struct CoverageSweep3Tests {
     @Test("url(forKey:) is nil for an unset key")
     func urlForKeyIsNilWhenUnset() throws {
         try withScratchDefaults { _ in
-            #expect(Defaults.url(forKey: .menuBarSearchPanelFrame) == nil)
+            #expect(Defaults.url(forKey: .globalPreProfileHook) == nil)
         }
     }
 

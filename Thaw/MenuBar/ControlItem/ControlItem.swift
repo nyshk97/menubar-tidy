@@ -897,24 +897,6 @@ final class ControlItem {
 
         menu.addItem(.separator())
 
-        let searchItem = NSMenuItem(
-            title: String(localized: "Search Menu Bar Items"),
-            action: #selector(showSearchPanel),
-            keyEquivalent: ""
-        )
-        searchItem.image = NSImage(systemSymbolName: "magnifyingglass", accessibilityDescription: "Search")
-        if
-            let hotkey = hotkey(withAction: .searchMenuBarItems),
-            let keyCombination = hotkey.keyCombination
-        {
-            searchItem.keyEquivalent = keyCombination.key.keyEquivalent
-            searchItem.keyEquivalentModifierMask = keyCombination.modifiers.nsEventFlags
-        }
-        searchItem.target = self
-        menu.addItem(searchItem)
-
-        menu.addItem(.separator())
-
         // Add items to toggle the hidden and always-hidden sections.
         for name: MenuBarSection.Name in [.hidden, .alwaysHidden] {
             guard
@@ -1047,11 +1029,6 @@ final class ControlItem {
             return
         }
         section.toggle()
-    }
-
-    /// Opens the menu bar search panel.
-    @objc private func showSearchPanel() {
-        appState?.menuBarManager.searchPanel.show()
     }
 
     /// Applies the profile selected from the context menu.

@@ -85,7 +85,6 @@ struct IntegrationURIContractTests {
         @Test("Direct actions resolve to their action", arguments: [
             ("thaw://toggle-hidden", SettingsURIAction.toggleHidden),
             ("thaw://toggle-always-hidden", .toggleAlwaysHidden),
-            ("thaw://search", .search),
             ("thaw://toggle-thawbar", .toggleThawbar),
             ("thaw://toggle-application-menus", .toggleApplicationMenus),
             ("thaw://open-settings", .openSettings),

@@ -97,7 +97,7 @@ struct HotkeyLifecycleTests {
         @Test("A hotkey built with a key combination keeps it, still disabled")
         func newHotkeyKeepsItsKeyCombination() {
             let combination = KeyCombination(key: .f19, modifiers: [.command])
-            let hotkey = Hotkey(action: .searchMenuBarItems, keyCombination: combination)
+            let hotkey = Hotkey(action: .toggleApplicationMenus, keyCombination: combination)
 
             #expect(hotkey.keyCombination == combination)
             #expect(!hotkey.isEnabled)
@@ -193,7 +193,7 @@ struct HotkeyLifecycleTests {
     /// than being handed the value, so the store has to have happened first.
     @Test("An announcement sees the new value already stored")
     func announcementSeesTheStoredValue() {
-        let hotkey = Hotkey(action: .searchMenuBarItems)
+        let hotkey = Hotkey(action: .toggleApplicationMenus)
         let recorder = recordChanges(of: hotkey)
 
         hotkey.keyCombination = Self.controlOptionF20
@@ -292,8 +292,8 @@ struct HotkeyLifecycleTests {
 
         @Test("Two unbound hotkeys with the same action are equal")
         func unboundHotkeysWithTheSameActionAreEqual() {
-            let first = Hotkey(action: .searchMenuBarItems)
-            let second = Hotkey(action: .searchMenuBarItems)
+            let first = Hotkey(action: .toggleApplicationMenus)
+            let second = Hotkey(action: .toggleApplicationMenus)
 
             #expect(first == second)
             #expect(hashValue(of: first) == hashValue(of: second))

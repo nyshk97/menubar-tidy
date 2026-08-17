@@ -727,17 +727,6 @@ nonisolated enum SearchIndex {
             property: nil
         ),
         SearchEntry(
-            id: "hotkeys.searchMenuBarItems",
-            titleKey: "Search menu bar items",
-            titleText: "Search menu bar items",
-            descriptionText: nil,
-            pane: .hotkeys,
-            sectionKey: "Menu Bar Items",
-            sectionText: "Menu Bar Items",
-            keywords: ["search", "menu bar items", "hotkey", "shortcut", "panel"],
-            property: nil
-        ),
-        SearchEntry(
             id: "hotkeys.openMenuBarItems",
             titleKey: "Open menu bar items",
             titleText: "Open menu bar items",

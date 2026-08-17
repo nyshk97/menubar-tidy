@@ -18,7 +18,6 @@ struct HotkeyActionTests {
     func rawValues() {
         #expect(HotkeyAction.toggleHiddenSection.rawValue == "ToggleHiddenSection")
         #expect(HotkeyAction.toggleAlwaysHiddenSection.rawValue == "ToggleAlwaysHiddenSection")
-        #expect(HotkeyAction.searchMenuBarItems.rawValue == "SearchMenuBarItems")
         #expect(HotkeyAction.enableIceBar.rawValue == "EnableIceBar")
         #expect(HotkeyAction.toggleApplicationMenus.rawValue == "ToggleApplicationMenus")
         #expect(HotkeyAction.profileApply.rawValue == "ProfileApply")
@@ -30,7 +29,6 @@ struct HotkeyActionTests {
     @Test("A known raw value produces its action")
     func initFromRawValue() {
         #expect(HotkeyAction(rawValue: "ToggleHiddenSection") == .toggleHiddenSection)
-        #expect(HotkeyAction(rawValue: "SearchMenuBarItems") == .searchMenuBarItems)
         #expect(HotkeyAction(rawValue: "ProfileApply") == .profileApply)
     }
 
@@ -43,9 +41,9 @@ struct HotkeyActionTests {
 
     // MARK: - CaseIterable Tests
 
-    @Test("There are seven actions")
+    @Test("There are six actions")
     func allCasesCount() {
-        #expect(HotkeyAction.allCases.count == 7)
+        #expect(HotkeyAction.allCases.count == 6)
     }
 
     @Test("All cases contains every expected action")
@@ -53,7 +51,6 @@ struct HotkeyActionTests {
         let allCases = HotkeyAction.allCases
         #expect(allCases.contains(.toggleHiddenSection))
         #expect(allCases.contains(.toggleAlwaysHiddenSection))
-        #expect(allCases.contains(.searchMenuBarItems))
         #expect(allCases.contains(.enableIceBar))
         #expect(allCases.contains(.toggleApplicationMenus))
         #expect(allCases.contains(.profileApply))
@@ -79,7 +76,6 @@ struct HotkeyActionTests {
         let settingsActions = HotkeyAction.settingsActions
         #expect(settingsActions.contains(.toggleHiddenSection))
         #expect(settingsActions.contains(.toggleAlwaysHiddenSection))
-        #expect(settingsActions.contains(.searchMenuBarItems))
         #expect(settingsActions.contains(.enableIceBar))
         #expect(settingsActions.contains(.toggleApplicationMenus))
     }

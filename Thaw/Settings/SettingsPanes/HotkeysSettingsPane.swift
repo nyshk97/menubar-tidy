@@ -19,7 +19,6 @@ struct HotkeysSettingsPane: View {
                 hotkeyRecorder(forSection: .alwaysHidden)
             }
             IceSection("Menu Bar Items") {
-                hotkeyRecorder(forAction: .searchMenuBarItems)
                 MenuBarItemHotkeyList(
                     menuBarManager: appState.menuBarManager,
                     itemManager: appState.itemManager,
@@ -49,8 +48,6 @@ struct HotkeysSettingsPane: View {
                     Text("Toggle the hidden section")
                 case .toggleAlwaysHiddenSection:
                     Text("Toggle the always-hidden section")
-                case .searchMenuBarItems:
-                    Text("Search menu bar items")
                 case .enableIceBar:
                     Text("Enable the \(Constants.displayName) Bar")
                 case .toggleApplicationMenus:

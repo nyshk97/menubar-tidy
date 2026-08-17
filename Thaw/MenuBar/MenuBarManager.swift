@@ -127,9 +127,6 @@ final class MenuBarManager {
     /// The panel that contains the Thaw Bar interface.
     let iceBarPanel = IceBarPanel()
 
-    /// The panel that contains the menu bar search interface.
-    let searchPanel = MenuBarSearchPanel()
-
     /// The popover that contains a portable version of the menu bar
     /// appearance editor interface
     let appearanceEditorPanel = MenuBarAppearanceEditorPanel()
@@ -152,7 +149,6 @@ final class MenuBarManager {
         self.appState = appState
         configureCancellables()
         iceBarPanel.performSetup(with: appState)
-        searchPanel.performSetup(with: appState)
         appearanceEditorPanel.performSetup(with: appState)
         for section in sections {
             section.performSetup(with: appState)

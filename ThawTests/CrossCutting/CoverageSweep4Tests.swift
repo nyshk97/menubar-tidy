@@ -122,14 +122,14 @@ struct CoverageSweep4Tests {
             let goodData = try JSONEncoder().encode(good)
             let stored: [String: Data] = [
                 HotkeyAction.toggleHiddenSection.rawValue: Data("definitely not JSON".utf8),
-                HotkeyAction.searchMenuBarItems.rawValue: goodData,
+                HotkeyAction.toggleApplicationMenus.rawValue: goodData,
             ]
             Defaults.set(stored, forKey: .hotkeys)
 
             let settings = HotkeysSettings()
 
             #expect(settings.hotkey(withAction: .toggleHiddenSection)?.keyCombination == nil)
-            #expect(settings.hotkey(withAction: .searchMenuBarItems)?.keyCombination == good)
+            #expect(settings.hotkey(withAction: .toggleApplicationMenus)?.keyCombination == good)
         }
     }
 

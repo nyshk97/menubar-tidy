@@ -16,7 +16,7 @@ struct HotkeysSettingsPersistenceTests {
     @Test("Bindings load, update, and clear without app setup")
     func bindingsRoundTrip() throws {
         try withScratchDefaults { _ in
-            let action = HotkeyAction.searchMenuBarItems
+            let action = HotkeyAction.toggleApplicationMenus
             let initial = KeyCombination(key: .f19, modifiers: [.command, .shift])
             let updated = KeyCombination(key: .f20, modifiers: [.control, .option])
             try Defaults.set(

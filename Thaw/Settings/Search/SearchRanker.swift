@@ -26,19 +26,15 @@ nonisolated struct SearchWeights {
     /// (``SearchModel``): a title match ranks above a keywords
     /// match, which ranks above a description match.
     static let settings = SearchWeights(title: 0.6, keywords: 0.3, description: 1.0)
-
-    /// The weighting used by menu bar item search (``MenuBarSearchPanel``),
-    /// which only matches on the item's display name. `1.0` is Ifrit's
-    /// `FuseProp` default weight, preserved here so adopting `SearchRanker`
-    /// doesn't change menu-bar-item search ranking.
-    static let menuBarItem = SearchWeights(title: 1.0, keywords: 1.0, description: 1.0)
 }
 
 // MARK: - SearchRanker
 
-/// Shared fuzzy-search ranking helpers, used by both the settings sidebar
-/// search (``SearchModel``) and menu bar item search
-/// (``MenuBarSearchPanel``) so the two surfaces can't silently drift apart.
+/// Fuzzy-search ranking helpers for the settings sidebar search
+/// (``SearchModel``).
+///
+/// Upstream shares these with a menu bar item search panel, which this fork
+/// removed, so there is currently one caller rather than two.
 ///
 /// Deliberately has no dependency on `Ifrit`/`Fuse` so it (and the tests
 /// covering it) don't require linking Ifrit into the test target. Each

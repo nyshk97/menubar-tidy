@@ -102,7 +102,7 @@ struct ExtensionsCoverageTests {
             // The copyright key proves the plist really was read, so the
             // fallback below is a fallback and not a failed lookup.
             #expect(bundle.copyrightString == "Copyright © 2026")
-            #expect(bundle.displayName == "Thaw")
+            #expect(bundle.displayName == "MenuBar Tidy")
         }
 
         @Test("The optional accessors are nil when their keys are missing")
@@ -127,7 +127,7 @@ struct ExtensionsCoverageTests {
             let bundle = try #require(Bundle(url: url), "Could not open the generated bundle")
 
             #expect(bundle.versionString == nil)
-            #expect(bundle.displayName == "Thaw")
+            #expect(bundle.displayName == "MenuBar Tidy")
         }
     }
 

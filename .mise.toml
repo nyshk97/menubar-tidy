@@ -8,7 +8,7 @@ SCHEME = "Thaw"
 CONFIGURATION = "Debug"
 DERIVED_DATA = "Build"
 APP = "Build/Build/Products/Debug/MenuBar Tidy.app"
-BUNDLE_ID = "com.nyshk97.Thaw"
+BUNDLE_ID = "com.nyshk97.MenuBarTidy"
 # 整形の対象。Build/ 配下には SwiftPM の checkout（他人のコード）が入るので、
 # `swiftformat .` にはしない。
 SOURCES = "MenuBarItemService Shared Thaw ThawTests"
@@ -146,7 +146,7 @@ description = "最新のアプリログを追う。引数を渡すとその正�
 usage = 'arg "<pattern>" help="絞り込む正規表現" default=""'
 run = '''
 set -uo pipefail
-log_dir="$HOME/Library/Logs/Thaw"
+log_dir="$HOME/Library/Logs/MenuBar Tidy"
 latest="$log_dir/$(ls -t "$log_dir" 2>/dev/null | head -1)"
 if [ ! -f "$latest" ]; then
     echo "error: ログがない（アプリを一度起動すること）: $log_dir" >&2
@@ -172,3 +172,18 @@ codesign -dvv "$APP" 2>&1 | grep -E "Identifier|TeamIdentifier"
 [tasks.defaults]
 description = "アプリの UserDefaults を丸ごと読む"
 run = 'defaults read "$BUNDLE_ID"'
+
+# --- リリース -------------------------------------------------------------
+
+[tasks."release:zip"]
+description = "Release ビルドを配布要件で検証して dist/ に zip を作る"
+run = "scripts/make-release-zip.sh"
+
+[tasks."release:notarize"]
+description = "dist/ の zip を notarize して staple 済みに差し替える"
+run = "scripts/notarize.sh"
+
+[tasks.release]
+description = "バージョンを上げてビルド・notarize・GitHub Release・cask 更新まで通す"
+usage = 'arg "<bump>" help="patch|minor|major|x.y.z" default="patch"'
+run = 'scripts/release.sh "$usage_bump"'

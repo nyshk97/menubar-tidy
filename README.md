@@ -40,6 +40,15 @@ whenever you drag an item into it.
 what was safe to remove — useful for the reasoning, not as a map of the current
 tree.
 
+## Install
+
+```sh
+brew install nyshk97/tap/menubar-tidy
+```
+
+Releases are notarized `.zip`s built from this tree; there is no auto-update, so
+a new version arrives when the cask does.
+
 ## Build
 
 Requires macOS 26 and Xcode 26.
@@ -61,14 +70,17 @@ corrupts the app's own settings.
 
 ## Differences from upstream
 
-- Bundle named `MenuBar Tidy.app`, blue icon. The bundle identifier stays
-  `com.nyshk97.Thaw` and the Swift module stays `Thaw`: changing the former
-  invalidates the TCC grants, and the latter is what every test imports
+- Bundle named `MenuBar Tidy.app`, blue icon, identifier
+  `com.nyshk97.MenuBarTidy`. Support files live beside it — `~/Library/Logs/
+  MenuBar Tidy/`, `~/Library/Application Support/MenuBar Tidy/Profiles/` — so
+  nothing collides with an upstream Thaw install. The Swift module stays `Thaw`,
+  which is what every test imports
 - No Sparkle. Upstream's appcast URL is gone from `Info.plist`, so this build
   cannot replace itself with an upstream release
 - No network surface at all, and no URL scheme
 - Japanese-only UI, with no string catalog
-- Signed with my own development team
+- Release builds are signed with my own Developer ID and notarized; debug builds
+  keep the development certificate
 - Development happens on `main`; upstream develops on `development`
 
 ## License

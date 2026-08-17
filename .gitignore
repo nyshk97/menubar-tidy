@@ -20,3 +20,6 @@ plans/
 
 # Local badge mockups
 .tmp-badge-preview/
+
+# 配布物
+dist/

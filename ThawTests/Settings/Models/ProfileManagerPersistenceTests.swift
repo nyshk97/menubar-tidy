@@ -115,7 +115,7 @@ struct ProfileManagerPersistenceTests {
     func managerCreatesItsProfilesDirectory() throws {
         try withTemporaryDirectory { tmp in
             let nested = tmp
-                .appendingPathComponent("Thaw", isDirectory: true)
+                .appendingPathComponent("MenuBar Tidy", isDirectory: true)
                 .appendingPathComponent("Profiles", isDirectory: true)
             let manager = ProfileManager(profilesDirectory: nested)
 

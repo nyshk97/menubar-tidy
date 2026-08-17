@@ -23,7 +23,7 @@ import Testing
 /// dictionary.
 ///
 /// Every test routes through ``withScratchDefaults(sourceLocation:_:)``, so
-/// nothing here touches the developer's real `com.nyshk97.Thaw` domain. The
+/// nothing here touches the developer's real `com.nyshk97.MenuBarTidy` domain. The
 /// suite is `.serialized` for the reason that helper documents:
 /// `Defaults.store` is process-wide.
 ///

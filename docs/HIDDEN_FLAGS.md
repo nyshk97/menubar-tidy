@@ -13,7 +13,7 @@ not surfaced in the UI.
 ## Overview
 
 All commands below use `defaults write` against this app's bundle identifier,
-`com.nyshk97.Thaw`. Changes take effect the next time the relevant code
+`com.nyshk97.MenuBarTidy`. Changes take effect the next time the relevant code
 path runs; a relaunch is the simplest way to guarantee that.
 
 ## Available Flags
@@ -28,19 +28,19 @@ path runs; a relaunch is the simplest way to guarantee that.
 
 ```bash
 # Widen the input-pause window to 150 ms.
-defaults write com.nyshk97.Thaw inputPauseThresholdMs -int 150
+defaults write com.nyshk97.MenuBarTidy inputPauseThresholdMs -int 150
 
 # Disable discarding of stray move-event echoes.
-defaults write com.nyshk97.Thaw discardStrayMoveEvents -bool NO
+defaults write com.nyshk97.MenuBarTidy discardStrayMoveEvents -bool NO
 
 # Fail fast on a window mismatch instead of waiting for a timeout.
-defaults write com.nyshk97.Thaw failFastOnEventWindowMismatch -bool YES
+defaults write com.nyshk97.MenuBarTidy failFastOnEventWindowMismatch -bool YES
 ```
 
 To restore the default behaviour for a flag, remove the key:
 
 ```bash
-defaults delete com.nyshk97.Thaw inputPauseThresholdMs
+defaults delete com.nyshk97.MenuBarTidy inputPauseThresholdMs
 ```
 
 ## Notes

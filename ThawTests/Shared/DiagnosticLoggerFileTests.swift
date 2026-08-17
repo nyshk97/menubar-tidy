@@ -61,7 +61,7 @@ struct DiagnosticLoggerFileTests {
             // The header is written on the calling thread, not the write
             // queue, so it is observable without waiting.
             let text = contents(of: file)
-            #expect(text.contains("Thaw Diagnostic Log"))
+            #expect(text.contains("MenuBar Tidy Diagnostic Log"))
             #expect(text.contains("Process: \(ProcessInfo.processInfo.processName)"))
             #expect(text.contains("macOS: \(ProcessInfo.processInfo.operatingSystemVersionString)"))
         }
@@ -78,7 +78,7 @@ struct DiagnosticLoggerFileTests {
             // Two processes share one file, so the second open must not lose
             // what the first one wrote.
             let text = contents(of: file)
-            #expect(occurrences(of: "Thaw Diagnostic Log", in: text) == 2)
+            #expect(occurrences(of: "MenuBar Tidy Diagnostic Log", in: text) == 2)
             #expect(occurrences(of: "Diagnostic logging stopped", in: text) == 1)
         }
     }
@@ -94,7 +94,7 @@ struct DiagnosticLoggerFileTests {
 
             #expect(DiagnosticLogger.shared.currentLogFile == second)
             #expect(contents(of: first).contains("Diagnostic logging stopped"))
-            #expect(contents(of: second).contains("Thaw Diagnostic Log"))
+            #expect(contents(of: second).contains("MenuBar Tidy Diagnostic Log"))
             #expect(!contents(of: second).contains("Diagnostic logging stopped"))
         }
     }
@@ -303,7 +303,7 @@ struct DiagnosticLoggerFileTests {
     func logDirectoryIsUnderTheUserLibrary() {
         let directory = DiagnosticLogger.shared.logDirectory
 
-        #expect(directory.lastPathComponent == "Thaw")
+        #expect(directory.lastPathComponent == "MenuBar Tidy")
         #expect(directory.deletingLastPathComponent().lastPathComponent == "Logs")
         #expect(directory.path.hasPrefix(FileManager.default.homeDirectoryForCurrentUser.path))
     }

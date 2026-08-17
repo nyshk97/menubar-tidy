@@ -13,7 +13,7 @@ import Foundation
 ///
 /// Migrations for Ice's `0.8.0` through `0.11.13.1` releases used to live here.
 /// Thaw has only ever read its own defaults domain — `com.stonerl.Thaw`
-/// upstream, `com.nyshk97.Thaw` in this fork — and no Thaw release wrote those
+/// upstream, `com.nyshk97.MenuBarTidy` in this fork — and no Thaw release wrote those
 /// older formats into it, so none of them could run.
 ///
 /// Upstream also offered to import an existing Ice install's settings on first

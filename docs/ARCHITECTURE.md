@@ -92,7 +92,7 @@ There is no URL scheme, no update feed, and no outbound network traffic.
 
 ## Data and persistence
 
-- Preferences and profiles: `UserDefaults` (`com.nyshk97.Thaw`) and files under
+- Preferences and profiles: `UserDefaults` (`com.nyshk97.MenuBarTidy`) and files under
   Application Support, on the local Mac only.
 - Diagnostic logs: optional local files under `~/Library/Logs/Thaw/`, never
   uploaded.

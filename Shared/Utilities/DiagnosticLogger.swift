@@ -51,7 +51,7 @@ final nonisolated class DiagnosticLogger: @unchecked Sendable {
         return home
             .appendingPathComponent("Library", isDirectory: true)
             .appendingPathComponent("Logs", isDirectory: true)
-            .appendingPathComponent("Thaw", isDirectory: true)
+            .appendingPathComponent("MenuBar Tidy", isDirectory: true)
     }
 
     /// Returns whether any log files exist in the log directory.
@@ -90,7 +90,7 @@ final nonisolated class DiagnosticLogger: @unchecked Sendable {
 
     /// Internal logger for DiagnosticLogger's own messages.
     private let osLog = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.nyshk97.Thaw",
+        subsystem: Bundle.main.bundleIdentifier ?? "com.nyshk97.MenuBarTidy",
         category: "DiagnosticLogger"
     )
 
@@ -112,7 +112,7 @@ final nonisolated class DiagnosticLogger: @unchecked Sendable {
 
     /// Serial queue for file I/O.
     private let writeQueue = DispatchQueue(
-        label: "com.nyshk97.Thaw.DiagnosticLogger.writeQueue",
+        label: "com.nyshk97.MenuBarTidy.DiagnosticLogger.writeQueue",
         qos: .utility
     )
 
@@ -216,7 +216,7 @@ final nonisolated class DiagnosticLogger: @unchecked Sendable {
         let sha = Bundle.main.infoDictionary?["GitCommitSHA"] as? String ?? "unknown"
         let header = """
         ========================================
-        Thaw Diagnostic Log
+        MenuBar Tidy Diagnostic Log
         Started: \(timestampFormatter.string(from: Date()))
         Process: \(ProcessInfo.processInfo.processName)
         Version: \(version) (\(build)) commit \(sha)
@@ -345,7 +345,7 @@ nonisolated struct DiagLog {
 
     init(category: String) {
         self.osLogger = Logger(
-            subsystem: Bundle.main.bundleIdentifier ?? "com.nyshk97.Thaw",
+            subsystem: Bundle.main.bundleIdentifier ?? "com.nyshk97.MenuBarTidy",
             category: category
         )
         self.category = category

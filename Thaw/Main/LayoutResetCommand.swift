@@ -77,7 +77,7 @@ enum LayoutResetCommand {
         }
         resetPersistedLayout()
         Defaults.store.synchronize()
-        print("Thaw: menu bar layout reset. Start Thaw again to rebuild it.")
+        print("MenuBar Tidy: menu bar layout reset. Start MenuBar Tidy again to rebuild it.")
         return true
     }
 }

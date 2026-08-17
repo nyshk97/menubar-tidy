@@ -12,9 +12,12 @@
 
 - macOS 26 以上 / Xcode 26 以上（`MACOSX_DEPLOYMENT_TARGET = 26.0`）
 - 署名は自分の Team（`VYDUR99LAM`）。ad-hoc にすると TCC の許可がビルドのたびに失効する
-- バンドル名 **MenuBar Tidy.app**、バンドルID `com.nyshk97.Thaw`、アイコンは**青**
-  - **バンドルIDだけ `Thaw` のまま**。変えると TCC の許可が失効するので、意図的に据え置いている
-  - Swift のモジュール名も `Thaw` のまま（`PRODUCT_MODULE_NAME` で固定）。テスト全 154 ファイルの
+- バンドル名 **MenuBar Tidy.app**、バンドルID `com.nyshk97.MenuBarTidy`、アイコンは**青**
+  - バンドルIDを変えると TCC の許可が失効する（`tccutil reset` して付け直すこと）。
+    サポートファイルの置き場も本家 Thaw と分けてある:
+    `~/Library/Logs/MenuBar Tidy/` / `~/Library/Application Support/MenuBar Tidy/Profiles/` /
+    `~/Library/Caches/com.nyshk97.MenuBarTidy/`
+  - Swift のモジュール名は `Thaw` のまま（`PRODUCT_MODULE_NAME` で固定）。テスト全 154 ファイルの
     `@testable import Thaw` がこれに依存している
   - 本家 Thaw（`com.stonerl.Thaw` / **アンバー**アイコン）は**アンインストール済み**。
     入れ直すと同じメニューバーを奪い合うので、両方を同時に起動しないこと
@@ -70,11 +73,11 @@ xcodebuild -project Thaw.xcodeproj -scheme Thaw -configuration Debug -derivedDat
 pkill -f "menubar-tidy/Build.*MenuBar Tidy"
 
 # 2. 汚染を検出（既定 false なので 1 なら汚染）
-defaults read com.nyshk97.Thaw ShowOnHover
+defaults read com.nyshk97.MenuBarTidy ShowOnHover
 
 # 3. 汚染していたら退避して削除
-defaults export com.nyshk97.Thaw /tmp/thaw-domain-backup.plist
-defaults delete com.nyshk97.Thaw
+defaults export com.nyshk97.MenuBarTidy /tmp/thaw-domain-backup.plist
+defaults delete com.nyshk97.MenuBarTidy
 ```
 
 ---
@@ -176,8 +179,8 @@ open "Build/Build/Products/Debug/MenuBar Tidy.app"
 ### ログ
 
 ```sh
-ls -t ~/Library/Logs/Thaw/ | head -1
-grep -iE "controlitem|occlu|temporarilyShow|AX activation" ~/Library/Logs/Thaw/<最新>.log
+ls -t ~/Library/Logs/"MenuBar Tidy"/ | head -1
+grep -iE "controlitem|occlu|temporarilyShow|AX activation" ~/Library/Logs/"MenuBar Tidy"/<最新>.log
 ```
 
 `is occluded — the menu bar accepted the status item but is not rendering it` は
@@ -248,8 +251,8 @@ Control Center が肩代わりしてホストしている項目（`com.apple.con
 
 ```sh
 # 認識が壊れたときのリセット
-rm -rf ~/Library/Caches/com.nyshk97.Thaw
-tccutil reset Accessibility com.nyshk97.Thaw
+rm -rf ~/Library/Caches/com.nyshk97.MenuBarTidy
+tccutil reset Accessibility com.nyshk97.MenuBarTidy
 ```
 
 アプリを終了 → メニューバー上で Little Snitch のアイコンを ⌘ ドラッグで右端へ → 再起動、
@@ -292,7 +295,38 @@ macOS 側の制約がある。ミラーリングを止めてから確認する�
 
 ---
 
-## 8. 罠
+## 8. リリース
+
+配布は notarize 済み zip を GitHub Release に上げ、`nyshk97/homebrew-tap` の
+`Casks/menubar-tidy.rb` を更新して `brew` から入れる形。Sparkle は入っていないので
+自動更新はない。
+
+```sh
+mise run release            # patch bump。minor / major / x.y.z も指定できる
+```
+
+内訳（個別にも回せる）:
+
+| 手順 | コマンド | 何を確かめるか |
+| --- | --- | --- |
+| ビルド + 署名検証 + zip | `mise run release:zip` | Developer ID 署名・secure timestamp・Hardened Runtime・`get-task-allow` 不在 |
+| notarize + staple | `mise run release:notarize` | `spctl --assess` が `Notarized Developer ID` を返すこと |
+
+- **Release 構成だけ Developer ID 署名**（Debug は Apple Development のまま）。
+  `CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO` で `get-task-allow` の注入を止めてある
+- notarize の資格情報は keychain プロファイル `notary`（`NOTARY_PROFILE` で変えられる）。
+  無いときは `xcrun notarytool store-credentials notary --apple-id <id> --team-id VYDUR99LAM`
+- zip 化は `ditto -c -k --sequesterRsrc --keepParent`。`zip -r` は symlink を潰して署名を壊す
+- 配布物の最終確認:
+
+```sh
+ditto -x -k dist/MenuBarTidy-<version>.zip /tmp/mbt-check
+spctl --assess --type execute -vv "/tmp/mbt-check/MenuBar Tidy.app"   # → Notarized Developer ID
+```
+
+---
+
+## 9. 罠
 
 - **Claude Code の Bash からは `screencapture` が真っ黒になる**（画面収録権限がない）。
   メニューバーの目視確認はユーザーに依頼するか、`scripts/list-menu-bar-items.swift` で代替する

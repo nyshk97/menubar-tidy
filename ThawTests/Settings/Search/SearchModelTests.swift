@@ -17,7 +17,7 @@ struct SearchModelTests {
     func resultsAreGroupedByPane() {
         let model = SearchModel()
 
-        model.searchText = "hotkey"
+        model.searchText = "always hidden"
 
         let groups = model.displayedGroups
         let entries = groups.flatMap(\.entries)
@@ -29,14 +29,14 @@ struct SearchModelTests {
         #expect(groups.allSatisfy { group in
             !group.entries.isEmpty && group.entries.allSatisfy { $0.pane == group.pane }
         })
-        #expect(entries.contains { $0.id == "pane.hotkeys" })
-        #expect(entries.contains { $0.id == "hotkeys.toggleHiddenSection" })
+        #expect(entries.contains { $0.id == "advanced.enableAlwaysHiddenSection" })
+        #expect(entries.contains { $0.id == "advanced.useOptionClickToShowAlwaysHiddenSection" })
     }
 
     @Test("Whitespace clears previously displayed search results")
     func whitespaceClearsResults() {
         let model = SearchModel()
-        model.searchText = "hotkey"
+        model.searchText = "always hidden"
         #expect(!model.displayedGroups.isEmpty)
 
         model.searchText = "  \n\t"

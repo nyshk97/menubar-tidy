@@ -14,7 +14,6 @@ nonisolated enum SettingsNavigationIdentifier: String, NavigationIdentifier {
     case displays = "Displays"
     case menuBarLayout = "Menu Bar Layout"
     case menuBarAppearance = "Menu Bar Appearance"
-    case hotkeys = "Hotkeys"
     case profiles = "Profiles"
     case advanced = "Advanced"
     case automation = "Automation"
@@ -26,7 +25,6 @@ nonisolated enum SettingsNavigationIdentifier: String, NavigationIdentifier {
         case .displays: "Displays"
         case .menuBarLayout: "Layout"
         case .menuBarAppearance: "Appearance"
-        case .hotkeys: "Hotkeys"
         case .profiles: "Profiles"
         case .advanced: "Advanced"
         case .automation: "Automation"
@@ -40,7 +38,6 @@ nonisolated enum SettingsNavigationIdentifier: String, NavigationIdentifier {
         case .displays: .systemSymbol("display.2")
         case .menuBarLayout: .systemSymbol("rectangle.topthird.inset.filled")
         case .menuBarAppearance: .systemSymbol("swatchpalette")
-        case .hotkeys: .systemSymbol("keyboard")
         case .profiles: .systemSymbol("person.crop.rectangle.stack")
         case .advanced: .systemSymbol("gearshape.2")
         case .automation: .systemSymbol("app.badge.checkmark")

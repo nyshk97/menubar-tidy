@@ -28,8 +28,6 @@ import Testing
 ///   host app is relying on mid-run.
 /// - The secondary-screen branch of `computeApplicationMenuFrame()` needs a
 ///   second attached display.
-/// - `Hotkey.enable()` / `HotkeyAction.perform(appState:)` need Carbon
-///   registration and a live `AppState`.
 /// - `DiagnosticLogger`'s file-opening and pruning paths write real log files
 ///   into the shared log directory.
 @MainActor

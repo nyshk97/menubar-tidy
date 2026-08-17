@@ -93,7 +93,7 @@ nonisolated struct SearchEntry: Identifiable, @unchecked Sendable {
 nonisolated enum SearchIndex {
     /// Entries indexed on every supported macOS release.
     private static let sharedEntries: [SearchEntry] = paneEntries + generalEntries + revealEntries + advancedEntries
-        + displayEntries + hotkeyEntries + layoutEntries + appearanceEntries
+        + displayEntries + layoutEntries + appearanceEntries
 
     /// macOS 27-only settings rows, appended when the sidebar search UI is
     /// available. Currently empty: rows are only added here once a matching
@@ -204,17 +204,6 @@ nonisolated enum SearchIndex {
             sectionKey: nil,
             sectionText: nil,
             keywords: ["appearance", "tint", "color", "shadow", "border", "shape", "background", "dark mode", "fill", "glass"],
-            property: nil
-        ),
-        SearchEntry(
-            id: "pane.hotkeys",
-            titleKey: "Hotkeys",
-            titleText: "Hotkeys",
-            descriptionText: nil,
-            pane: .hotkeys,
-            sectionKey: nil,
-            sectionText: nil,
-            keywords: ["hotkey", "shortcut", "keyboard", "toggle", "search"],
             property: nil
         ),
         SearchEntry(
@@ -695,68 +684,6 @@ nonisolated enum SearchIndex {
             sectionKey: nil,
             sectionText: nil,
             keywords: ["confirm", "relaunch", "apps", "spacing", "restart"],
-            property: nil
-        ),
-    ]
-
-    // MARK: Hotkey Settings
-
-    /// Hotkey bindings are dictionary-based on `HotkeysSettings`, not simple
-    /// `@Published` toggles, so they are not covered by the drift guard.
-    private static let hotkeyEntries: [SearchEntry] = [
-        SearchEntry(
-            id: "hotkeys.toggleHiddenSection",
-            titleKey: "Toggle the hidden section",
-            titleText: "Toggle the hidden section",
-            descriptionText: nil,
-            pane: .hotkeys,
-            sectionKey: "Menu Bar Sections",
-            sectionText: "Menu Bar Sections",
-            keywords: ["toggle", "hidden", "section", "hotkey", "shortcut"],
-            property: nil
-        ),
-        SearchEntry(
-            id: "hotkeys.toggleAlwaysHiddenSection",
-            titleKey: "Toggle the always-hidden section",
-            titleText: "Toggle the always-hidden section",
-            descriptionText: nil,
-            pane: .hotkeys,
-            sectionKey: "Menu Bar Sections",
-            sectionText: "Menu Bar Sections",
-            keywords: ["toggle", "always hidden", "section", "hotkey", "shortcut"],
-            property: nil
-        ),
-        SearchEntry(
-            id: "hotkeys.openMenuBarItems",
-            titleKey: "Open menu bar items",
-            titleText: "Open menu bar items",
-            descriptionText: nil,
-            pane: .hotkeys,
-            sectionKey: "Menu Bar Items",
-            sectionText: "Menu Bar Items",
-            keywords: ["open", "menu bar items", "hotkey", "per item"],
-            property: nil
-        ),
-        SearchEntry(
-            id: "hotkeys.enableIceBar",
-            titleKey: "Enable the \(Constants.displayName) Bar",
-            titleText: "Enable the \(Constants.displayName) Bar",
-            descriptionText: nil,
-            pane: .hotkeys,
-            sectionKey: "Other",
-            sectionText: "Other",
-            keywords: ["enable", "ice bar", "thaw bar", "hotkey", "shortcut"],
-            property: nil
-        ),
-        SearchEntry(
-            id: "hotkeys.toggleApplicationMenus",
-            titleKey: "Toggle application menus",
-            titleText: "Toggle application menus",
-            descriptionText: nil,
-            pane: .hotkeys,
-            sectionKey: "Other",
-            sectionText: "Other",
-            keywords: ["toggle", "application menus", "app menus", "hotkey", "shortcut"],
             property: nil
         ),
     ]

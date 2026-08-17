@@ -10,7 +10,7 @@ import Observation
 
 /// Top-level model for the app's settings.
 ///
-/// Now that its four children (`advanced`, `general`, `hotkeys`,
+/// Now that its three children (`advanced`, `general`,
 /// `displaySettings`) are `@Observable`, `AppSettings` itself is
 /// `@Observable` too, with plain `let` children. The previous
 /// `objectWillChange` forwarding block (each child's `objectWillChange`
@@ -29,9 +29,6 @@ final class AppSettings {
     /// The model for the app's General settings.
     let general = GeneralSettings()
 
-    /// The model for the app's Hotkeys settings.
-    let hotkeys = HotkeysSettings()
-
     /// The model for per-display Thaw Bar settings.
     let displaySettings = DisplaySettingsManager()
 
@@ -44,7 +41,6 @@ final class AppSettings {
         self.appState = appState
         advanced.performSetup(with: appState)
         general.performSetup(with: appState)
-        hotkeys.performSetup(with: appState)
         displaySettings.performSetup(with: appState)
     }
 }

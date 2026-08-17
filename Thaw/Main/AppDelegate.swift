@@ -309,18 +309,36 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     /// Performs a parameterless `thaw://` action.
+    ///
+    /// The section toggles used to be routed through `HotkeyAction.perform`,
+    /// which this fork removed along with the rest of the hotkey subsystem.
+    /// They are spelled out here instead, including the `triggeredByHotkey`
+    /// flag and the show-on-hover suppression that came with them: a URL is
+    /// as deliberate an act as a key press, so a revealed section should not
+    /// rehide the moment the pointer moves.
     private func perform(_ action: SettingsURIAction) {
         switch action {
         case .toggleHidden:
-            HotkeyAction.toggleHiddenSection.perform(appState: appState)
+            toggleSection(named: .hidden)
         case .toggleAlwaysHidden:
-            HotkeyAction.toggleAlwaysHiddenSection.perform(appState: appState)
+            toggleSection(named: .alwaysHidden)
         case .toggleThawbar:
-            HotkeyAction.enableIceBar.perform(appState: appState)
+            appState.settings.displaySettings.toggleIceBarForActiveDisplay()
         case .toggleApplicationMenus:
-            HotkeyAction.toggleApplicationMenus.perform(appState: appState)
+            appState.menuBarManager.toggleApplicationMenus()
         case .openSettings:
             openSettingsWindow()
+        }
+    }
+
+    /// Toggles a menu bar section on behalf of a `thaw://` action.
+    private func toggleSection(named name: MenuBarSection.Name) {
+        guard let section = appState.menuBarManager.section(withName: name) else {
+            return
+        }
+        section.toggle(triggeredByHotkey: true)
+        if !section.isHidden {
+            appState.menuBarManager.showOnHoverAllowed = false
         }
     }
 

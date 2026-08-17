@@ -13,7 +13,6 @@ extension AppSettings {
     func resetAllSettingsToDefaults() {
         resetGeneral()
         resetAdvanced()
-        resetHotkeys()
         resetDisplay()
         resetAppearance()
         // Not a setting, but a learned verdict about the user's other apps.
@@ -76,14 +75,6 @@ extension AppSettings {
         advanced.searchIncludeHidden = Defaults.DefaultValue.searchIncludeHidden
         advanced.searchIncludeAlwaysHidden = Defaults.DefaultValue.searchIncludeAlwaysHidden
         advanced.moveCursorToRevealedItem = Defaults.DefaultValue.moveCursorToRevealedItem
-    }
-
-    /// Resets Hotkeys settings to their default values.
-    func resetHotkeys() {
-        Defaults.set(Defaults.DefaultValue.hotkeys, forKey: .hotkeys)
-        for hotkey in hotkeys.hotkeys {
-            hotkey.keyCombination = nil
-        }
     }
 
     /// Resets Display settings to their default values.

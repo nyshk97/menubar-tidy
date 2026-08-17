@@ -123,8 +123,6 @@ struct SettingsView: View {
             DisplaySettingsPane(displaySettings: appState.settings.displaySettings)
         case .menuBarAppearance:
             MenuBarAppearanceSettingsPane(appearanceManager: appState.appearanceManager)
-        case .hotkeys:
-            HotkeysSettingsPane(settings: appState.settings.hotkeys)
         case .profiles:
             ProfileSettingsPane(profileManager: appState.profileManager)
         case .advanced:

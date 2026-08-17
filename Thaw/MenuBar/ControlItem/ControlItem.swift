@@ -394,25 +394,6 @@ final class ControlItem {
     private func configureStatusItemCancellables() {
         var c = Set<AnyCancellable>()
 
-        statusItem.publisher(for: \.isVisible)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] isVisible in
-                guard
-                    let self,
-                    let menuBarManager = appState?.menuBarManager,
-                    let section = menuBarManager.section(withName: sectionName),
-                    let hotkey = section.hotkey
-                else {
-                    return
-                }
-                if isVisible {
-                    hotkey.enable()
-                } else {
-                    hotkey.disable()
-                }
-            }
-            .store(in: &c)
-
         statusItem.publisher(for: \.button).removeNil()
             .map { $0.publisher(for: \.window) }
             .switchToLatest()
@@ -880,10 +861,6 @@ final class ControlItem {
 
     /// Creates a menu to show under the control item.
     private func createMenu(with appState: AppState) -> NSMenu {
-        func hotkey(withAction action: HotkeyAction) -> Hotkey? {
-            appState.settings.hotkeys.hotkey(withAction: action)
-        }
-
         let menu = NSMenu(title: Bundle.main.displayName)
 
         let settingsItem = NSMenuItem(
@@ -930,13 +907,6 @@ final class ControlItem {
                 keyEquivalent: ""
             )
             item.image = NSImage(systemSymbolName: iconName, accessibilityDescription: sectionTitle)
-            if
-                let hotkey = section.hotkey,
-                let keyCombination = hotkey.keyCombination
-            {
-                item.keyEquivalent = keyCombination.key.keyEquivalent
-                item.keyEquivalentModifierMask = keyCombination.modifiers.nsEventFlags
-            }
             item.target = self
             item.representedObject = section
             menu.addItem(item)

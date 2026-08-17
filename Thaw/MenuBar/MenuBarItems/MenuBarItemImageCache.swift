@@ -262,25 +262,6 @@ final class MenuBarItemImageCache: @unchecked Sendable {
     /// remaining lifetime of the process after the first open (#759).
     private(set) var isSettingsPaneOpen = false
 
-    /// Whether the per-item hotkey list in the Hotkeys settings pane is expanded.
-    /// While collapsed, the pane has no visible item-icon consumer, so the live
-    /// capture loop stays off rather than paying the off-screen SkyLight capture
-    /// cost for items the user cannot see.
-    private(set) var isItemHotkeyListExpanded = false {
-        didSet {
-            guard oldValue != isItemHotkeyListExpanded else { return }
-            startLiveRefreshIfNeeded()
-        }
-    }
-
-    /// Updates isItemHotkeyListExpanded from the Hotkeys settings UI.
-    func setItemHotkeyListExpanded(_ expanded: Bool) {
-        guard isItemHotkeyListExpanded != expanded else {
-            return
-        }
-        isItemHotkeyListExpanded = expanded
-    }
-
     @MainActor
     deinit {
         memoryPressureSource?.cancel()
@@ -552,7 +533,6 @@ final class MenuBarItemImageCache: @unchecked Sendable {
                 let changes = Observations {
                     (
                         navigationState.isIceBarPresented,
-                        navigationState.isSearchPresented,
                         navigationState.isSettingsPresented,
                         navigationState.settingsNavigationIdentifier,
                         navigationState.isAppFrontmost
@@ -563,12 +543,6 @@ final class MenuBarItemImageCache: @unchecked Sendable {
                     self.startLiveRefreshIfNeeded()
                 }
             }
-
-            // Start/stop the live refresh when the Hotkeys pane's per-item list
-            // is expanded or collapsed, since that gates its capture consumer.
-            // Replaced by `isItemHotkeyListExpanded`'s `didSet` above now
-            // that this class is @Observable (no more `$isItemHotkeyListExpanded`
-            // Combine projection to subscribe to).
 
             // Restart the live refresh loop when the icon refresh interval
             // changes. `AdvancedSettings` is `@Observable` rather than a
@@ -595,11 +569,9 @@ final class MenuBarItemImageCache: @unchecked Sendable {
     /// Snapshot of navigation state read in a single MainActor hop.
     struct NavigationStateSnapshot {
         let isIceBarPresented: Bool
-        let isSearchPresented: Bool
         let isAppFrontmost: Bool
         let isSettingsPresented: Bool
         let settingsNavigationIdentifier: SettingsNavigationIdentifier?
-        let isItemHotkeyListExpanded: Bool
     }
 
     /// Constructs a NavigationStateSnapshot from the current appState in a single MainActor hop.
@@ -609,20 +581,16 @@ final class MenuBarItemImageCache: @unchecked Sendable {
         guard let appState else {
             return NavigationStateSnapshot(
                 isIceBarPresented: false,
-                isSearchPresented: false,
                 isAppFrontmost: false,
                 isSettingsPresented: false,
-                settingsNavigationIdentifier: nil,
-                isItemHotkeyListExpanded: false
+                settingsNavigationIdentifier: nil
             )
         }
         return NavigationStateSnapshot(
             isIceBarPresented: appState.navigationState.isIceBarPresented,
-            isSearchPresented: appState.navigationState.isSearchPresented,
             isAppFrontmost: appState.navigationState.isAppFrontmost,
             isSettingsPresented: appState.navigationState.isSettingsPresented,
-            settingsNavigationIdentifier: appState.navigationState.settingsNavigationIdentifier,
-            isItemHotkeyListExpanded: isItemHotkeyListExpanded
+            settingsNavigationIdentifier: appState.navigationState.settingsNavigationIdentifier
         )
     }
 
@@ -677,24 +645,14 @@ final class MenuBarItemImageCache: @unchecked Sendable {
 
     /// Returns whether any visible surface currently needs live item captures.
     private func hasVisibleCaptureConsumer(nav: NavigationStateSnapshot) -> Bool {
-        if nav.isIceBarPresented || nav.isSearchPresented {
+        if nav.isIceBarPresented {
             return true
         }
 
         guard nav.isAppFrontmost, nav.isSettingsPresented else {
             return false
         }
-        switch nav.settingsNavigationIdentifier {
-        case .menuBarLayout:
-            return true
-        case .hotkeys:
-            // Only the expanded per-item hotkey list consumes item icons. Read
-            // from the snapshot so this stays race-free when called off the main
-            // actor (e.g. from refreshVisibleConsumersOrPrewarmLayoutCache).
-            return nav.isItemHotkeyListExpanded
-        default:
-            return false
-        }
+        return nav.settingsNavigationIdentifier == .menuBarLayout
     }
 
     /// Convenience overload that reads current state on MainActor when no snapshot is provided.
@@ -705,11 +663,9 @@ final class MenuBarItemImageCache: @unchecked Sendable {
         }
         let nav = NavigationStateSnapshot(
             isIceBarPresented: appState.navigationState.isIceBarPresented,
-            isSearchPresented: appState.navigationState.isSearchPresented,
             isAppFrontmost: appState.navigationState.isAppFrontmost,
             isSettingsPresented: appState.navigationState.isSettingsPresented,
-            settingsNavigationIdentifier: appState.navigationState.settingsNavigationIdentifier,
-            isItemHotkeyListExpanded: isItemHotkeyListExpanded
+            settingsNavigationIdentifier: appState.navigationState.settingsNavigationIdentifier
         )
         return hasVisibleCaptureConsumer(nav: nav)
     }
@@ -736,7 +692,7 @@ final class MenuBarItemImageCache: @unchecked Sendable {
                 // Already running — don't restart
                 guard self.liveRefreshTask == nil else { return }
                 MenuBarItemImageCache.diagLog.debug(
-                    "Starting live refresh (iceBar=\(nav.isIceBarPresented), search=\(nav.isSearchPresented), settings=\(nav.isSettingsPresented))"
+                    "Starting live refresh (iceBar=\(nav.isIceBarPresented), settings=\(nav.isSettingsPresented))"
                 )
                 self.liveRefreshTask = Task { [weak self] in
                     guard let self else { return }
@@ -790,33 +746,18 @@ final class MenuBarItemImageCache: @unchecked Sendable {
                 )
             }
 
-            // Determine which sections to refresh based on what's visible
+            // Determine which sections to refresh based on what's visible.
+            //
+            // Upstream has three consumers here: the layout pane, the search
+            // panel — which alone could be told to leave whole sections out of
+            // its results, and so filtered them — and the Hotkeys pane's
+            // per-item list. This fork removed the latter two, leaving the
+            // layout pane, which always shows every section.
             let sections: [MenuBarSection.Name]
             let isLayoutPane = nav.isSettingsPresented
                 && nav.settingsNavigationIdentifier == .menuBarLayout
-            // The Hotkeys pane only needs item icons while its per-item list
-            // disclosure is expanded.
-            let isHotkeyListVisible = nav.isSettingsPresented
-                && nav.settingsNavigationIdentifier == .hotkeys
-                && isItemHotkeyListExpanded
-            if nav.isSearchPresented || isLayoutPane || isHotkeyListVisible {
-                if nav.isSearchPresented, !isLayoutPane, !isHotkeyListVisible {
-                    // Search is the only consumer here that can be told to
-                    // leave whole sections out of its results; capturing icons
-                    // for rows it will never render is pure waste. The layout
-                    // pane and the hotkey list always show every section, so
-                    // they keep the unfiltered set.
-                    let advanced = appState.settings.advanced
-                    sections = MenuBarSection.Name.allCases.filter { name in
-                        switch name {
-                        case .visible: advanced.searchIncludeVisible
-                        case .hidden: advanced.searchIncludeHidden
-                        case .alwaysHidden: advanced.searchIncludeAlwaysHidden
-                        }
-                    }
-                } else {
-                    sections = MenuBarSection.Name.allCases
-                }
+            if isLayoutPane {
+                sections = MenuBarSection.Name.allCases
             } else if nav.isIceBarPresented,
                       let current = appState.menuBarManager.iceBarPanel.currentSection
             {
@@ -1887,7 +1828,7 @@ final class MenuBarItemImageCache: @unchecked Sendable {
             }
         }
 
-        MenuBarItemImageCache.diagLog.debug("updateCache: proceeding with cache update for \(sections.count) sections (iceBar=\(navSnapshot.isIceBarPresented), search=\(navSnapshot.isSearchPresented), background=\(allowBackgroundCapture))")
+        MenuBarItemImageCache.diagLog.debug("updateCache: proceeding with cache update for \(sections.count) sections (iceBar=\(navSnapshot.isIceBarPresented), background=\(allowBackgroundCapture))")
         await updateCacheWithoutChecks(sections: sections)
     }
 
@@ -1909,7 +1850,7 @@ final class MenuBarItemImageCache: @unchecked Sendable {
 
         var sectionsNeedingDisplay = [MenuBarSection.Name]()
 
-        if navSnapshot.isSettingsPresented || navSnapshot.isSearchPresented {
+        if navSnapshot.isSettingsPresented {
             sectionsNeedingDisplay = MenuBarSection.Name.allCases
         } else if navSnapshot.isIceBarPresented, let section = appState.menuBarManager.iceBarPanel
             .currentSection

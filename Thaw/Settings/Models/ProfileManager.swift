@@ -15,18 +15,10 @@ import Foundation
 final class ProfileManager {
     /// The manager's list of profile metadata.
     ///
-    /// `didSet` does not fire for assignments made from within this class's
-    /// own `init` (matching the previous `$profiles.dropFirst()` Combine
-    /// subscription, which skipped the value delivered at subscribe time).
-    /// It does fire for every later assignment, including ones made before
-    /// ``performSetup(with:)`` is called; ``rebuildProfileHotkeys()`` no-ops
-    /// via its `appState` guard in that case, same as before when no
-    /// subscription existed yet.
-    private(set) var profiles: [ProfileMetadata] = [] {
-        didSet {
-            rebuildProfileHotkeys()
-        }
-    }
+    /// Upstream observed this with a `didSet` that rebuilt the per-profile
+    /// hotkeys. This fork removed hotkeys, and nothing else needed to react,
+    /// so the observer went with them.
+    private(set) var profiles: [ProfileMetadata] = []
 
     /// The ID of the currently active profile, or `nil`.
     var activeProfileID: UUID?
@@ -59,11 +51,6 @@ final class ProfileManager {
 
     /// Generation counter to prevent older layout tasks from clearing newer ones.
     var layoutGeneration: UInt = 0
-
-    /// Hotkeys for switching to each profile, keyed by profile ID.
-    var profileHotkeys: [UUID: Hotkey] = [:]
-    /// Maps Hotkey identity to profile ID for the perform() lookup.
-    var hotkeyProfileMap: [ObjectIdentifier: UUID] = [:]
 
     /// - Parameter profilesDirectory: Where profile JSON and the manifest
     ///   live. Defaults to Application Support in production; tests pass a

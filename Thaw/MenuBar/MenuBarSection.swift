@@ -145,18 +145,6 @@ final class MenuBarSection {
         return controlItem.isAddedToMenuBar
     }
 
-    /// The hotkey to toggle the section.
-    var hotkey: Hotkey? {
-        guard let hotkeys = appState?.settings.hotkeys else {
-            return nil
-        }
-        return switch name {
-        case .visible: nil
-        case .hidden: hotkeys.hotkey(withAction: .toggleHiddenSection)
-        case .alwaysHidden: hotkeys.hotkey(withAction: .toggleAlwaysHiddenSection)
-        }
-    }
-
     /// Creates a section with the given name and control item.
     init(name: Name, controlItem: ControlItem) {
         self.name = name

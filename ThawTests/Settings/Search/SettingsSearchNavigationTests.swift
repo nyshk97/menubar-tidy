@@ -64,10 +64,10 @@ struct SettingsSearchNavigationTests {
         let state = AppNavigationState()
         state.requestedSettingsDisclosure = .advancedLayoutControls
 
-        SettingsSearchNavigation.selectSidebarPane(.hotkeys, navigationState: state)
+        SettingsSearchNavigation.selectSidebarPane(.displays, navigationState: state)
 
         #expect(state.requestedSettingsDisclosure == nil)
-        #expect(state.settingsNavigationIdentifier == .hotkeys)
+        #expect(state.settingsNavigationIdentifier == .displays)
     }
 
     @Test("Re-selecting the current pane still disarms, without renavigating")

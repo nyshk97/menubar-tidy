@@ -147,20 +147,6 @@ struct SettingsResetterTests {
         }
     }
 
-    // MARK: Hotkeys
-
-    @Test("Resetting Hotkeys clears every binding")
-    func resetHotkeysClearsBindings() throws {
-        try withSettings { settings in
-            let hotkey = try #require(settings.hotkeys.hotkey(withAction: .toggleHiddenSection))
-            hotkey.keyCombination = KeyCombination(key: .f19, modifiers: [.command, .shift])
-
-            settings.resetHotkeys()
-
-            #expect(settings.hotkeys.hotkeys.allSatisfy { $0.keyCombination == nil })
-        }
-    }
-
     // MARK: Display
 
     @Test("Resetting Display restores its defaults")
@@ -201,7 +187,6 @@ struct SettingsResetterTests {
             #expect(settings.general.showOnHover == Defaults.DefaultValue.showOnHover)
             #expect(settings.advanced.hideApplicationMenus == Defaults.DefaultValue.hideApplicationMenus)
             #expect(settings.displaySettings.confirmSpacingRelaunch == Defaults.DefaultValue.confirmSpacingRelaunch)
-            #expect(settings.hotkeys.hotkeys.allSatisfy { $0.keyCombination == nil })
         }
     }
 

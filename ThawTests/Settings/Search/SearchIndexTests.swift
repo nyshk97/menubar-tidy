@@ -42,7 +42,7 @@ struct SearchIndexTests {
         arguments: [
             SettingsNavigationIdentifier.general,
             .advanced,
-            .hotkeys,
+            .displays,
         ]
     )
     func entriesForPaneAreScoped(pane: SettingsNavigationIdentifier) {

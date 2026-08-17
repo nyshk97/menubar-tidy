@@ -10,8 +10,8 @@ import Cocoa
 
 /// The live half of ``ProfileManager``: everything whose substance needs a
 /// running `AppState` — pushing snapshots into live managers, the spacing
-/// relaunch wave, WindowServer display identity via Bridging, Carbon hotkey
-/// registration, and Focus Filter intents. None of that can run in a unit
+/// relaunch wave, WindowServer display identity via Bridging, and Focus
+/// Filter intents. None of that can run in a unit
 /// test, so this file is excluded from coverage in sonar-project.properties.
 ///
 /// The measured half (ProfileManager.swift) keeps the manifest, file CRUD,
@@ -25,17 +25,12 @@ extension ProfileManager {
     func performSetup(with appState: AppState) {
         self.appState = appState
         lastActiveDisplayUUID = Bridging.getActiveMenuBarDisplayUUID()
-        rebuildProfileHotkeys()
 
         // Before anything can apply a profile. Once per build, because each
         // build is the only thing that can widen what pruning recognizes as
         // unmatchable — repeating it within a build would rewrite the same
         // files to the same bytes on every launch.
         repairPersistedLayoutsIfNeeded()
-
-        // Note: profiles' didSet already calls rebuildProfileHotkeys() for
-        // every assignment after this class's own init, so no explicit
-        // subscription is needed here (see the doc comment on `profiles`).
 
         startObservationTasks()
 
@@ -304,26 +299,6 @@ extension ProfileManager {
         profile.generalSettings.apply(to: appState.settings.general)
         profile.advancedSettings.apply(to: appState.settings.advanced)
 
-        // Apply hotkeys
-        Defaults.set(profile.hotkeys, forKey: .hotkeys)
-        for hotkey in appState.settings.hotkeys.hotkeys {
-            guard let data = profile.hotkeys[hotkey.action.rawValue] else {
-                hotkey.keyCombination = nil
-                continue
-            }
-            do {
-                let keyCombination = try decoder.decode(
-                    KeyCombination?.self,
-                    from: data
-                )
-                hotkey.keyCombination = keyCombination
-            } catch {
-                diagLog.error(
-                    "Failed to decode hotkey for \(hotkey.action.rawValue): \(error)"
-                )
-            }
-        }
-
         // configurations.didSet derives active-display spacing synchronously,
         // so install its global fallback before the per-display overrides.
         appState.settings.displaySettings.globalConfiguration = profile.globalDisplayConfiguration
@@ -344,89 +319,11 @@ extension ProfileManager {
             forKey: .menuBarItemCustomNames
         )
 
-        // Apply per-item hotkeys to UserDefaults, then rebuild the live hotkey
-        // objects so the restored bindings register immediately.
-        Defaults.set(
-            profile.menuBarLayout.itemHotkeys ?? [:],
-            forKey: .menuBarItemHotkeys
-        )
-        appState.menuBarManager.rebuildItemHotkeys()
-
         // Apply the New Items badge placement before starting the layout
         // task, so late-arriving items land in the profile-defined spot.
         if let placement = profile.menuBarLayout.newItemsPlacement {
             appState.itemManager.applyNewItemsPlacement(placement)
         }
-    }
-
-    // MARK: - Profile Hotkeys
-
-    /// Creates hotkeys for all profiles and observes their changes.
-    /// Called during setup and whenever the profile list changes.
-    func rebuildProfileHotkeys() {
-        guard let appState else { return }
-
-        // Disable existing profile hotkeys and clear state.
-        for (_, hotkey) in profileHotkeys {
-            hotkey.disable()
-        }
-        hotkeyProfileMap.removeAll()
-
-        // Clean up orphaned hotkey entries for deleted profiles.
-        let profileIDs = Set(profiles.map(\.id.uuidString))
-        if var saved = Defaults.dictionary(forKey: .profileHotkeys) as? [String: Data] {
-            let before = saved.count
-            saved = saved.filter { profileIDs.contains($0.key) }
-            if saved.count != before {
-                Defaults.set(saved, forKey: .profileHotkeys)
-            }
-        }
-
-        // Load saved key combinations.
-        let saved = Defaults.dictionary(forKey: .profileHotkeys) as? [String: Data] ?? [:]
-        let dec = JSONDecoder()
-        let enc = JSONEncoder()
-
-        var newHotkeys: [UUID: Hotkey] = [:]
-        for meta in profiles {
-            let profileID = meta.id
-
-            // Create a hotkey with .profileApply (no-op action) so the
-            // default Listener doesn't trigger unwanted side effects.
-            let hotkey = Hotkey(action: .profileApply)
-            hotkey.performSetup(with: appState)
-
-            // Load saved key combination.
-            if let data = saved[meta.id.uuidString],
-               let combo = try? dec.decode(KeyCombination?.self, from: data)
-            {
-                hotkey.keyCombination = combo
-            }
-
-            // Map this hotkey to its profile ID for the perform() lookup.
-            hotkeyProfileMap[ObjectIdentifier(hotkey)] = profileID
-
-            // Observe future changes from HotkeyRecorder. Assigned after the
-            // initial keyCombination is set above, so — like the previous
-            // dropFirst() Combine pipeline — the initial value is never
-            // redundantly persisted.
-            hotkey.keyCombinationDidChange = { [weak self, weak hotkey] in
-                guard let self, let hotkey else { return }
-                // Persist.
-                var dict = Defaults.dictionary(forKey: .profileHotkeys) as? [String: Data] ?? [:]
-                if let combo = hotkey.keyCombination, let data = try? enc.encode(combo) {
-                    dict[profileID.uuidString] = data
-                } else {
-                    dict.removeValue(forKey: profileID.uuidString)
-                }
-                Defaults.set(dict, forKey: .profileHotkeys)
-                // Update the hotkey→profile mapping.
-                self.hotkeyProfileMap[ObjectIdentifier(hotkey)] = hotkey.keyCombination != nil ? profileID : nil
-            }
-
-            newHotkeys[meta.id] = hotkey
-        }
-        profileHotkeys = newHotkeys
     }
 
     // MARK: - Auto-Switch

@@ -70,31 +70,13 @@ final class MenuBarManager {
     /// ... }.removeDuplicates().sink` pipeline.
     private var appearanceConfigurationObservationTask: Task<Void, Never>?
 
-    /// Task observing `itemManager.itemCache` (wave 4), which is
-    /// `@Observable` rather than a Combine `ObservableObject`, replacing the
-    /// old `$itemCache.debounce(for: .seconds(0.5), scheduler:
-    /// DispatchQueue.main).sink` pipeline. `Observations { }` is an
-    /// `AsyncSequence`, so the debounce is reproduced with AsyncAlgorithms'
-    /// `.debounce(for:)` instead.
-    private var itemCacheHotkeyObservationTask: Task<Void, Never>?
-
     @MainActor
     deinit {
         displayConfigurationsObservationTask?.cancel()
         settingsWindowObservationTask?.cancel()
         settingsWindowVisibilityCancellable?.cancel()
         appearanceConfigurationObservationTask?.cancel()
-        itemCacheHotkeyObservationTask?.cancel()
     }
-
-    /// Per-item hotkeys, keyed by MenuBarItem.uniqueIdentifier. Each opens the
-    /// item's menu when its key combination fires. Mirrors the per-profile
-    /// hotkeys on ProfileManager.
-    private(set) var itemHotkeys: [String: Hotkey] = [:]
-
-    /// Reverse map from a hotkey instance to the item identifier it opens.
-    /// Read by Hotkey.Listener when an openMenuBarItem hotkey fires.
-    var hotkeyItemMap: [ObjectIdentifier: String] = [:]
 
     /// Cancellable for the periodic average-color refresh, active only while settings is visible.
     private var averageColorRefreshCancellable: AnyCancellable?
@@ -121,7 +103,7 @@ final class MenuBarManager {
     private var isHidingApplicationMenus = false
 
     /// A Boolean value that indicates whether the application menus were hidden
-    /// by a manual toggle (URL/hotkey), rather than automatically by section state.
+    /// by a manual toggle (a `thaw://` URL), rather than automatically by section state.
     private var isManuallyHidingApplicationMenus = false
 
     /// The panel that contains the Thaw Bar interface.
@@ -153,7 +135,6 @@ final class MenuBarManager {
         for section in sections {
             section.performSetup(with: appState)
         }
-        rebuildItemHotkeys()
     }
 
     /// Configures the internal observers for the manager.
@@ -262,19 +243,6 @@ final class MenuBarManager {
                 for await _ in changes {
                     guard let self else { return }
                     updateControlItemStates()
-                }
-            }
-
-            // Refresh per-item hotkeys when the set of menu bar items changes,
-            // so newly-arrived items become assignable. Debounced because the
-            // item cache ticks frequently and rebuilding on every tick would
-            // churn hotkey registrations.
-            let itemManager = appState.itemManager
-            itemCacheHotkeyObservationTask = Task { [weak self] in
-                let changes = Observations { itemManager.itemCache }
-                for await _ in changes.debounce(for: .seconds(0.5)) {
-                    guard let self else { return }
-                    rebuildItemHotkeys()
                 }
             }
         }
@@ -590,12 +558,11 @@ final class MenuBarManager {
         // Only update if we really need the color info
         let isSettingsVisible = settingsWindow?.isVisible == true
         let isIceBarVisible = appState.navigationState.isIceBarPresented
-        let isSearchVisible = appState.navigationState.isSearchPresented
         let anyIceBarEnabled = appState.settings.displaySettings.isIceBarEnabledOnAnyDisplay
         let currentConfig = appState.appearanceManager.configuration.current
         let isAdaptiveActive = currentConfig.backgroundKind == .adaptive || currentConfig.tintKind == .adaptive
 
-        guard isSettingsVisible || isIceBarVisible || isSearchVisible || anyIceBarEnabled || isAdaptiveActive else {
+        guard isSettingsVisible || isIceBarVisible || anyIceBarEnabled || isAdaptiveActive else {
             return
         }
 
@@ -964,104 +931,6 @@ final class MenuBarManager {
     /// Returns the control item for the menu bar section with the given name.
     func controlItem(withName name: MenuBarSection.Name) -> ControlItem? {
         section(withName: name)?.controlItem
-    }
-
-    // MARK: - Per-Item Hotkeys
-
-    /// Creates and reconciles the per-item hotkeys, then observes their changes.
-    ///
-    /// Called during setup, whenever the item cache changes, and after a
-    /// profile is applied. Unlike the per-profile rebuild this is incremental:
-    /// existing hotkey instances are preserved so a frequent cache tick does
-    /// not tear down an in-use registration. A hotkey is created for every
-    /// item currently in the menu bar plus every identifier that still has a
-    /// saved binding (so a binding survives the owning app quitting), and is
-    /// dropped only when its identifier is neither present nor configured.
-    func rebuildItemHotkeys() {
-        guard let appState else { return }
-
-        let saved = Defaults.dictionary(forKey: .menuBarItemHotkeys) as? [String: Data] ?? [:]
-        let dec = JSONDecoder()
-        let enc = JSONEncoder()
-
-        // Only real, identifiable items are assignable: skip Thaw's own control
-        // items and items whose source app could not be resolved (their
-        // identifier is an unstable UUID).
-        let presentIdentifiers = Set(
-            appState.itemManager.itemCache.managedItems
-                .filter { !$0.isControlItem && $0.sourcePID != nil }
-                .map(\.uniqueIdentifier)
-        )
-        let wantedIdentifiers = presentIdentifiers.union(saved.keys)
-
-        var newHotkeys = itemHotkeys
-
-        // Drop hotkeys for identifiers that are neither present nor configured.
-        for (identifier, hotkey) in itemHotkeys where !wantedIdentifiers.contains(identifier) {
-            hotkey.disable()
-            hotkeyItemMap[ObjectIdentifier(hotkey)] = nil
-            newHotkeys[identifier] = nil
-        }
-
-        for identifier in wantedIdentifiers {
-            let savedCombo: KeyCombination? = saved[identifier].flatMap { data in
-                try? dec.decode(KeyCombination?.self, from: data)
-            }
-
-            if let existing = newHotkeys[identifier] {
-                // Reconcile the live binding to the saved value (e.g. after a
-                // profile apply). Only assign when it actually differs so we
-                // avoid a redundant write back through the persistence sink.
-                if existing.keyCombination != savedCombo {
-                    existing.keyCombination = savedCombo
-                }
-                continue
-            }
-
-            let hotkey = Hotkey(action: .openMenuBarItem)
-            hotkey.performSetup(with: appState)
-            hotkey.keyCombination = savedCombo
-            hotkeyItemMap[ObjectIdentifier(hotkey)] = identifier
-
-            // Observe future changes from HotkeyRecorder and persist them.
-            // Assigned after the initial keyCombination is set above, so —
-            // like the previous dropFirst() Combine pipeline — the initial
-            // value is never redundantly persisted.
-            hotkey.keyCombinationDidChange = { [weak self, weak hotkey] in
-                guard let self, let hotkey else { return }
-                var dict = Defaults.dictionary(forKey: .menuBarItemHotkeys) as? [String: Data] ?? [:]
-                if let combo = hotkey.keyCombination, let data = try? enc.encode(combo) {
-                    dict[identifier] = data
-                } else {
-                    dict.removeValue(forKey: identifier)
-                }
-                Defaults.set(dict, forKey: .menuBarItemHotkeys)
-                self.hotkeyItemMap[ObjectIdentifier(hotkey)] = hotkey.keyCombination != nil ? identifier : nil
-            }
-
-            newHotkeys[identifier] = hotkey
-        }
-
-        itemHotkeys = newHotkeys
-    }
-
-    /// Opens the menu of the menu bar item with the given identifier.
-    ///
-    /// Resolves the live item from the current cache and routes it through the
-    /// shared activation path. No-ops if the item is not currently present
-    /// (e.g. its owning app has been quit).
-    func openItem(withIdentifier identifier: String) {
-        guard let appState else { return }
-        guard let item = appState.itemManager.itemCache.managedItems.first(
-            where: { $0.uniqueIdentifier == identifier }
-        ) else {
-            diagLog.info("Cannot open menu bar item; no live item for identifier \(identifier)")
-            return
-        }
-        let displayID = NSScreen.screenWithActiveMenuBar?.displayID
-        Task {
-            await appState.itemManager.activate(item: item, on: displayID)
-        }
     }
 }
 

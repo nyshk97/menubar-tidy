@@ -21,7 +21,6 @@ final class AppNavigationState {
     var isAppFrontmost = false
     var isSettingsPresented = false
     var isIceBarPresented = false
-    var isSearchPresented = false
     var settingsNavigationIdentifier: SettingsNavigationIdentifier = .general
     var requestedSettingsDisclosure: SettingsDisclosure?
 }

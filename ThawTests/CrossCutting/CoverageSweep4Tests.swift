@@ -20,19 +20,14 @@ import Testing
 ///   two `didSet` observers would echo the freshly loaded hooks straight
 ///   back to `UserDefaults` on every launch. That is asserted by planting
 ///   bytes the encoder would never produce and checking they survive.
-/// - `HotkeysSettings.loadInitialState`'s decode-failure arm: a single
-///   corrupt binding must not take the other bindings down with it.
 /// - `AutomationSettings.addCurrentApp`, the "whitelist this app" button.
 ///
 /// Every test routes through ``withScratchDefaults(sourceLocation:_:)``, so
-/// nothing here writes to the real `com.stonerl.Thaw` domain, and the suite
+/// nothing here writes to the real `com.nyshk97.Thaw` domain, and the suite
 /// is `.serialized` because that store is process-wide.
 ///
-/// Deliberate gaps: `HotkeysSettings.performSetup(with:)` and the encode
-/// failure arm in `configureObservers` are not covered — the first needs a
-/// live `AppState`, and the second needs `JSONEncoder` to fail on a
-/// `KeyCombination`, which it cannot. `AutomationSettings`' whitelist-change
-/// notification sink is also skipped: it hops through
+/// Deliberate gap: `AutomationSettings`' whitelist-change notification sink
+/// is skipped because it hops through
 /// `receive(on: DispatchQueue.main)`, so observing it would mean waiting on
 /// a run loop turn.
 @MainActor
@@ -107,58 +102,6 @@ struct CoverageSweep4Tests {
 
             #expect(Defaults.data(forKey: .globalPreProfileHook) == nil)
             #expect(HookScript.loadGlobal(.pre) == nil)
-        }
-    }
-
-    // MARK: - HotkeysSettings
-
-    /// A binding whose stored payload no longer decodes — a downgrade, a
-    /// hand-edited plist, a truncated write — must be dropped on its own
-    /// rather than aborting the load for every other action.
-    @Test("A corrupt stored binding is skipped without losing the others")
-    func corruptBindingIsSkippedWithoutLosingTheOthers() throws {
-        try withScratchDefaults { _ in
-            let good = KeyCombination(key: .f19, modifiers: [.command, .shift])
-            let goodData = try JSONEncoder().encode(good)
-            let stored: [String: Data] = [
-                HotkeyAction.toggleHiddenSection.rawValue: Data("definitely not JSON".utf8),
-                HotkeyAction.toggleApplicationMenus.rawValue: goodData,
-            ]
-            Defaults.set(stored, forKey: .hotkeys)
-
-            let settings = HotkeysSettings()
-
-            #expect(settings.hotkey(withAction: .toggleHiddenSection)?.keyCombination == nil)
-            #expect(settings.hotkey(withAction: .toggleApplicationMenus)?.keyCombination == good)
-        }
-    }
-
-    /// `null` is a *valid* encoding of an unbound hotkey rather than a
-    /// corrupt one, so it decodes successfully and leaves the binding clear
-    /// — a different arm from the failure above.
-    @Test("A stored null binding decodes to no binding")
-    func storedNullBindingDecodesToNoBinding() throws {
-        try withScratchDefaults { _ in
-            let stored: [String: Data] = [
-                HotkeyAction.toggleHiddenSection.rawValue: Data("null".utf8),
-            ]
-            Defaults.set(stored, forKey: .hotkeys)
-
-            let settings = HotkeysSettings()
-
-            #expect(settings.hotkey(withAction: .toggleHiddenSection)?.keyCombination == nil)
-        }
-    }
-
-    @Test("An empty stored dictionary leaves every binding clear")
-    func emptyStoredDictionaryLeavesEveryBindingClear() throws {
-        try withScratchDefaults { _ in
-            Defaults.set([String: Data](), forKey: .hotkeys)
-
-            let settings = HotkeysSettings()
-
-            #expect(settings.hotkeys.allSatisfy { $0.keyCombination == nil })
-            #expect(!settings.hotkeys.isEmpty)
         }
     }
 

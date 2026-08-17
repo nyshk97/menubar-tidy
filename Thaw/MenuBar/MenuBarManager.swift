@@ -6,7 +6,6 @@
 //  Copyright (Thaw) © 2026 Toni Förster
 //  Licensed under the GNU GPLv3
 
-import AsyncAlgorithms
 import Combine
 import Observation
 import SwiftUI
@@ -18,7 +17,8 @@ final class MenuBarManager {
     /// Information for the menu bar's average color on the active screen.
     private(set) var averageColorInfo: MenuBarAverageColorInfo?
 
-    /// Per-screen average colors for multi-monitor adaptive backgrounds.
+    /// Per-screen average colors, so the Thaw Bar matches the menu bar on
+    /// whichever display it is shown.
     private(set) var averageColors: [CGDirectDisplayID: MenuBarAverageColorInfo] = [:]
 
     /// A Boolean value that indicates whether the menu bar is either always hidden
@@ -62,17 +62,11 @@ final class MenuBarManager {
     /// value (mirroring `switchToLatest`'s behavior).
     private var settingsWindowObservationTask: Task<Void, Never>?
 
-    /// Task observing `appearanceManager.configuration` for adaptive-color
-    /// refresh start/stop (wave 3), replacing the old `$configuration.map {
-    /// ... }.removeDuplicates().sink` pipeline.
-    private var appearanceConfigurationObservationTask: Task<Void, Never>?
-
     @MainActor
     deinit {
         displayConfigurationsObservationTask?.cancel()
         settingsWindowObservationTask?.cancel()
         settingsWindowVisibilityCancellable?.cancel()
-        appearanceConfigurationObservationTask?.cancel()
     }
 
     /// Cancellable for the periodic average-color refresh, active only while settings is visible.
@@ -83,19 +77,6 @@ final class MenuBarManager {
     @ObservationIgnored
     private var settingsWindowVisibilityCancellable: AnyCancellable?
 
-    /// Cancellable for the periodic average-color refresh when adaptive background is active.
-    private var adaptiveColorRefreshCancellable: AnyCancellable?
-
-    /// Per-screen colors cached before sleep, restored on wake to avoid stale/white flash.
-    private var sleepColorCache: [CGDirectDisplayID: MenuBarAverageColorInfo]?
-
-    /// Polling state for adaptive wake stabilization.
-    private var wakePollTimer: AnyCancellable?
-    private var wakePollPrevColors: [CGDirectDisplayID: MenuBarAverageColorInfo]?
-    private var wakePollStableCount = 0
-    private var wakePollDidChange = false
-    private var wakePollStartTime: Date?
-
     /// A Boolean value that indicates whether the application menus are hidden.
     private var isHidingApplicationMenus = false
 
@@ -105,10 +86,6 @@ final class MenuBarManager {
 
     /// The panel that contains the Thaw Bar interface.
     let iceBarPanel = IceBarPanel()
-
-    /// The popover that contains a portable version of the menu bar
-    /// appearance editor interface
-    let appearanceEditorPanel = MenuBarAppearanceEditorPanel()
 
     /// The managed sections in the menu bar.
     let sections = [
@@ -128,7 +105,6 @@ final class MenuBarManager {
         self.appState = appState
         configureCancellables()
         iceBarPanel.performSetup(with: appState)
-        appearanceEditorPanel.performSetup(with: appState)
         for section in sections {
             section.performSetup(with: appState)
         }
@@ -271,7 +247,7 @@ final class MenuBarManager {
             }
         }
 
-        // Refresh average color when space or screen changes while settings or adaptive is active.
+        // Refresh average color when space or screen changes while settings is visible.
         Publishers.Merge(
             NSWorkspace.shared.notificationCenter
                 .publisher(for: NSWorkspace.activeSpaceDidChangeNotification)
@@ -283,132 +259,10 @@ final class MenuBarManager {
         .receive(on: DispatchQueue.main)
         .sink { [weak self] in
             guard let self else { return }
-            let isAdaptiveActive: Bool = {
-                guard let appState = self.appState else { return false }
-                let current = appState.appearanceManager.configuration.current
-                return current.backgroundKind == .adaptive || current.tintKind == .adaptive
-            }()
-            guard settingsWindow?.isVisible == true || isAdaptiveActive else { return }
+            guard settingsWindow?.isVisible == true else { return }
             updateAverageColorInfo()
         }
         .store(in: &c)
-
-        // Cache per-screen colors before display sleep so they can be restored
-        // on wake, preventing a white flash before the display settles and
-        // wallpaper renders. Uses screensDidSleep/Wake which fire on display
-        // sleep/wake (screen lock, idle timeout) AND system sleep (lid close).
-        NSWorkspace.shared.notificationCenter
-            .publisher(for: NSWorkspace.screensDidSleepNotification)
-            .sink { [weak self] _ in
-                guard let self else { return }
-                sleepColorCache = averageColors
-            }
-            .store(in: &c)
-
-        // On display wake, restore pre-sleep colors immediately (no white flash),
-        // then poll every 1s until the captured color changes from the cached
-        // value and stabilizes (2 consecutive identical captures), or 10s max.
-        NSWorkspace.shared.notificationCenter
-            .publisher(for: NSWorkspace.screensDidWakeNotification)
-            .sink { [weak self] _ in
-                guard let self else { return }
-                let isAdaptiveActive: Bool = {
-                    guard let appState = self.appState else { return false }
-                    let current = appState.appearanceManager.configuration.current
-                    return current.backgroundKind == .adaptive || current.tintKind == .adaptive
-                }()
-                guard isAdaptiveActive else { return }
-
-                guard let cache = sleepColorCache else {
-                    updateAverageColorInfo()
-                    return
-                }
-
-                // Restore pre-sleep colors so the bar never flashes white.
-                averageColors = cache
-                if let id = NSScreen.screenWithActiveMenuBar?.displayID,
-                   let cached = cache[id]
-                {
-                    averageColorInfo = cached
-                }
-
-                // Poll every 1s until color changes from cache then stabilizes.
-                wakePollPrevColors = nil
-                wakePollStableCount = 0
-                wakePollDidChange = false
-                wakePollStartTime = Date()
-                wakePollTimer = Timer.publish(every: 1, on: .main, in: .default)
-                    .autoconnect()
-                    .sink { [weak self] _ in
-                        guard let self else { return }
-                        // Wraps the stabilization logic in a Task that awaits
-                        // updateAverageColorInfoAsync so the post-capture read
-                        // of averageColors sees the fresh values; the original
-                        // sync call returned before the fire-and-forget Tasks
-                        // populated state, defeating stabilization detection.
-                        Task { [weak self] in
-                            guard let self else { return }
-                            let elapsed = wakePollStartTime.map { Date().timeIntervalSince($0) } ?? 0
-
-                            if elapsed >= 10 {
-                                sleepColorCache = nil
-                                wakePollTimer = nil
-                                return
-                            }
-
-                            await updateAverageColorInfoAsync()
-                            let after = averageColors
-
-                            if !wakePollDidChange, let cache = sleepColorCache, after != cache {
-                                wakePollDidChange = true
-                            }
-
-                            if wakePollDidChange {
-                                if let prev = wakePollPrevColors, prev == after {
-                                    wakePollStableCount += 1
-                                    if wakePollStableCount >= 1 {
-                                        sleepColorCache = nil
-                                        wakePollTimer = nil
-                                        return
-                                    }
-                                } else {
-                                    wakePollStableCount = 0
-                                }
-                            }
-
-                            wakePollPrevColors = after
-                        }
-                    }
-            }
-            .store(in: &c)
-
-        // Start/stop adaptive color refresh when background or tint uses adaptive mode.
-        if let appState {
-            appearanceConfigurationObservationTask?.cancel()
-            appearanceConfigurationObservationTask = Task { [weak self, weak appState] in
-                var previousIsAdaptive: Bool?
-                let changes = Observations { appState?.appearanceManager.configuration }
-                for await config in changes {
-                    guard let self else { return }
-                    guard let config else { continue }
-                    let current = config.current
-                    let isAdaptive = current.backgroundKind == .adaptive || current.tintKind == .adaptive
-                    guard isAdaptive != previousIsAdaptive else { continue }
-                    previousIsAdaptive = isAdaptive
-                    if isAdaptive {
-                        captureAdaptiveColorWithRetry()
-                        adaptiveColorRefreshCancellable = Timer.publish(every: 30, tolerance: 5, on: .main, in: .default)
-                            .autoconnect()
-                            .sink { [weak self] _ in
-                                self?.updateAverageColorInfo()
-                            }
-                    } else {
-                        adaptiveColorRefreshCancellable?.cancel()
-                        adaptiveColorRefreshCancellable = nil
-                    }
-                }
-            }
-        }
 
         // Hide application menus when a section is shown (if applicable).
         Publishers.MergeMany(sections.map(\.controlItem.$state))
@@ -537,8 +391,8 @@ final class MenuBarManager {
     ///
     /// Fire-and-forget shape preserved for the call sites that don't need to
     /// read averageColors immediately after. Callers that DO need read-after
-    /// semantics (captureAdaptiveColorWithRetry, the wake-poll loop) must use
-    /// updateAverageColorInfoAsync directly so their read sees fresh state.
+    /// semantics must use updateAverageColorInfoAsync directly so their read
+    /// sees fresh state.
     func updateAverageColorInfo() {
         Task { [weak self] in
             await self?.updateAverageColorInfoAsync()
@@ -556,17 +410,13 @@ final class MenuBarManager {
         let isSettingsVisible = settingsWindow?.isVisible == true
         let isIceBarVisible = appState.navigationState.isIceBarPresented
         let anyIceBarEnabled = appState.settings.displaySettings.isIceBarEnabledOnAnyDisplay
-        let currentConfig = appState.appearanceManager.configuration.current
-        let isAdaptiveActive = currentConfig.backgroundKind == .adaptive || currentConfig.tintKind == .adaptive
 
-        guard isSettingsVisible || isIceBarVisible || anyIceBarEnabled || isAdaptiveActive else {
+        guard isSettingsVisible || isIceBarVisible || anyIceBarEnabled else {
             return
         }
 
         let targetScreens: [NSScreen]
-        if isAdaptiveActive {
-            targetScreens = NSScreen.screens
-        } else if isSettingsVisible {
+        if isSettingsVisible {
             targetScreens = [settingsWindow?.screen].compactMap(\.self)
         } else {
             guard let screen = NSScreen.screenWithActiveMenuBar else { return }
@@ -626,29 +476,6 @@ final class MenuBarManager {
         }
     }
 
-    /// Attempts to capture the adaptive color with retries when the initial
-    /// capture fails (e.g. during early app launch before the Window Server
-    /// is fully settled). Retries until all screens have a color entry.
-    private func captureAdaptiveColorWithRetry() {
-        // Awaits each capture before checking averageColors so we don't burn
-        // retries on stale reads of fire-and-forget Task results.
-        Task { [weak self] in
-            guard let self else { return }
-            for attempt in 0 ..< 10 {
-                if attempt > 0 {
-                    try? await Task.sleep(for: .seconds(1))
-                }
-                await self.updateAverageColorInfoAsync()
-                let allCaptured = NSScreen.screens.allSatisfy {
-                    self.averageColors.keys.contains($0.displayID)
-                }
-                if allCaptured {
-                    return
-                }
-            }
-        }
-    }
-
     /// Returns a Boolean value that indicates whether the given display
     /// has a valid menu bar.
     func hasValidMenuBar(in windows: [WindowInfo], for display: CGDirectDisplayID) -> Bool {
@@ -664,15 +491,6 @@ final class MenuBarManager {
     /// Shows the secondary context menu.
     func showSecondaryContextMenu(at point: CGPoint) {
         let menu = NSMenu(title: "\(Constants.displayName)")
-
-        let editAppearanceItem = NSMenuItem(
-            title: String(localized: "Edit Menu Bar Appearance…"),
-            action: #selector(showAppearanceEditorPanel),
-            keyEquivalent: ""
-        )
-        editAppearanceItem.image = NSImage(systemSymbolName: "swatchpalette", accessibilityDescription: "Edit Appearance")
-        editAppearanceItem.target = self
-        menu.addItem(editAppearanceItem)
 
         let editLayoutItem = NSMenuItem(
             title: String(localized: "Edit Menu Bar Layout…"),
@@ -857,21 +675,6 @@ final class MenuBarManager {
         }
         appState.activate(withPolicy: .regular)
         appState.openWindow(.settings)
-    }
-
-    /// Shows the appearance editor panel.
-    @objc private func showAppearanceEditorPanel() {
-        guard let screen = MenuBarAppearanceEditorPanel.defaultScreen else {
-            return
-        }
-        appearanceEditorPanel.show(on: screen) {
-            self.dismissAppearanceEditorPanel()
-        }
-    }
-
-    /// Dismisses the appearance editor panel if it is shown.
-    func dismissAppearanceEditorPanel() {
-        appearanceEditorPanel.close()
     }
 
     /// Updates the ``lastShowTimestamp`` property.

@@ -15,10 +15,10 @@ import Testing
 /// `averageColor(using:alphaThreshold:option:)` and
 /// `isTransparent(alphaThreshold:)`.
 ///
-/// Both feed real decisions — the menu bar's average color drives the
-/// adaptive tint, and the transparency check decides whether a captured menu
-/// bar item is worth caching — and both are pure functions of pixel data, so
-/// they can be driven with images built in memory.
+/// Both feed real decisions — the menu bar's average color drives the Thaw
+/// Bar's background, and the transparency check decides whether a captured
+/// menu bar item is worth caching — and both are pure functions of pixel
+/// data, so they can be driven with images built in memory.
 ///
 /// `isTransparent` has a fast path that reads alpha bytes straight from the
 /// image's data provider and a `TransparencyContext` fallback for pixel

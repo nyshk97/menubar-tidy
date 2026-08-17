@@ -159,15 +159,14 @@ final class ProfileManager {
 
     /// Captures the current configuration and saves it as a named profile.
     ///
-    /// Takes the three stores the capture actually reads — settings,
-    /// appearance, item manager — rather than the full app state, so the
+    /// Takes the two stores the capture actually reads — settings and
+    /// item manager — rather than the full app state, so the
     /// save path can be exercised in tests without standing up an AppState
     /// (the same seam as ``updateProfileLayout(id:itemManager:)``). The
     /// `AppState` overload in ProfileManager+Live.swift forwards here.
     func saveProfile(
         name: String,
         settings: AppSettings,
-        appearanceManager: MenuBarAppearanceManager,
         itemManager: MenuBarItemManager
     ) throws {
         let profile = Profile(
@@ -180,7 +179,6 @@ final class ProfileManager {
                 globalDisplayConfiguration: settings.displaySettings.globalConfiguration,
                 confirmSpacingRelaunch: settings.displaySettings.confirmSpacingRelaunch,
                 unconfirmedSpacingProfileScope: settings.displaySettings.unconfirmedSpacingProfileScope,
-                appearanceConfiguration: appearanceManager.configuration,
                 menuBarLayout: captureCurrentLayout(from: itemManager)
             )
         )
@@ -410,11 +408,10 @@ final class ProfileManager {
     /// Overwrites an existing profile with the current configuration,
     /// keeping its id, name, display association, and creation date.
     /// Same narrow-dependency seam as
-    /// ``saveProfile(name:settings:appearanceManager:itemManager:)``.
+    /// ``saveProfile(name:settings:itemManager:)``.
     func updateProfileWithCurrentState(
         id: UUID,
         settings: AppSettings,
-        appearanceManager: MenuBarAppearanceManager,
         itemManager: MenuBarItemManager
     ) throws {
         guard let old = profiles.first(where: { $0.id == id }) else { return }
@@ -424,7 +421,6 @@ final class ProfileManager {
         try saveProfile(
             name: tempName,
             settings: settings,
-            appearanceManager: appearanceManager,
             itemManager: itemManager
         )
         guard let tempMeta = profiles.last, tempMeta.name == tempName else { return }
@@ -530,11 +526,10 @@ final class ProfileManager {
         )
     }
 
-    /// Applies the current configuration (settings, hotkeys, appearance) to a profile.
+    /// Applies the current configuration (settings, hotkeys) to a profile.
     private func applyCurrentConfiguration(
         to profile: inout Profile,
-        settings: AppSettings,
-        appearanceManager: MenuBarAppearanceManager
+        settings: AppSettings
     ) {
         profile.generalSettings = GeneralSettingsSnapshot.capture(
             from: settings.general
@@ -547,7 +542,6 @@ final class ProfileManager {
         profile.globalDisplayConfiguration = settings.displaySettings.globalConfiguration
         profile.confirmSpacingRelaunch = settings.displaySettings.confirmSpacingRelaunch
         profile.unconfirmedSpacingProfileScope = settings.displaySettings.unconfirmedSpacingProfileScope
-        profile.appearanceConfiguration = appearanceManager.configuration
     }
 
     /// Saves a profile to disk and updates the manifest.
@@ -595,12 +589,11 @@ final class ProfileManager {
 
     /// Updates a profile with only the specified scope of current state.
     /// Same narrow-dependency seam as
-    /// ``saveProfile(name:settings:appearanceManager:itemManager:)``.
+    /// ``saveProfile(name:settings:itemManager:)``.
     func updateProfile(
         id: UUID,
         scope: ProfileUpdateScope,
         settings: AppSettings,
-        appearanceManager: MenuBarAppearanceManager,
         itemManager: MenuBarItemManager
     ) throws {
         switch scope {
@@ -608,7 +601,6 @@ final class ProfileManager {
             try updateProfileWithCurrentState(
                 id: id,
                 settings: settings,
-                appearanceManager: appearanceManager,
                 itemManager: itemManager
             )
         case .layoutOnly:
@@ -616,8 +608,7 @@ final class ProfileManager {
         case .configurationOnly:
             try updateProfileConfiguration(
                 id: id,
-                settings: settings,
-                appearanceManager: appearanceManager
+                settings: settings
             )
         }
     }
@@ -662,17 +653,15 @@ final class ProfileManager {
         )
     }
 
-    /// Updates only the configuration (settings, hotkeys, appearance) of an existing profile.
+    /// Updates only the configuration (settings, hotkeys) of an existing profile.
     private func updateProfileConfiguration(
         id: UUID,
-        settings: AppSettings,
-        appearanceManager: MenuBarAppearanceManager
+        settings: AppSettings
     ) throws {
         var profile = try loadProfile(id: id)
         applyCurrentConfiguration(
             to: &profile,
-            settings: settings,
-            appearanceManager: appearanceManager
+            settings: settings
         )
         profile.modifiedAt = Date()
         try saveProfileAndUpdateManifest(profile)

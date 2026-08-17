@@ -206,10 +206,6 @@ nonisolated extension Defaults {
 
         static nonisolated(unsafe) let hotkeys: [Any]? = nil
 
-        // MARK: Appearance Settings
-
-        static let menuBarAppearanceConfigurationV2 = MenuBarAppearanceConfigurationV2.defaultConfiguration
-
         // MARK: Display Settings
 
         static let displayIceBarConfigurations: [String: DisplayIceBarConfiguration] = [:]
@@ -325,10 +321,6 @@ nonisolated extension Defaults {
         /// ``ProfileManager/repairPersistedLayoutsIfNeeded()``; not exposed in
         /// Settings.
         case profileLayoutRepairBuild = "ProfileLayoutRepairBuild"
-
-        // MARK: Appearance Settings
-
-        case menuBarAppearanceConfigurationV2 = "MenuBarAppearanceConfigurationV2"
 
         // MARK: Migration
 

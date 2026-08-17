@@ -14,9 +14,9 @@ import Testing
 /// configuration as a profile, overwriting an existing profile from current
 /// state, and the scoped-update dispatcher.
 ///
-/// These run against real stores — `AppSettings`, `MenuBarAppearanceManager`,
-/// `MenuBarItemManager` — through the narrow seam
-/// `saveProfile(name:settings:appearanceManager:itemManager:)`, so no live
+/// These run against real stores — `AppSettings` and `MenuBarItemManager`
+/// — through the narrow seam
+/// `saveProfile(name:settings:itemManager:)`, so no live
 /// `AppState` is needed. Every store is constructed and mutated inside a
 /// scratch `Defaults` suite: the settings models persist through `didSet`,
 /// and layout capture reads `Defaults.store` directly, so leaking either
@@ -43,7 +43,6 @@ struct ProfileManagerCaptureTests {
                 try manager.saveProfile(
                     name: "Captured",
                     settings: settings,
-                    appearanceManager: MenuBarAppearanceManager(),
                     itemManager: MenuBarItemManager()
                 )
 
@@ -66,7 +65,6 @@ struct ProfileManagerCaptureTests {
                 try manager.saveProfile(
                     name: "Second",
                     settings: AppSettings(),
-                    appearanceManager: MenuBarAppearanceManager(),
                     itemManager: MenuBarItemManager()
                 )
 
@@ -89,7 +87,6 @@ struct ProfileManagerCaptureTests {
                 try manager.updateProfileWithCurrentState(
                     id: original.id,
                     settings: settings,
-                    appearanceManager: MenuBarAppearanceManager(),
                     itemManager: MenuBarItemManager()
                 )
 
@@ -115,7 +112,6 @@ struct ProfileManagerCaptureTests {
                 try manager.updateProfileWithCurrentState(
                     id: id,
                     settings: AppSettings(),
-                    appearanceManager: MenuBarAppearanceManager(),
                     itemManager: MenuBarItemManager()
                 )
 
@@ -134,7 +130,6 @@ struct ProfileManagerCaptureTests {
                 try manager.updateProfileWithCurrentState(
                     id: UUID(),
                     settings: AppSettings(),
-                    appearanceManager: MenuBarAppearanceManager(),
                     itemManager: MenuBarItemManager()
                 )
 
@@ -162,7 +157,6 @@ struct ProfileManagerCaptureTests {
                     id: seeded.id,
                     scope: .configurationOnly,
                     settings: settings,
-                    appearanceManager: MenuBarAppearanceManager(),
                     itemManager: MenuBarItemManager()
                 )
 
@@ -188,7 +182,6 @@ struct ProfileManagerCaptureTests {
                     id: seeded.id,
                     scope: .layoutOnly,
                     settings: settings,
-                    appearanceManager: MenuBarAppearanceManager(),
                     itemManager: MenuBarItemManager()
                 )
 
@@ -216,7 +209,6 @@ struct ProfileManagerCaptureTests {
                     id: seeded.id,
                     scope: .all,
                     settings: settings,
-                    appearanceManager: MenuBarAppearanceManager(),
                     itemManager: MenuBarItemManager()
                 )
 

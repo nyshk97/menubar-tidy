@@ -34,9 +34,6 @@ final class AppState {
     /// Manager for the state of the menu bar.
     let menuBarManager = MenuBarManager()
 
-    /// Manager for the menu bar's appearance.
-    let appearanceManager = MenuBarAppearanceManager()
-
     /// Manager for menu bar item spacing.
     let spacingManager = MenuBarItemSpacingManager()
 
@@ -110,7 +107,6 @@ final class AppState {
         await MenuBarItemService.Connection.shared.start()
         diagLog.debug("setupTask: MenuBarItemService XPC connection started")
 
-        appearanceManager.performSetup(with: self)
         hidEventManager.performSetup(with: self)
         diagLog.debug("setupTask: starting itemManager setup")
         await itemManager.performSetup(with: self)

@@ -363,7 +363,6 @@ nonisolated struct ProfileContent {
     var globalDisplayConfiguration = Defaults.DefaultValue.globalDisplayConfiguration
     var confirmSpacingRelaunch = Defaults.DefaultValue.confirmSpacingRelaunch
     var unconfirmedSpacingProfileScope = Defaults.DefaultValue.unconfirmedSpacingProfileScope
-    var appearanceConfiguration: MenuBarAppearanceConfigurationV2
     var menuBarLayout: MenuBarLayoutSnapshot
 }
 
@@ -382,7 +381,6 @@ nonisolated struct Profile: Codable, Identifiable {
     var globalDisplayConfiguration: DisplayIceBarConfiguration
     var confirmSpacingRelaunch: Bool
     var unconfirmedSpacingProfileScope: SpacingProfileSaveScope
-    var appearanceConfiguration: MenuBarAppearanceConfigurationV2
     var menuBarLayout: MenuBarLayoutSnapshot
 
     /// Returns lightweight metadata for this profile.
@@ -405,7 +403,6 @@ nonisolated struct Profile: Codable, Identifiable {
             globalDisplayConfiguration: globalDisplayConfiguration,
             confirmSpacingRelaunch: confirmSpacingRelaunch,
             unconfirmedSpacingProfileScope: unconfirmedSpacingProfileScope,
-            appearanceConfiguration: appearanceConfiguration,
             menuBarLayout: menuBarLayout
         )
     }
@@ -424,7 +421,6 @@ nonisolated struct Profile: Codable, Identifiable {
         case globalDisplayConfiguration
         case confirmSpacingRelaunch
         case unconfirmedSpacingProfileScope
-        case appearanceConfiguration
         case menuBarLayout
     }
 
@@ -446,7 +442,6 @@ nonisolated struct Profile: Codable, Identifiable {
         self.globalDisplayConfiguration = content.globalDisplayConfiguration
         self.confirmSpacingRelaunch = content.confirmSpacingRelaunch
         self.unconfirmedSpacingProfileScope = content.unconfirmedSpacingProfileScope
-        self.appearanceConfiguration = content.appearanceConfiguration
         self.menuBarLayout = content.menuBarLayout
     }
 
@@ -524,11 +519,6 @@ nonisolated struct Profile: Codable, Identifiable {
             SpacingProfileSaveScope.self,
             forKey: .unconfirmedSpacingProfileScope
         ) ?? Defaults.DefaultValue.unconfirmedSpacingProfileScope
-
-        appearanceConfiguration = try container.decodeIfPresent(
-            MenuBarAppearanceConfigurationV2.self,
-            forKey: .appearanceConfiguration
-        ) ?? Defaults.DefaultValue.menuBarAppearanceConfigurationV2
 
         menuBarLayout = try container.decodeIfPresent(
             MenuBarLayoutSnapshot.self,

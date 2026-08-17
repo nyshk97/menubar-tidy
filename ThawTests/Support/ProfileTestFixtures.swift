@@ -71,7 +71,6 @@ func makeTestProfileContent(
         advancedSettings: makeTestAdvancedSettings(),
         hotkeys: hotkeys,
         displayConfigurations: displayConfigurations,
-        appearanceConfiguration: .defaultConfiguration,
         menuBarLayout: MenuBarLayoutSnapshot(
             savedSectionOrder: savedSectionOrder,
             pinnedHiddenBundleIDs: [],

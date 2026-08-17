@@ -389,7 +389,7 @@ struct ExtensionsRemainderTests {
     /// `averageColor` picks the color space it works in before it looks at a
     /// single pixel: the caller's, else the image's, else Display P3. Both
     /// the last step and the refusal that follows a space it cannot draw into
-    /// decide whether the menu bar's adaptive tint gets a color or nothing.
+    /// decide whether the Thaw Bar's background gets a color or nothing.
     @Suite("Choosing a color space to average in")
     struct AverageColorSpaceTests {
         /// A mask has no color space of its own, so it is the only image that

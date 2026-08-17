@@ -55,7 +55,6 @@ extension ProfileManager {
         try saveProfile(
             name: name,
             settings: appState.settings,
-            appearanceManager: appState.appearanceManager,
             itemManager: appState.itemManager
         )
     }
@@ -66,7 +65,6 @@ extension ProfileManager {
         try updateProfileWithCurrentState(
             id: id,
             settings: appState.settings,
-            appearanceManager: appState.appearanceManager,
             itemManager: appState.itemManager
         )
     }
@@ -77,7 +75,6 @@ extension ProfileManager {
             id: id,
             scope: scope,
             settings: appState.settings,
-            appearanceManager: appState.appearanceManager,
             itemManager: appState.itemManager
         )
     }
@@ -230,9 +227,6 @@ extension ProfileManager {
         // Apply the spacing-relaunch confirmation preferences
         appState.settings.displaySettings.confirmSpacingRelaunch = profile.confirmSpacingRelaunch
         appState.settings.displaySettings.unconfirmedSpacingProfileScope = profile.unconfirmedSpacingProfileScope
-
-        // Apply appearance configuration
-        appState.appearanceManager.configuration = profile.appearanceConfiguration
 
         // Apply custom names to UserDefaults.
         Defaults.set(

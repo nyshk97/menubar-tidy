@@ -371,10 +371,6 @@ private struct IceBarContentView: View {
         itemManager.itemCache.managedItems(for: section)
     }
 
-    private var configuration: MenuBarAppearanceConfigurationV2 {
-        appState.appearanceManager.configuration
-    }
-
     private var displaySettings: DisplaySettingsManager {
         appState.settings.displaySettings
     }
@@ -397,15 +393,11 @@ private struct IceBarContentView: View {
     }
 
     private var verticalPadding: CGFloat {
-        screen.hasNotch && configuration.hasRoundedShape ? 2 : 0
+        0
     }
 
     private var contentHeight: CGFloat {
-        let menuBarHeight = screen.getMenuBarHeightEstimate()
-        if configuration.shapeKind != .noShape, configuration.isInset, screen.hasNotch {
-            return menuBarHeight - appState.appearanceManager.menuBarInsetAmount * 2
-        }
-        return menuBarHeight
+        screen.getMenuBarHeightEstimate()
     }
 
     private var itemMaxHeight: CGFloat? {
@@ -461,11 +453,7 @@ private struct IceBarContentView: View {
     }
 
     private var clipShape: some InsettableShape {
-        if configuration.hasRoundedShape {
-            RoundedRectangle(cornerRadius: contentHeight / 2, style: .circular)
-        } else {
-            RoundedRectangle(cornerRadius: contentHeight / 4, style: .continuous)
-        }
+        RoundedRectangle(cornerRadius: contentHeight / 4, style: .continuous)
     }
 
     var body: some View {
@@ -482,13 +470,6 @@ private struct IceBarContentView: View {
             .menuBarItemContainer(appState: appState, colorInfo: colorManager.colorInfo)
             .foregroundStyle(colorManager.colorInfo?.isBright(for: screen) == true ? .black : .white)
             .clipShape(clipShape)
-
-            if configuration.current.borderOnThawBar {
-                clipShape
-                    .inset(by: configuration.current.borderWidth / 2)
-                    .stroke(lineWidth: configuration.current.borderWidth)
-                    .foregroundStyle(Color(cgColor: configuration.current.borderColor))
-            }
         }
         .padding(5)
         .frame(maxWidth: screen.frame.width)
@@ -631,7 +612,6 @@ private struct IceBarContentView: View {
                                 section: section,
                                 displayID: screen.displayID,
                                 maxHeight: itemMaxHeight,
-                                hasRoundedShape: configuration.hasRoundedShape,
                                 tooltipDelay: appState.settings.advanced.tooltipDelay,
                                 isLightBackground: isLightBackground
                             )
@@ -658,7 +638,6 @@ private struct IceBarContentView: View {
                                 section: section,
                                 displayID: screen.displayID,
                                 maxHeight: itemMaxHeight,
-                                hasRoundedShape: configuration.hasRoundedShape,
                                 tooltipDelay: appState.settings.advanced.tooltipDelay,
                                 isLightBackground: isLightBackground
                             )
@@ -685,7 +664,6 @@ private struct IceBarContentView: View {
                                         section: section,
                                         displayID: screen.displayID,
                                         maxHeight: itemMaxHeight,
-                                        hasRoundedShape: configuration.hasRoundedShape,
                                         tooltipDelay: appState.settings.advanced.tooltipDelay,
                                         isLightBackground: isLightBackground
                                     )
@@ -733,13 +711,12 @@ private struct IceBarItemView: View {
     let section: MenuBarSection.Name
     let displayID: CGDirectDisplayID
     let maxHeight: CGFloat?
-    let hasRoundedShape: Bool
     let tooltipDelay: TimeInterval
     let isLightBackground: Bool
 
     private var pillCornerRadius: CGFloat {
         guard let h = maxHeight, h > 0 else { return 4 }
-        return hasRoundedShape ? h / 2 : h / 4
+        return h / 4
     }
 
     private var leftClickAction: () -> Void {
@@ -853,7 +830,7 @@ private struct IceBarItemView: View {
                 .resizable()
                 .frame(width: size.width, height: size.height)
                 .background {
-                    RoundedRectangle(cornerRadius: pillCornerRadius, style: hasRoundedShape ? .circular : .continuous)
+                    RoundedRectangle(cornerRadius: pillCornerRadius, style: .continuous)
                         .fill((isLightBackground ? Color.black : Color.white).opacity(isHovered ? 0.15 : 0))
                         .padding(.vertical, 3)
                 }

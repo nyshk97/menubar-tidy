@@ -14,19 +14,10 @@ extension AppSettings {
         resetGeneral()
         resetAdvanced()
         resetDisplay()
-        resetAppearance()
         // Not a setting, but a learned verdict about the user's other apps.
         // A reset is the one moment they explicitly ask for a clean slate,
         // and it is the only way to clear a record from the UI.
         appState?.itemManager.failureLedger.removeAll()
-    }
-
-    /// Resets Appearance settings to their default values.
-    func resetAppearance() {
-        // AppSettings doesn't have direct access to appearanceManager,
-        // but it is available on AppState.
-        // If we want to reset it from here, we need to go through appState.
-        appState?.appearanceManager.configuration = Defaults.DefaultValue.menuBarAppearanceConfigurationV2
     }
 
     /// Resets General settings to their default values.

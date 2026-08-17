@@ -9,8 +9,12 @@
 
 - macOS 26 以上 / Xcode 26 以上（`MACOSX_DEPLOYMENT_TARGET = 26.0`）
 - 署名は自分の Team（`VYDUR99LAM`）。ad-hoc にすると TCC の許可がビルドのたびに失効する
-- バンドルID `com.nyshk97.Thaw`、表示名 **MenuBar Tidy**、アイコンは**青**
-  - 本家 Thaw は `com.stonerl.Thaw` / 表示名 **Thaw** / **アンバー**。System Settings で取り違えないこと
+- バンドル名 **MenuBar Tidy.app**、バンドルID `com.nyshk97.Thaw`、アイコンは**青**
+  - **バンドルIDだけ `Thaw` のまま**。変えると TCC の許可が失効するので、意図的に据え置いている
+  - Swift のモジュール名も `Thaw` のまま（`PRODUCT_MODULE_NAME` で固定）。テスト全 154 ファイルの
+    `@testable import Thaw` がこれに依存している
+  - 本家 Thaw（`com.stonerl.Thaw` / **アンバー**アイコン）は**アンインストール済み**。
+    入れ直すと同じメニューバーを奪い合うので、両方を同時に起動しないこと
 
 ---
 
@@ -57,7 +61,7 @@ xcodebuild -project Thaw.xcodeproj -scheme Thaw -configuration Debug -derivedDat
 
 ```sh
 # 1. 常駐したテストホストを止める（放置するとユーザーのメニューバーを操作し続ける）
-pkill -f "menubar-tidy/Build.*Thaw"
+pkill -f "menubar-tidy/Build.*MenuBar Tidy"
 
 # 2. 汚染を検出（既定 false なので 1 なら汚染）
 defaults read com.nyshk97.Thaw ShowOnHover
@@ -93,15 +97,15 @@ swift scripts/list-menu-bar-items.swift
 ## 4. アイコンと表示名
 
 ```sh
-/usr/libexec/PlistBuddy -c "Print :CFBundleDisplayName" Build/Build/Products/Debug/Thaw.app/Contents/Info.plist
-codesign -dvv Build/Build/Products/Debug/Thaw.app 2>&1 | grep -E "Identifier|TeamIdentifier"
+/usr/libexec/PlistBuddy -c "Print :CFBundleDisplayName" "Build/Build/Products/Debug/MenuBar Tidy.app/Contents/Info.plist"
+codesign -dvv "Build/Build/Products/Debug/MenuBar Tidy.app" 2>&1 | grep -E "Identifier|TeamIdentifier"
 ```
 
 アイコンは**パス基準でキャッシュされる**ので、リビルド後に確認するときは新しいパスへコピーしてから引く:
 
 ```sh
 FRESH=$(mktemp -d)
-cp -R Build/Build/Products/Debug/Thaw.app "$FRESH/check.app"
+cp -R "Build/Build/Products/Debug/MenuBar Tidy.app" "$FRESH/check.app"
 /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f "$FRESH/check.app"
 # NSWorkspace.shared.icon(forFile:) で PNG 化して目視
 ```
@@ -114,11 +118,11 @@ cp -R Build/Build/Products/Debug/Thaw.app "$FRESH/check.app"
 ユーザーの実メニューバーを壊すリスクがある。
 
 ```sh
-open Build/Build/Products/Debug/Thaw.app
+open "Build/Build/Products/Debug/MenuBar Tidy.app"
 ```
 
-初回は アクセシビリティ と 画面収録 の両方を許可する。System Settings では
-**「MenuBar Tidy」＋青アイコン**を選ぶ（「Thaw」＋アンバーは本家）。
+初回は アクセシビリティ と 画面収録 の両方を許可する。**どちらも必須**で、片方でも欠けると
+権限画面が出て「続ける」が押せない（§7 の検証手順を参照）。
 
 | # | 確認項目 | 期待 |
 |---|---|---|
@@ -131,7 +135,7 @@ open Build/Build/Products/Debug/Thaw.app
 4 が最重要。`MenuBarItemManager.click(item:with:)`（AX → 合成CGEvent の2段）と
 `temporarilyShow(...)`（実バーへ移動→クリック→復帰）の両経路がここに集約されている。
 
-**本家 Thaw が起動中だと両者が同じメニューバーを奪い合って確実に壊れる**ので、先に終了させる。
+本家 Thaw を入れ直した場合は、**両者が同じメニューバーを奪い合って確実に壊れる**ので先に終了させる。
 
 ### ログ
 
@@ -165,7 +169,7 @@ grep -rnE '(Text|Label|Button|Toggle)\(\s*"[A-Za-z]|withTitle: "[A-Za-z]|\btitle
 
 ```sh
 grep -rn "String(localized\|LocalizedStringKey" --include="*.swift" Thaw   # 0 件
-ls -d Build/Build/Products/Debug/Thaw.app/Contents/Resources/*.lproj        # 「no matches」が正
+ls -d Build/Build/Products/Debug/MenuBar\ Tidy.app/Contents/Resources/*.lproj        # 「no matches」が正
 ```
 
 - **`Text("日本語")` は今も `LocalizedStringKey` を経由する**（SwiftUI の型がそうなっている）。

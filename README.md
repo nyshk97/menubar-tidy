@@ -46,13 +46,14 @@ Requires macOS 26 and Xcode 26.
 
 ```sh
 xcodebuild -project Thaw.xcodeproj -scheme Thaw -configuration Debug -derivedDataPath Build build
-open Build/Build/Products/Debug/Thaw.app
+open "Build/Build/Products/Debug/MenuBar Tidy.app"
 ```
 
-The app needs Accessibility and Screen Recording. It appears in System Settings
-as **MenuBar Tidy** with a blue icon; upstream Thaw appears as **Thaw** with an
-amber one. Do not grant permissions to the wrong one, and do not run both at
-once — they will fight over the same menu bar.
+The app needs Accessibility and Screen Recording, both required. It appears in
+System Settings as **MenuBar Tidy** with a blue icon. If upstream Thaw is also
+installed it appears as **Thaw** with an amber one — do not grant permissions to
+the wrong one, and do not run both at once, since they will fight over the same
+menu bar.
 
 See [VERIFY.md](VERIFY.md) before trusting anything you observe. Two of this
 app's failure modes are invisible in a screenshot, and running the test suite
@@ -60,7 +61,9 @@ corrupts the app's own settings.
 
 ## Differences from upstream
 
-- Bundle identifier `com.nyshk97.Thaw`, display name "MenuBar Tidy", blue icon
+- Bundle named `MenuBar Tidy.app`, blue icon. The bundle identifier stays
+  `com.nyshk97.Thaw` and the Swift module stays `Thaw`: changing the former
+  invalidates the TCC grants, and the latter is what every test imports
 - No Sparkle. Upstream's appcast URL is gone from `Info.plist`, so this build
   cannot replace itself with an upstream release
 - No network surface at all, and no URL scheme

@@ -158,17 +158,22 @@ struct CoverageSweep6Tests {
 
     // MARK: - DiagLog
 
-    @Test("Every DiagLog level forwards without diagnostic logging enabled")
-    func diagLogLevelsForwardWhenDisabled() {
-        // DiagnosticLogger.shared is disabled in tests, so these hit the
-        // os.Logger passthrough and the shared logger's disabled check —
-        // no files are opened or written.
+    @Test("Every DiagLog level forwards")
+    func diagLogLevelsForward() {
+        // Exercises the os.Logger passthrough at every level. Whether the
+        // shared logger is also writing a file is not this test's business
+        // and cannot be asserted from here: `DiagnosticLogger.shared` is
+        // process-wide, `AppState` turns it on unconditionally in DEBUG
+        // builds, and `DiagnosticLoggerFileTests` attaches and detaches it
+        // throughout its own run. Both suites are `.serialized`, which orders
+        // each one internally but lets them run against each other, so the
+        // flag's value here is whatever that race last left behind — it was
+        // asserted to be `false` and failed on exactly that.
         let log = DiagLog(category: "CoverageSweep6")
         log.debug("debug \(42)")
         log.info("info")
         log.notice("notice")
         log.warning("warning")
         log.error("error")
-        #expect(!DiagnosticLogger.shared.isEnabled)
     }
 }

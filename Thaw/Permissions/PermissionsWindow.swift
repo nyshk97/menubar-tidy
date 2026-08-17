@@ -46,11 +46,11 @@ struct PermissionsWindow: Scene {
     /// zoom buttons, and Continue is disabled until the required permissions
     /// are granted, so it is the only way out for a user who declines.
     private var permissionsContent: some View {
-        ThawPermissionsView(
+        PermissionsView(
             onContinue: { appState.completeFirstLaunchSetup() },
             onQuit: { NSApp.terminate(nil) }
         )
-        .frame(width: ThawPermissionsWindowMetrics.width, height: ThawPermissionsWindowMetrics.height)
+        .frame(width: PermissionsWindowMetrics.width, height: PermissionsWindowMetrics.height)
         .environment(appState.permissions)
     }
 }

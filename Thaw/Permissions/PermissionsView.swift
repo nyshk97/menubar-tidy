@@ -1,5 +1,5 @@
 //
-//  OnboardingPermissionsView.swift
+//  PermissionsView.swift
 //  Project: Thaw
 //
 //  Copyright (Ice) © 2023–2025 Jordan Baird
@@ -8,31 +8,24 @@
 
 import SwiftUI
 
-/// Window dimensions for the permissions flow.
-///
-/// Upstream sizes an onboarding tour and this screen alike, so the numbers
-/// lived with the tour. The tour is gone; the numbers stay here, where the
-/// only remaining screen they size is defined.
-enum ThawPermissionsWindowMetrics {
+/// Window dimensions for the permissions window.
+enum PermissionsWindowMetrics {
     static let width: CGFloat = 608
     static let height: CGFloat = 480
 }
 
 /// The permissions screen: shown on first launch, and again whenever
 /// permissions are missing on a later launch.
-struct ThawPermissionsView: View {
+struct PermissionsView: View {
     @Environment(AppPermissions.self) private var permissions
 
     var onContinue: () -> Void
 
     /// Shows a Quit button beside Continue when non-nil.
     ///
-    /// Absent during onboarding, where the tour precedes this step and the
-    /// app menu is available. Supplied when the view is presented standalone:
-    /// that window hides its close, minimize and zoom buttons, and Continue
-    /// stays disabled until the required permissions are granted, so without
-    /// this there is no way out of the window for a user who does not want
-    /// to grant them.
+    /// The window hides its close, minimize and zoom buttons, and Continue
+    /// stays disabled until both permissions are granted, so without this
+    /// there is no way out for a user who does not want to grant them.
     var onQuit: (() -> Void)?
 
     @State private var appeared = false
@@ -63,7 +56,7 @@ struct ThawPermissionsView: View {
 
             HStack(alignment: .top, spacing: 14) {
                 ForEach(permissions.allPermissions) { permission in
-                    OnboardingPermissionCard(permission: permission)
+                    PermissionCard(permission: permission)
                 }
             }
             .fixedSize(horizontal: false, vertical: true)
@@ -109,7 +102,7 @@ struct ThawPermissionsView: View {
     }
 }
 
-private struct OnboardingPermissionCard: View {
+private struct PermissionCard: View {
     let permission: Permission
 
     var body: some View {

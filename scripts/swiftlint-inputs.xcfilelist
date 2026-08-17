@@ -58,11 +58,11 @@ $(SRCROOT)/Thaw/MenuBar/MenuBarSection.swift
 $(SRCROOT)/Thaw/MenuBar/MenuBarSectionLayout.swift
 $(SRCROOT)/Thaw/MenuBar/Spacing/MenuBarItemSpacingError.swift
 $(SRCROOT)/Thaw/MenuBar/Spacing/MenuBarItemSpacingManager.swift
-$(SRCROOT)/Thaw/Onboarding/GlassSupport.swift
-$(SRCROOT)/Thaw/Onboarding/OnboardingPermissionsView.swift
 $(SRCROOT)/Thaw/Permissions/AppPermissions.swift
 $(SRCROOT)/Thaw/Permissions/Permission.swift
+$(SRCROOT)/Thaw/Permissions/PermissionsView.swift
 $(SRCROOT)/Thaw/Permissions/PermissionsWindow.swift
+$(SRCROOT)/Thaw/Permissions/VisualEffectBackground.swift
 $(SRCROOT)/Thaw/Settings/Models/AdvancedSettings.swift
 $(SRCROOT)/Thaw/Settings/Models/AppSettings.swift
 $(SRCROOT)/Thaw/Settings/Models/DisplayIceBarConfiguration.swift

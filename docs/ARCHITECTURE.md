@@ -118,7 +118,10 @@ and supply-chain review:
 
 ## Related documents
 
-- [ASSURANCE_CASE.md](ASSURANCE_CASE.md) — threat model and security argument
 - [URI_SCHEMES.md](URI_SCHEMES.md) — external URL/API surface
-- [SECURITY.md](../.github/SECURITY.md) — security requirements and reporting
-- [GOVERNANCE.md](../.github/GOVERNANCE.md) — project roles and org repo inventory
+- [INVESTIGATION.md](../INVESTIGATION.md) — what this fork keeps and removes
+- [VERIFY.md](../VERIFY.md) — how to check the app actually works
+
+The security argument, requirements and governance documents this section used
+to link belong to the upstream project and were removed from this fork; see
+[thaw-app/Thaw](https://github.com/thaw-app/Thaw) for the current versions.

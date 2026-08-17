@@ -174,7 +174,85 @@ ls -d Build/Build/Products/Debug/Thaw.app/Contents/Resources/*.lproj        # �
 
 ---
 
-## 7. 罠
+## 7. 既知の外部要因（アプリのバグではないもの）
+
+**動作確認が失敗したとき、まずここを疑う。** 以下はすべて macOS や他アプリ側の事情で、
+コードをいくら直しても消えない。upstream Thaw の `FREQUENT_ISSUES.md` から、このフォークで
+実際に踏みうるものだけを抜き出した（削除済み機能・upstream の issue 追跡は落としてある）。
+
+### メニューバーの自動非表示が ON だと項目を並べ替えられない
+
+macOS が「メニューバーを自動的に表示/非表示」中はメニューバーを十分に公開しないため、
+項目の移動が一切できない。レイアウト画面に
+`MenuBar Tidy は自動的に非表示になるメニューバーではメニューバー項目を整理できません。`
+と出る（`MenuBarLayoutSettingsPane.swift:224`）。
+
+System Settings → コントロールセンター → 「メニューバーを自動的に表示/非表示」を
+**「しない」**にしてからレイアウトを編集し、必要なら後で戻す。
+
+### レイアウト画面に名前が出ない項目がある
+
+Control Center が肩代わりしてホストしている項目（`com.apple.controlcenter:Item-0` として
+出てくるもの）は、安定した識別子を持たないことがある。メニューバーには見えているのに
+レイアウト画面では名前で並ばない。**バグではなく識別できていない状態。**
+
+また macOS は一部の**システム項目の ⌘ ドラッグを拒否する**。ドラッグ中はカーソルに付いてくるが、
+離すと元に戻る。
+
+### Little Snitch は既知の難物
+
+`at.obdev.littlesnitch.agent` は Control Center 配下に**安定した source PID なしで**現れるため、
+バンドルIDではなくマーカーペア照合で間接的に同定している（`MenuBarItem.swift:309-332`、
+`LayoutSolver.swift:1366-1469`、`MenuBarItemTag.swift:488` に専用のエイリアス）。
+症状は「置いた場所に留まらない」「数分後に非表示セクションへ戻る」「名前で出ない」。
+
+```sh
+# 認識が壊れたときのリセット
+rm -rf ~/Library/Caches/com.nyshk97.Thaw
+tccutil reset Accessibility com.nyshk97.Thaw
+```
+
+アプリを終了 → メニューバー上で Little Snitch のアイコンを ⌘ ドラッグで右端へ → 再起動、
+の順が効くことがある。ログで `obdev` / `littlesnitch` / `marker-pair` を探し、
+`at.obdev.littlesnitch.agent` が出てこなければまだ同定できていない。
+
+**クリック転送（§5 の確認項目4）の検証台としては使わないこと。** GUI Scripting を無効にして
+出荷されているアプリは合成イベントを黙って捨てるため、イベント層からは成功と区別がつかない
+（`ClickReactionVerifier.swift:12-32` がまさにこの問題を扱っている）。転送のテストは
+Control Center 以外がホストする普通のアプリで行う。
+
+### Control Center の設定ファイルが壊れると複数アプリが同時に狂う
+
+CodexBar 0.29.x が Control Center の設定に不正な状態を書き込み、**menu bar manager 側では
+直せない**ドリフトを起こした事例がある。Little Snitch など Control Center ホストの項目が
+**複数同時に**おかしくなったらこれを疑う。
+
+```sh
+killall ControlCenter
+rm ~/Library/Preferences/com.apple.controlcenter.plist
+rm ~/Library/Preferences/ByHost/com.apple.controlcenter*.plist
+```
+
+### ディスプレイ構成の変更直後は判定しない
+
+モニタの抜き差し・スリープ復帰・Sidecar・KVM 切り替えの直後は、解像度のちらつきや
+一時的な余白が出る。さらに項目間隔の適用が必要な遷移では**メニューバー項目を持つアプリを
+再起動する**ため、アイコンが一瞬重複して見える（重複はそのアプリのものでこのアプリのものではない）。
+数秒待ってから確認する。
+
+### 画面収録の許可を何度も聞かれる
+
+再起動のたびに再要求される状態になったら、System Settings → プライバシーとセキュリティ →
+画面収録 から **MenuBar Tidy を一度削除して追加し直す**。
+
+### iPhone ミラーリング中は正しく測れない
+
+iPhone のライブアクティビティがミラーリングされている間は、メニューバーに隙間や空白が出る
+macOS 側の制約がある。ミラーリングを止めてから確認する。
+
+---
+
+## 8. 罠
 
 - **Claude Code の Bash からは `screencapture` が真っ黒になる**（画面収録権限がない）。
   メニューバーの目視確認はユーザーに依頼するか、`scripts/list-menu-bar-items.swift` で代替する

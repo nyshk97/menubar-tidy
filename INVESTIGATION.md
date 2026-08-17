@@ -14,6 +14,8 @@
 > `Thaw/Onboarding/` のツアー、設定画面（レイアウトエディタを除く）、
 > URL スキーム、Sparkle、Ice インポート、検索パネル、
 > `Thaw/Resources/Localizable.xcstrings`（ローカライズ自体を廃止）。
+> `FREQUENT_ISSUES.md` も削除済みで、このフォークで踏みうる分だけ
+> [VERIFY.md](VERIFY.md) の「既知の外部要因」へ移してある。
 
 **目的**: `thaw-app/Thaw` を fork し、自分専用の最小構成メニューバーマネージャに作り替えるにあたり、削れる範囲と削ってはいけない中核を特定する。
 

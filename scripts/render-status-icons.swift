@@ -13,7 +13,7 @@
 // 起動して目視すると権限が要るうえ、実メニューバーを掴んで作業中の環境を壊す。
 //
 //   swift scripts/render-status-icons.swift \
-//       "Build/Build/Products/Debug/MenuBar Tidy.app" /tmp/icons
+//       Build/Build/Products/Debug/MenuBarTidy-dev.app /tmp/icons
 
 import AppKit
 

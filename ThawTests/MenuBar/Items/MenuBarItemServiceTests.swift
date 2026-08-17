@@ -18,7 +18,10 @@ struct MenuBarItemServiceTests {
 
     @Test("The service name is the reverse-DNS Mach service identifier")
     func serviceName() {
-        #expect(MenuBarItemService.name == "com.nyshk97.MenuBarTidy.MenuBarItemService")
+        // Derived from the running build, so the dev build reaches the service
+        // inside its own bundle rather than the release install's.
+        #expect(MenuBarItemService.name == "\(AppIdentity.bundleID).MenuBarItemService")
+        #expect(MenuBarItemService.name.hasPrefix("com.nyshk97.MenuBarTidy"))
     }
 
     // MARK: - Request Tests

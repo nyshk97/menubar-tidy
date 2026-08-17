@@ -7,8 +7,11 @@ PROJECT = "Thaw.xcodeproj"
 SCHEME = "Thaw"
 CONFIGURATION = "Debug"
 DERIVED_DATA = "Build"
-APP = "Build/Build/Products/Debug/MenuBar Tidy.app"
-BUNDLE_ID = "com.nyshk97.MenuBarTidy"
+# Debug ビルドは dev 版として別アプリになる（名前・バンドルID・アイコンが別）。
+# タスクはすべて dev 版を相手にする。常用版は brew で入れた MenuBar Tidy.app。
+APP = "Build/Build/Products/Debug/MenuBarTidy-dev.app"
+BUNDLE_ID = "com.nyshk97.MenuBarTidy.dev"
+SUPPORT_DIR_NAME = "MenuBarTidy-dev"
 # 整形の対象。Build/ 配下には SwiftPM の checkout（他人のコード）が入るので、
 # `swiftformat .` にはしない。
 SOURCES = "MenuBarItemService Shared Thaw ThawTests"
@@ -57,7 +60,7 @@ if xcrun notarytool history --keychain-profile "$PROFILE" > /dev/null 2>&1; then
     ok "notarytool の keychain プロファイル '$PROFILE'"
 else
     ng "notarytool の keychain プロファイル '$PROFILE' が無い/使えない" \
-       "xcrun notarytool store-credentials $PROFILE --apple-id <Apple ID> --team-id $TEAM_ID"
+       "自分の Terminal で確認 → 無ければ xcrun notarytool store-credentials $PROFILE --apple-id <Apple ID> --team-id $TEAM_ID"
 fi
 if gh auth status > /dev/null 2>&1; then
     ok "gh 認証済み（GitHub Release と homebrew-tap の更新に使う）"
@@ -204,7 +207,7 @@ description = "最新のアプリログを追う。引数を渡すとその正�
 usage = 'arg "<pattern>" help="絞り込む正規表現" default=""'
 run = '''
 set -uo pipefail
-log_dir="$HOME/Library/Logs/MenuBar Tidy"
+log_dir="$HOME/Library/Logs/$SUPPORT_DIR_NAME"
 latest="$log_dir/$(ls -t "$log_dir" 2>/dev/null | head -1)"
 if [ ! -f "$latest" ]; then
     echo "error: ログがない（アプリを一度起動すること）: $log_dir" >&2
@@ -242,6 +245,6 @@ description = "dist/ の zip を notarize して staple 済みに差し替える
 run = "scripts/notarize.sh"
 
 [tasks.release]
-description = "バージョンを上げてビルド・notarize・GitHub Release・cask 更新まで通す"
+description = "バージョンを上げてビルド・notarize・GitHub Release・cask 更新まで通す（自分の Terminal で実行）"
 usage = 'arg "<bump>" help="patch|minor|major|x.y.z" default="patch"'
 run = 'scripts/release.sh "$usage_bump"'

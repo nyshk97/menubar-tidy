@@ -72,7 +72,7 @@ final class ProfileManager {
                 fatalError("Application Support directory not found")
             }
             self.profilesDirectory = appSupport
-                .appendingPathComponent("MenuBar Tidy/Profiles", isDirectory: true)
+                .appendingPathComponent("\(AppIdentity.supportDirectoryName)/Profiles", isDirectory: true)
         }
         manifestURL = self.profilesDirectory
             .appendingPathComponent("profiles.json")

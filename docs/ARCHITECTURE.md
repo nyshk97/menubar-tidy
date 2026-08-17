@@ -28,7 +28,13 @@ accounts and no network surface at all:
 | `MenuBarItemService/` | XPC helper that resolves the owning process of a menu bar item |
 | `ThawTests/` | swift-testing suite |
 | `docs/` | This file and [HIDDEN_FLAGS.md](HIDDEN_FLAGS.md) |
-| `scripts/` | `list-menu-bar-items.swift` (see VERIFY.md) and the SwiftLint input list generator |
+| `scripts/` | `list-menu-bar-items.swift` (see VERIFY.md), the dev icon ribbon renderer, the release scripts and the SwiftLint input list generator |
+
+Debug builds ship as their own app — `MenuBarTidy-dev.app`, identifier
+`com.nyshk97.MenuBarTidy.dev`, DEV-ribboned icon — so the build under development
+never shares approvals, defaults, profiles or logs with the release install. Only
+the Debug build settings differ; `AppIdentity` (`Shared/Utilities/AppIdentity.swift`)
+derives the service name and the support paths from the identifier at runtime.
 
 Dependencies are declared via SwiftPM and locked in
 `Thaw.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved`

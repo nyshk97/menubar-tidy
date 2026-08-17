@@ -9,7 +9,9 @@
 import Foundation
 
 nonisolated enum MenuBarItemService {
-    static let name = "com.nyshk97.MenuBarTidy.MenuBarItemService"
+    /// The service's name. Derived from the running build's bundle identifier
+    /// so the dev build talks to the service inside its own bundle.
+    static let name = AppIdentity.serviceName
 }
 
 nonisolated extension MenuBarItemService {

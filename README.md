@@ -55,14 +55,21 @@ Requires macOS 26 and Xcode 26.
 
 ```sh
 xcodebuild -project Thaw.xcodeproj -scheme Thaw -configuration Debug -derivedDataPath Build build
-open "Build/Build/Products/Debug/MenuBar Tidy.app"
+open "Build/Build/Products/Debug/MenuBarTidy-dev.app"
 ```
 
+Debug builds are a **separate app** from the release install: `MenuBarTidy-dev.app`,
+identifier `com.nyshk97.MenuBarTidy.dev`, blue icon with a DEV ribbon, and its own
+defaults, profiles and logs. The release the cask installs keeps running while this
+one is built, crashed and rebuilt. Release builds are unchanged — `MenuBar Tidy.app`
+under the plain identifier.
+
 The app needs Accessibility and Screen Recording, both required. It appears in
-System Settings as **MenuBar Tidy** with a blue icon. If upstream Thaw is also
-installed it appears as **Thaw** with an amber one — do not grant permissions to
-the wrong one, and do not run both at once, since they will fight over the same
-menu bar.
+System Settings as **MenuBar Tidy** with a blue icon, and the dev build as
+**MenuBarTidy-dev** with the ribboned one; each needs its own approvals. If
+upstream Thaw is also installed it appears as **Thaw** with an amber icon — do not
+grant permissions to the wrong one, and do not run two of them at once, since they
+will fight over the same menu bar.
 
 See [VERIFY.md](VERIFY.md) before trusting anything you observe. Two of this
 app's failure modes are invisible in a screenshot, and running the test suite
@@ -73,8 +80,9 @@ corrupts the app's own settings.
 - Bundle named `MenuBar Tidy.app`, blue icon, identifier
   `com.nyshk97.MenuBarTidy`. Support files live beside it — `~/Library/Logs/
   MenuBar Tidy/`, `~/Library/Application Support/MenuBar Tidy/Profiles/` — so
-  nothing collides with an upstream Thaw install. The Swift module stays `Thaw`,
-  which is what every test imports
+  nothing collides with an upstream Thaw install. Debug builds shift all of that
+  onto `MenuBarTidy-dev`. The Swift module stays `Thaw`, which is what every test
+  imports
 - No Sparkle. Upstream's appcast URL is gone from `Info.plist`, so this build
   cannot replace itself with an upstream release
 - No network surface at all, and no URL scheme

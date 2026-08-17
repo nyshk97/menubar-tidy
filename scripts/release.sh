@@ -12,6 +12,9 @@
 #
 # notarize（失敗しやすい工程）を push より前に置く。失敗時は pbxproj の変更が
 # ローカルに残るだけで remote には何も反映されない（`git checkout` で戻せる）。
+#
+# 実行は自分の Terminal から。Claude Code の Bash からだと notarytool が keychain に
+# 届かず、資格情報があるのに「プロファイルが無い」で落ちる。
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"

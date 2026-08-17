@@ -12,11 +12,25 @@
 
 - macOS 26 以上 / Xcode 26 以上（`MACOSX_DEPLOYMENT_TARGET = 26.0`）
 - 署名は自分の Team（`VYDUR99LAM`）。ad-hoc にすると TCC の許可がビルドのたびに失効する
-- バンドル名 **MenuBar Tidy.app**、バンドルID `com.nyshk97.MenuBarTidy`、アイコンは**青**
-  - バンドルIDを変えると TCC の許可が失効する（`tccutil reset` して付け直すこと）。
-    サポートファイルの置き場も本家 Thaw と分けてある:
-    `~/Library/Logs/MenuBar Tidy/` / `~/Library/Application Support/MenuBar Tidy/Profiles/` /
-    `~/Library/Caches/com.nyshk97.MenuBarTidy/`
+- **Debug = dev 版 / Release = 常用版**で、名前・バンドルID・アイコン・データの置き場が別アプリとして分かれている。
+  常用版（brew で入れたもの）を動かしたまま dev 版をビルド・クラッシュさせられる
+
+  | | dev 版（Debug） | 常用版（Release） |
+  | --- | --- | --- |
+  | バンドル | `MenuBarTidy-dev.app` | `MenuBar Tidy.app` |
+  | バンドルID | `com.nyshk97.MenuBarTidy.dev` | `com.nyshk97.MenuBarTidy` |
+  | アイコン | 青 + **DEV リボン**（`AppIconDev.icon`） | 青（`AppIcon.icon`） |
+  | ログ | `~/Library/Logs/MenuBarTidy-dev/` | `~/Library/Logs/MenuBar Tidy/` |
+  | プロファイル | `~/Library/Application Support/MenuBarTidy-dev/Profiles/` | 同 `MenuBar Tidy/Profiles/` |
+  | 画像キャッシュ | `~/Library/Caches/com.nyshk97.MenuBarTidy.dev/` | `~/Library/Caches/com.nyshk97.MenuBarTidy/` |
+
+  - 切り替えは `project.pbxproj` の Debug 構成（`PRODUCT_NAME` / `PRODUCT_BUNDLE_IDENTIFIER` /
+    `ASSETCATALOG_COMPILER_APPICON_NAME`）だけ。パスとサービス名は実行時に
+    `AppIdentity`（`Shared/Utilities/AppIdentity.swift`）がバンドルIDから導く。
+    ズレは `AppIdentityTests` が落として知らせる
+  - **dev 版は TCC の許可を別に取る**（初回起動時にアクセシビリティと画面収録を付け直す）。
+    バンドルIDを変えると許可が失効するのは常用版も同じ（`tccutil reset` して付け直す）
+  - **両方を同時に起動しない**。同じメニューバーを奪い合う（本家 Thaw との関係と同じ）
   - Swift のモジュール名は `Thaw` のまま（`PRODUCT_MODULE_NAME` で固定）。テスト全 154 ファイルの
     `@testable import Thaw` がこれに依存している
   - 本家 Thaw（`com.stonerl.Thaw` / **アンバー**アイコン）は**アンインストール済み**。
@@ -49,6 +63,9 @@ mise run doctor  # Xcode・証明書・notarize プロファイル・gh の過�
 xcodebuild -project Thaw.xcodeproj -scheme Thaw -configuration Debug -derivedDataPath Build build
 ```
 
+出来上がるのは `Build/Build/Products/Debug/MenuBarTidy-dev.app`（dev 版）。常用版と同じ
+`MenuBar Tidy.app` が欲しいときは `-configuration Release`（`mise run release:zip`）。
+
 `| tail` や `| grep` に繋ぐときは `set -o pipefail` を付ける。付けないと xcodebuild の失敗が
 パイプの終了コードに隠れて「成功」に見える。
 
@@ -62,7 +79,7 @@ xcodebuild -project Thaw.xcodeproj -scheme Thaw -configuration Debug -derivedDat
   | grep -E "✘|error:|Test run with|TEST (SUCCEEDED|FAILED)"
 ```
 
-期待値: `✔ Test run with 1742 tests in 218 suites passed`（削り込みで件数は減り続ける）
+期待値: `✔ Test run with 1741 tests in 218 suites passed`（削り込みで件数は減り続ける）
 
 - **`Executed 0 tests` は無視してよい**。XCTest 側のカウントで、このプロジェクトは swift-testing (`@Test`)。
   実数は `Test run with N tests` の行に出る
@@ -89,14 +106,14 @@ xcodebuild -project Thaw.xcodeproj -scheme Thaw -configuration Debug -derivedDat
 
 ```sh
 # 1. 常駐したテストホストを止める（放置するとユーザーのメニューバーを操作し続ける）
-pkill -f "menubar-tidy/Build.*MenuBar Tidy"
+pkill -f "$PWD/Build/.*MenuBarTidy-dev"
 
 # 2. 汚染を検出（既定 false なので 1 なら汚染）
-defaults read com.nyshk97.MenuBarTidy ShowOnHover
+defaults read com.nyshk97.MenuBarTidy.dev ShowOnHover
 
 # 3. 汚染していたら退避して削除
-defaults export com.nyshk97.MenuBarTidy /tmp/thaw-domain-backup.plist
-defaults delete com.nyshk97.MenuBarTidy
+defaults export com.nyshk97.MenuBarTidy.dev /tmp/thaw-domain-backup.plist
+defaults delete com.nyshk97.MenuBarTidy.dev
 ```
 
 ---
@@ -125,24 +142,24 @@ swift scripts/list-menu-bar-items.swift
 ## 4. アイコンと表示名
 
 ```sh
-/usr/libexec/PlistBuddy -c "Print :CFBundleDisplayName" "Build/Build/Products/Debug/MenuBar Tidy.app/Contents/Info.plist"
-codesign -dvv "Build/Build/Products/Debug/MenuBar Tidy.app" 2>&1 | grep -E "Identifier|TeamIdentifier"
+/usr/libexec/PlistBuddy -c "Print :CFBundleDisplayName" "Build/Build/Products/Debug/MenuBarTidy-dev.app/Contents/Info.plist"
+codesign -dvv "Build/Build/Products/Debug/MenuBarTidy-dev.app" 2>&1 | grep -E "Identifier|TeamIdentifier"
 ```
 
 アイコンは**パス基準でキャッシュされる**ので、リビルド後に確認するときは新しいパスへコピーしてから引く:
 
 ```sh
 FRESH=$(mktemp -d)
-cp -R "Build/Build/Products/Debug/MenuBar Tidy.app" "$FRESH/check.app"
+cp -R "Build/Build/Products/Debug/MenuBarTidy-dev.app" "$FRESH/check.app"
 /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f "$FRESH/check.app"
 # NSWorkspace.shared.icon(forFile:) で PNG 化して目視
 ```
 
-Debug ビルドは `Contents/Resources/AppIcon.icns` を持つので、そちらを展開するほうが速い:
+Debug ビルドは `Contents/Resources/AppIconDev.icns` を持つので、そちらを展開するほうが速い:
 
 ```sh
 sips -s format png --resampleWidth 512 \
-  "Build/Build/Products/Debug/MenuBar Tidy.app/Contents/Resources/AppIcon.icns" --out /tmp/appicon.png
+  "Build/Build/Products/Debug/MenuBarTidy-dev.app/Contents/Resources/AppIconDev.icns" --out /tmp/appicon.png
 ```
 
 ### メニューバーの状態アイコン
@@ -151,7 +168,7 @@ sips -s format png --resampleWidth 512 \
 ビルド成果物の `Assets.car` から読んで、`ControlItemImage.catalog` と同じリサイズを通した絵を書き出す:
 
 ```sh
-swift scripts/render-status-icons.swift "Build/Build/Products/Debug/MenuBar Tidy.app" /tmp/icons
+swift scripts/render-status-icons.swift "Build/Build/Products/Debug/MenuBarTidy-dev.app" /tmp/icons
 ```
 
 - 出力の `ratio` は **1.0 が正**。アセットは 34x34px @2x = 17x17pt で作ってあり、
@@ -161,7 +178,7 @@ swift scripts/render-status-icons.swift "Build/Build/Products/Debug/MenuBar Tidy
 
 ```sh
 xcrun --sdk macosx assetutil --info \
-  "Build/Build/Products/Debug/MenuBar Tidy.app/Contents/Resources/Assets.car" \
+  "Build/Build/Products/Debug/MenuBarTidy-dev.app/Contents/Resources/Assets.car" \
   | grep -A2 TidyBar
 ```
 
@@ -176,7 +193,7 @@ Wi-Fi 17x12.5pt / バッテリー 16x12pt に対して TidyBar は 14.7x11pt）�
 ユーザーの実メニューバーを壊すリスクがある。
 
 ```sh
-open "Build/Build/Products/Debug/MenuBar Tidy.app"
+open "Build/Build/Products/Debug/MenuBarTidy-dev.app"
 ```
 
 初回は アクセシビリティ と 画面収録 の両方を許可する。**どちらも必須**で、片方でも欠けると
@@ -198,8 +215,8 @@ open "Build/Build/Products/Debug/MenuBar Tidy.app"
 ### ログ
 
 ```sh
-ls -t ~/Library/Logs/"MenuBar Tidy"/ | head -1
-grep -iE "controlitem|occlu|temporarilyShow|AX activation" ~/Library/Logs/"MenuBar Tidy"/<最新>.log
+ls -t ~/Library/Logs/MenuBarTidy-dev/ | head -1
+grep -iE "controlitem|occlu|temporarilyShow|AX activation" ~/Library/Logs/MenuBarTidy-dev/<最新>.log
 ```
 
 `is occluded — the menu bar accepted the status item but is not rendering it` は
@@ -227,7 +244,7 @@ grep -rnE '(Text|Label|Button|Toggle)\(\s*"[A-Za-z]|withTitle: "[A-Za-z]|\btitle
 
 ```sh
 grep -rn "String(localized\|LocalizedStringKey" --include="*.swift" Thaw   # 0 件
-ls -d Build/Build/Products/Debug/MenuBar\ Tidy.app/Contents/Resources/*.lproj        # 「no matches」が正
+ls -d Build/Build/Products/Debug/MenuBarTidy-dev.app/Contents/Resources/*.lproj   # 「no matches」が正
 ```
 
 - **`Text("日本語")` は今も `LocalizedStringKey` を経由する**（SwiftUI の型がそうなっている）。
@@ -270,8 +287,8 @@ Control Center が肩代わりしてホストしている項目（`com.apple.con
 
 ```sh
 # 認識が壊れたときのリセット
-rm -rf ~/Library/Caches/com.nyshk97.MenuBarTidy
-tccutil reset Accessibility com.nyshk97.MenuBarTidy
+rm -rf ~/Library/Caches/com.nyshk97.MenuBarTidy.dev
+tccutil reset Accessibility com.nyshk97.MenuBarTidy.dev
 ```
 
 アプリを終了 → メニューバー上で Little Snitch のアイコンを ⌘ ドラッグで右端へ → 再起動、
@@ -333,6 +350,8 @@ mise run release            # patch bump。minor / major / x.y.z も指定でき
 
 - **Release 構成だけ Developer ID 署名**（Debug は Apple Development のまま）。
   `CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO` で `get-task-allow` の注入を止めてある
+- **配布物は常用版の名前・バンドルIDで出る**（`MenuBar Tidy.app` / `com.nyshk97.MenuBarTidy`）。
+  dev 版の名前が混ざっていないかは `mise run release:zip` の後に `codesign -dvv` で確認できる
 - notarize の資格情報は keychain プロファイル `notary`（`NOTARY_PROFILE` で変えられる）。
   無いときは `xcrun notarytool store-credentials notary --apple-id <id> --team-id VYDUR99LAM`
 - zip 化は `ditto -c -k --sequesterRsrc --keepParent`。`zip -r` は symlink を潰して署名を壊す

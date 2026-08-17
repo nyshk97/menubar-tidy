@@ -299,11 +299,13 @@ struct DiagnosticLoggerFileTests {
 
     // MARK: Log directory
 
-    @Test("The log directory is Library/Logs/Thaw inside the user's home")
+    @Test("The log directory is Library/Logs/<app name> inside the user's home")
     func logDirectoryIsUnderTheUserLibrary() {
         let directory = DiagnosticLogger.shared.logDirectory
 
-        #expect(directory.lastPathComponent == "MenuBar Tidy")
+        // Named after the running build, so the dev build never appends to the
+        // release install's logs.
+        #expect(directory.lastPathComponent == AppIdentity.supportDirectoryName)
         #expect(directory.deletingLastPathComponent().lastPathComponent == "Logs")
         #expect(directory.path.hasPrefix(FileManager.default.homeDirectoryForCurrentUser.path))
     }

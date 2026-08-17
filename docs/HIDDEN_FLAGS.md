@@ -1,20 +1,20 @@
-# Thaw Hidden Diagnostic Flags
+# 隠し診断フラグ
 
-Thaw has a small number of behavioural switches that are read from
+MenuBar Tidy has a small number of behavioural switches that are read from
 `UserDefaults` but are **not exposed in Settings**. They exist as escape
 hatches for diagnosing menu-bar reorder issues on hardware or setups the
 default behaviour does not handle well. Most users will never need them.
 
 These flags are registered as ordinary cases in `Defaults.Key` (see
 `Thaw/Utilities/Defaults.swift`), so their storage goes through the same
-`UserDefaults.standard` domain as every other Thaw setting — they are just
+`UserDefaults.standard` domain as every other setting — they are just
 not surfaced in the UI.
 
 ## Overview
 
-All commands below use `defaults write` against Thaw's bundle identifier,
-`com.stonerl.Thaw`. Changes take effect the next time the relevant code
-path runs; a relaunch of Thaw is the simplest way to guarantee that.
+All commands below use `defaults write` against this app's bundle identifier,
+`com.nyshk97.Thaw`. Changes take effect the next time the relevant code
+path runs; a relaunch is the simplest way to guarantee that.
 
 ## Available Flags
 
@@ -28,22 +28,22 @@ path runs; a relaunch of Thaw is the simplest way to guarantee that.
 
 ```bash
 # Widen the input-pause window to 150 ms.
-defaults write com.stonerl.Thaw inputPauseThresholdMs -int 150
+defaults write com.nyshk97.Thaw inputPauseThresholdMs -int 150
 
 # Disable discarding of stray move-event echoes.
-defaults write com.stonerl.Thaw discardStrayMoveEvents -bool NO
+defaults write com.nyshk97.Thaw discardStrayMoveEvents -bool NO
 
 # Fail fast on a window mismatch instead of waiting for a timeout.
-defaults write com.stonerl.Thaw failFastOnEventWindowMismatch -bool YES
+defaults write com.nyshk97.Thaw failFastOnEventWindowMismatch -bool YES
 ```
 
 To restore the default behaviour for a flag, remove the key:
 
 ```bash
-defaults delete com.stonerl.Thaw inputPauseThresholdMs
+defaults delete com.nyshk97.Thaw inputPauseThresholdMs
 ```
 
-## Notes for Contributors
+## Notes
 
 - Every static (non-computed-key) `UserDefaults` flag should be registered
   as a case in `Defaults.Key`, with a raw value identical to any string

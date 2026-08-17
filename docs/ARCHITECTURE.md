@@ -1,127 +1,118 @@
-# Thaw architecture
+# Architecture
 
-High-level design of the software produced by the Thaw project. This is a map
-of major components and trust boundaries, not an API reference.
+A map of the major components of **MenuBar Tidy**, a personal fork of
+[thaw-app/Thaw](https://github.com/thaw-app/Thaw) cut down to five features.
+This is not an API reference. For what was removed and why, see
+[INVESTIGATION.md](../INVESTIGATION.md); for how to check the app works, see
+[VERIFY.md](../VERIFY.md).
 
-Thaw is a native **macOS menu bar manager** (Swift / AppKit / SwiftUI). It
-hides and shows menu bar items, provides search and hotkeys, supports layout
-profiles, and customizes menu bar appearance. It is a maintained fork of
-[Ice](https://github.com/jordanbaird/Ice).
+## What it does
 
-## Goals
+Native macOS menu bar manager (Swift / AppKit / SwiftUI), local-only, no
+accounts and no network surface at all:
 
-- Keep the menu bar usable (hide clutter, reveal on demand) without surprising
-  loss of status items.
-- Prefer local-only operation: no accounts, no telemetry/tracking backend.
-- Fail closed for privileged automation surfaces (`thaw://` settings APIs).
-- Stay compatible with current macOS releases (26+; experimental 27 work on a
-  feature branch).
+1. Hides menu bar items by pushing them off the bar with an invisible
+   `NSStatusItem` divider
+2. Reveals the hidden items in a separate floating bar when empty menu bar
+   space is clicked
+3. Forwards a click on that bar to the real menu bar item
+4. Keeps one status icon always visible
+5. Persists the divider position
 
 ## Repository layout
 
 | Path | Role |
 | --- | --- |
-| `Thaw/` | Main application target (UI, menu bar logic, settings, events, permissions) |
-| `Shared/` | Code shared between the app and helper processes (bridging, XPC client types, utilities) |
-| `MenuBarItemService/` | XPC helper process for menu-bar item source PID resolution and related work off the main app |
-| `ThawCtl/` | Small SwiftPM CLI / control utilities |
-| `ThawTests/` | XCTest suite run in CI |
-| `docs/` | User/developer documentation (e.g. URI schemes) |
-| `.github/` | CI, release, contributing, security policy |
+| `Thaw/` | Main application target (menu bar logic, layout editor, events, permissions) |
+| `Shared/` | Code shared with the helper process (CGS bridging, `WindowInfo`, diagnostic logging) |
+| `MenuBarItemService/` | XPC helper that resolves the owning process of a menu bar item |
+| `ThawTests/` | swift-testing suite |
+| `docs/` | This file and [HIDDEN_FLAGS.md](HIDDEN_FLAGS.md) |
+| `scripts/` | `list-menu-bar-items.swift` (see VERIFY.md) and the SwiftLint input list generator |
 
-External dependencies are declared via Swift Package Manager and locked in
+Dependencies are declared via SwiftPM and locked in
 `Thaw.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved`
-(e.g. Sparkle, AXSwift, CompactSlider, Ifrit, LaunchAtLogin-Modern).
+(AXSwift, CompactSlider, LaunchAtLogin-Modern, swift-algorithms,
+swift-async-algorithms, swift-collections, swift-subprocess).
 
 ## Runtime components
 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
-│                        Thaw.app                             │
+│                     MenuBar Tidy.app                        │
 │  AppDelegate / AppState                                     │
-│  ├── MenuBar (ItemManager, layout, IceBar/Thaw Bar, …)      │
-│  ├── Events / Hotkeys / HID                                 │
-│  ├── Settings + URI handler (thaw://)                       │
-│  ├── Permissions (Accessibility, Screen Recording, …)       │
-│  └── Updates (Sparkle)                                      │
+│  ├── MenuBar/ItemManager   status item enumeration + moves  │
+│  ├── MenuBar/ControlItem   the dividers and the app's icon  │
+│  ├── MenuBar/IceBar        the floating "Thaw Bar" panel    │
+│  ├── MenuBar/LayoutBar     the drag-to-arrange editor       │
+│  ├── Events / HID          empty-space click detection      │
+│  └── Permissions           Accessibility / Screen Recording │
 │                         │ XPC                               │
 │                         ▼                                   │
 │              MenuBarItemService.xpc                         │
 │              (source PID cache / listener)                  │
 └─────────────────────────────────────────────────────────────┘
-          │                         │
-          ▼                         ▼
-   macOS WindowServer /        HTTPS appcast
-   Accessibility /             (Sparkle updates)
-   private menu-bar APIs
+                          │
+                          ▼
+              macOS WindowServer / Accessibility /
+              private menu-bar APIs (SkyLight)
 ```
 
 ### Main app (`Thaw/`)
 
-- **MenuBar:** Enumerates and moves status items, maintains hidden /
-  always-hidden sections, layout reconciliation, spacing, appearance overlay,
-  and the Thaw Bar (IceBar) UI.
-- **Events / Hotkeys:** User input paths that show or hide sections without
-  going through the settings UI.
-- **Settings:** UserDefaults-backed configuration, profiles, onboarding.
-- **Permissions:** Guides the user through TCC prompts required for AX and
-  screen capture features.
-- **Updates:** Sparkle client; feed URL and EdDSA public key live in
-  `Thaw/Resources/Info.plist`.
+- **MenuBar:** enumerates and moves status items, maintains the hidden and
+  always-hidden sections, reconciles layout, and drives the Thaw Bar.
+- **Events / HID:** detects clicks on empty menu bar space, which is the only
+  reveal gesture this fork keeps.
+- **Settings:** UserDefaults-backed configuration and profiles. The settings
+  window is the layout editor and nothing else; every other value is a
+  hardcoded default.
+- **Permissions:** walks the user through the Accessibility (required) and
+  Screen Recording (optional) TCC prompts.
 
 ### `MenuBarItemService` (XPC)
 
-A separate process (`com.stonerl.Thaw.MenuBarItemService`) isolates some
-WindowServer / PID lookup work from the UI process. The shared protocol is a
-small Codable request/response surface (`start`, `configureLogging`,
-`sourcePID` / `sourcePIDs`). Logging to a shared diagnostic file is configured
-by the main app after launch.
+A separate process that isolates WindowServer and PID-lookup work from the UI
+process. The shared protocol is a small Codable request/response surface
+(`start`, `configureLogging`, `sourcePID` / `sourcePIDs`). The main app
+configures logging to a shared diagnostic file after launch.
+
+Resolving the *true* owning process matters because most menu bar items are
+owned by Control Center rather than the app whose icon they show; click
+forwarding targets the wrong process without it.
 
 ### External interfaces
 
 | Interface | Direction | Notes |
 | --- | --- | --- |
-| `thaw://` URL scheme | Inbound | Automation / deep links; settings mutation is allowlisted + sender-signed — see [URI_SCHEMES.md](URI_SCHEMES.md) |
-| Sparkle appcast HTTPS | Outbound | Update metadata and downloads over TLS |
-| Accessibility / Screen Recording | System | Required for core menu-bar manipulation and capture |
-| Crowdin | Out-of-band | Localization workflow (not runtime) |
-| GitHub Releases / Homebrew | Distribution | Install and upgrade channels |
+| Accessibility | System | Required. Detecting, moving and clicking menu bar items |
+| Screen Recording | System | Optional. Item image capture and menu bar colour sampling for the Thaw Bar |
+
+There is no URL scheme, no update feed, and no outbound network traffic.
 
 ## Data and persistence
 
-- Preferences and profiles: `UserDefaults` / app support files on the local Mac.
-- Diagnostic logs: optional local files (General settings); not uploaded by Thaw.
-- No first-party cloud backend; no user accounts.
+- Preferences and profiles: `UserDefaults` (`com.nyshk97.Thaw`) and files under
+  Application Support, on the local Mac only.
+- Diagnostic logs: optional local files under `~/Library/Logs/Thaw/`, never
+  uploaded.
+- Undocumented diagnostic switches: [HIDDEN_FLAGS.md](HIDDEN_FLAGS.md).
 
 ## Build and release
 
-- **Dev loop:** Open `Thaw.xcodeproj` in Xcode 26+, build/run.
-- **CI:** `.github/workflows/ci.yml` — SwiftLint, `xcodebuild test`, SonarCloud.
-  Shared release/CI pieces live in [`thaw-app/org-ci`](https://github.com/thaw-app/org-ci).
-- **Release:** Signed with Developer ID, notarized, packaged (ZIP/DMG), Sparkle
-  appcast updated. See [VERIFYING_RELEASES.md](VERIFYING_RELEASES.md) and
-  [RELEASES.md](RELEASES.md).
-- **Hosting:** Canonical source is [thaw-app/Thaw](https://github.com/thaw-app/Thaw).
+- **Dev loop:** Xcode 26+ / macOS 26+. `xcodebuild -project Thaw.xcodeproj
+  -scheme Thaw -configuration Debug -derivedDataPath Build build`.
+- **CI:** `.github/workflows/ci.yml` runs `xcodebuild test` on macOS 26 and
+  checks that `scripts/swiftlint-inputs.xcfilelist` still matches the tree.
+- **Release:** none. There is no Sparkle, no notarization pipeline, and no
+  distribution channel — the app is built and run locally, signed with the
+  author's own development team.
 
-## Related organization repositories
+## Differences that matter when reading upstream code
 
-Thaw’s product surface spans more than this git tree. Inventory for maintainers
-and supply-chain review:
-
-| Repository | Role |
-| --- | --- |
-| [thaw-app/Thaw](https://github.com/thaw-app/Thaw) | Application source, issues, DMG releases, CI |
-| [thaw-app/updates](https://github.com/thaw-app/updates) | Sparkle appcast + update ZIP / deltas |
-| [thaw-app/brand-assets](https://github.com/thaw-app/brand-assets) | Shared brand artwork and README badges |
-| [thaw-app/org-ci](https://github.com/thaw-app/org-ci) | Reusable Actions (e.g. Sparkle release) |
-| [thaw-app/raycast-extension](https://github.com/thaw-app/raycast-extension) | Official Raycast extension |
-
-## Related documents
-
-- [URI_SCHEMES.md](URI_SCHEMES.md) — external URL/API surface
-- [INVESTIGATION.md](../INVESTIGATION.md) — what this fork keeps and removes
-- [VERIFY.md](../VERIFY.md) — how to check the app actually works
-
-The security argument, requirements and governance documents this section used
-to link belong to the upstream project and were removed from this fork; see
-[thaw-app/Thaw](https://github.com/thaw-app/Thaw) for the current versions.
+- The UI has no localization layer. Strings are Japanese literals in the
+  source; `String(localized:)` and `LocalizedStringKey` do not appear.
+- `MenuBarAppearanceManager` and the overlay panels are gone, so nothing
+  composites over the real menu bar.
+- Hotkeys, the search panel, the `thaw://` URL scheme, Focus filters, the
+  onboarding tour and the Ice importer have all been removed.

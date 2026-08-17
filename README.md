@@ -25,13 +25,20 @@ Five things. Everything else is being removed.
 
 ## What this removes
 
-Menu bar appearance customisation, hotkeys, the search panel, profiles and
-layout switching, the always-hidden section, hover and scroll reveal, inline
-expansion, the settings window (values are hardcoded), Ice settings import,
-auto-update, and onboarding.
+Menu bar appearance customisation, hotkeys, the search panel, hover and scroll
+reveal, the `thaw://` URL scheme, Focus filters, Ice settings import,
+auto-update, the onboarding tour, and localization (the UI is written in
+Japanese directly). The settings window is now the drag-to-arrange layout
+editor and nothing else — every other value is a hardcoded default.
 
-See [INVESTIGATION.md](INVESTIGATION.md) for how the parts fit together and
-which of them are safe to remove.
+Profiles and the always-hidden section survive without settings UI: profiles
+are reachable from the status icon's menu, and the always-hidden section is on
+whenever you drag an item into it.
+
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) describes what is left.
+[INVESTIGATION.md](INVESTIGATION.md) is the pre-strip-down survey that decided
+what was safe to remove — useful for the reasoning, not as a map of the current
+tree.
 
 ## Build
 
@@ -56,6 +63,8 @@ corrupts the app's own settings.
 - Bundle identifier `com.nyshk97.Thaw`, display name "MenuBar Tidy", blue icon
 - No Sparkle. Upstream's appcast URL is gone from `Info.plist`, so this build
   cannot replace itself with an upstream release
+- No network surface at all, and no URL scheme
+- Japanese-only UI, with no string catalog
 - Signed with my own development team
 - Development happens on `main`; upstream develops on `development`
 
@@ -67,5 +76,5 @@ GPL-3.0. See [LICENSE](LICENSE).
 - Thaw © 2026 Toni Förster
 - This fork © 2026 Tsubasa Namatame
 
-Translators and other contributors to the upstream projects are credited in
-[CREDITS.md](CREDITS.md).
+Contributors to the upstream projects are credited in
+[Thaw's CREDITS.md](https://github.com/thaw-app/Thaw/blob/development/CREDITS.md).

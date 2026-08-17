@@ -95,11 +95,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         case .hasAll:
             appState.permissions.diagLog.debug("Passed all permissions checks")
             appState.performSetup(hasPermissions: true)
-        case .hasRequired:
-            appState.permissions.diagLog.debug("Passed required permissions checks")
-            appState.performSetup(hasPermissions: true)
         case .missing:
-            appState.permissions.diagLog.debug("Failed required permissions checks")
+            appState.permissions.diagLog.debug("Failed permissions checks")
             appState.performSetup(hasPermissions: false)
         }
 

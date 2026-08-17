@@ -34,14 +34,16 @@ final class AppPermissions: PermissionsManaging {
     }
 
     /// The state of the app's granted permissions.
+    ///
+    /// Both permissions are required, so there is no partial state. Upstream
+    /// had a `hasRequired` "limited mode" for a granted Accessibility with a
+    /// missing Screen Recording; here that combination leaves the Thaw Bar
+    /// unable to draw a single item, which is not a mode worth offering.
     enum PermissionsState {
-        /// At least one required permission hasn't been granted.
+        /// At least one permission hasn't been granted.
         case missing
-        /// Every permission, required or not, has been granted.
+        /// Every permission has been granted.
         case hasAll
-        /// All required permissions are granted, but at least one optional
-        /// permission is missing — the app can run in limited mode.
-        case hasRequired
     }
 
     /// The manager's logger.
@@ -61,11 +63,6 @@ final class AppPermissions: PermissionsManaging {
         [accessibility, screenRecording]
     }
 
-    /// The permissions required for basic app functionality.
-    var requiredPermissions: [Permission] {
-        allPermissions.filter(\.isRequired)
-    }
-
     /// Creates a new permissions manager.
     init() {
         self.updatePermissionsState()
@@ -78,13 +75,7 @@ final class AppPermissions: PermissionsManaging {
 
     /// Updates the current permissions state.
     private func updatePermissionsState() {
-        if allPermissions.allSatisfy(\.hasPermission) {
-            permissionsState = .hasAll
-        } else if requiredPermissions.allSatisfy(\.hasPermission) {
-            permissionsState = .hasRequired
-        } else {
-            permissionsState = .missing
-        }
+        permissionsState = allPermissions.allSatisfy(\.hasPermission) ? .hasAll : .missing
     }
 
     /// Stops running all permissions checks.

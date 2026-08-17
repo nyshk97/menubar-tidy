@@ -169,9 +169,14 @@ final class AccessibilityPermission: Permission {
 
 // MARK: - ScreenRecordingPermission
 
-/// The Screen Recording permission, used for sampling menu bar colors,
-/// previewing menu bar items, and visual search. Optional — Thaw can run in
-/// a limited mode without it.
+/// The Screen Recording permission.
+///
+/// Upstream treated this as optional because most of what it fed — the
+/// appearance overlay's adaptive tint, visual search — was optional. What is
+/// left in this fork is the capture of the menu bar items' own icons, which
+/// the Thaw Bar and the layout editor draw. Without it both show a
+/// "grant this permission" placeholder instead of any items, so revealing a
+/// hidden item becomes impossible. Required.
 final class ScreenRecordingPermission: Permission {
     init() {
         super.init(
@@ -179,10 +184,10 @@ final class ScreenRecordingPermission: Permission {
             iconName: "record.circle",
             iconColor: .red,
             details: [
-                "メニューバー項目のライブプレビューを表示します。",
+                "メニューバー項目のアイコンを取得して、\(Constants.displayName) バーとレイアウト画面に表示します。",
                 "メニューバーの色を読み取り、\(Constants.displayName) バーの背景をメニューバーに合わせます。",
             ],
-            isRequired: false,
+            isRequired: true,
             settingsURL: URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture"),
             check: {
                 ScreenCapture.checkPermissions()

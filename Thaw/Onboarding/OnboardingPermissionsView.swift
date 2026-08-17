@@ -37,10 +37,6 @@ struct ThawPermissionsView: View {
 
     @State private var appeared = false
 
-    private var requiredGranted: Bool {
-        permissions.permissionsState != .missing
-    }
-
     private var allGranted: Bool {
         permissions.permissionsState == .hasAll
     }
@@ -90,13 +86,13 @@ struct ThawPermissionsView: View {
                     Button {
                         onContinue()
                     } label: {
-                        Text(requiredGranted && !allGranted ? "制限モードで続ける" : "続ける")
+                        Text("続ける")
                             .font(.subheadline.weight(.semibold))
                             .frame(maxWidth: .infinity)
                             .frame(height: 36)
                     }
                     .buttonStyle(.glassProminent)
-                    .disabled(!requiredGranted)
+                    .disabled(!allGranted)
                 }
             }
             .padding(.horizontal, 30)

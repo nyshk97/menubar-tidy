@@ -19,14 +19,14 @@ enum MacOSCompatibilityWarning {
 
         let alert = NSAlert()
         alert.alertStyle = .warning
-        alert.messageText = String(localized: "macOS 27 Is Not Yet Supported")
-        alert.informativeText = String(
-            localized: """
-            This version of Thaw is not yet compatible with macOS 27. Preview builds are available on GitHub Releases, and macOS 27 support will be delivered through the alpha update channel.
-            """
-        )
-        alert.addButton(withTitle: String(localized: "View Preview Builds"))
-        alert.addButton(withTitle: String(localized: "Continue"))
+        alert.messageText = "macOS 27 は未対応です"
+        alert.informativeText = """
+        このバージョンの Thaw は macOS 27 にまだ対応していません。\
+        プレビュービルドは GitHub Releases で公開されており、\
+        macOS 27 対応は alpha アップデートチャンネルで配信されます。
+        """
+        alert.addButton(withTitle: "プレビュービルドを見る")
+        alert.addButton(withTitle: "続ける")
 
         if alert.runModal() == .alertFirstButtonReturn {
             NSWorkspace.shared.open(Constants.releasesURL)

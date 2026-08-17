@@ -29,14 +29,14 @@ nonisolated enum IceBarLocation: Int, CaseIterable, Codable, Identifiable {
         rawValue
     }
 
-    /// Localized string key representation.
-    var localized: LocalizedStringKey {
+    /// The name as shown in the UI.
+    var localized: String {
         switch self {
-        case .dynamic: "Dynamic"
-        case .mousePointer: "Mouse pointer"
-        case .iceIcon: "\(Constants.displayName) icon"
-        case .leftAligned: "Left aligned"
-        case .rightAligned: "Right aligned"
+        case .dynamic: "ダイナミック"
+        case .mousePointer: "マウスポインター"
+        case .iceIcon: "\(Constants.displayName) アイコン"
+        case .leftAligned: "左揃え"
+        case .rightAligned: "右揃え"
         }
     }
 

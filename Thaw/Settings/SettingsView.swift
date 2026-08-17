@@ -23,6 +23,6 @@ struct SettingsView: View {
             itemManager: appState.itemManager,
             advancedSettings: appState.settings.advanced
         )
-        .navigationTitle("Menu Bar Layout")
+        .navigationTitle("メニューバーのレイアウト")
     }
 }

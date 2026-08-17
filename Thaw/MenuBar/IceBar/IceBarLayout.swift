@@ -23,12 +23,12 @@ nonisolated enum IceBarLayout: Int, CaseIterable, Codable, Identifiable {
         rawValue
     }
 
-    /// Localized string key representation.
-    var localized: LocalizedStringKey {
+    /// The name as shown in the UI.
+    var localized: String {
         switch self {
-        case .horizontal: "Horizontal"
-        case .vertical: "Vertical"
-        case .grid: "Grid"
+        case .horizontal: "水平"
+        case .vertical: "垂直"
+        case .grid: "グリッド"
         }
     }
 

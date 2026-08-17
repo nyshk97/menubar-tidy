@@ -304,12 +304,12 @@ extension DisplaySettingsManager {
     private func presentSpacingRelaunchConfirmation() -> Bool {
         NSApp.activate(ignoringOtherApps: true)
         let alert = NSAlert()
-        alert.messageText = String(localized: "Apply menu bar spacing change?")
-        alert.informativeText = String(localized: "When a display transition requires Thaw to apply a different menu bar spacing, Thaw relaunches apps with menu bar items. Relaunching apps may cause unsaved input, progress, or transient app state to be lost.")
-        alert.addButton(withTitle: String(localized: "Apply"))
-        alert.addButton(withTitle: String(localized: "Cancel"))
+        alert.messageText = "メニューバーの項目間隔の変更を適用しますか？"
+        alert.informativeText = "ディスプレイの切り替えで異なる項目間隔を適用する必要があるとき、\(Constants.displayName) はメニューバー項目を持つアプリを再起動します。再起動により、保存していない入力・作業中の内容・一時的なアプリの状態が失われる場合があります。"
+        alert.addButton(withTitle: "適用")
+        alert.addButton(withTitle: "キャンセル")
         alert.showsSuppressionButton = true
-        alert.suppressionButton?.title = String(localized: "Don't ask again")
+        alert.suppressionButton?.title = "今後確認しない"
         let apply = alert.runModal() == .alertFirstButtonReturn
         if apply, alert.suppressionButton?.state == .on {
             confirmSpacingRelaunch = false

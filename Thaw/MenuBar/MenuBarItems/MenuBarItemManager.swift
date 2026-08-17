@@ -6697,7 +6697,7 @@ extension MenuBarItemManager {
         guard let anchor = targetItem else {
             MenuBarItemManager.diagLog.warning("Not enough room or no anchor to show \(item.logString)")
             let alert = NSAlert()
-            alert.messageText = String(localized: "Not enough room to show \"\(item.displayName)\"")
+            alert.messageText = "\"\(item.displayName)\" を表示するスペースが不足しています"
             alert.runModal()
             return .showFailed
         }

@@ -65,7 +65,7 @@ private struct NotchIndicatorContent: View {
                 .strokeBorder(borderColor, lineWidth: 1)
                 .padding(3)
 
-            Text("Notch")
+            Text("ノッチ")
                 .font(.footnote)
                 .foregroundStyle(textColor)
                 .padding(.horizontal, 6)

@@ -51,7 +51,7 @@ struct IceWindow<Content: View>: Scene {
     }
 
     private var windowScene: some Scene {
-        Window(id.titleKey, id: id.rawValue) {
+        Window(id.title, id: id.rawValue) {
             windowContentView
         }
         .defaultLaunchBehavior(.suppressed)
@@ -68,21 +68,12 @@ enum IceWindowIdentifier: String, CustomStringConvertible {
     /// The identifier for Ice's permissions window.
     case permissions = "PermissionsWindow"
 
-    /// The non-localized title of the corresponding window.
-    ///
-    /// - Note: Use ``titleKey`` to get the localized title.
-    var titleString: String {
+    /// The title of the corresponding window.
+    var title: String {
         switch self {
         case .settings: "\(Constants.displayName)"
-        case .permissions: "Permissions"
+        case .permissions: "権限"
         }
-    }
-
-    /// The localized title of the corresponding window.
-    ///
-    /// - Note: Use ``titleString`` to get the non-localized title.
-    var titleKey: LocalizedStringKey {
-        LocalizedStringKey(titleString)
     }
 
     /// A textual representation of the identifier.

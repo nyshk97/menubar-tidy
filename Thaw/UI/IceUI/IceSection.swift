@@ -68,7 +68,7 @@ struct IceSection<Header: View, Content: View, Footer: View>: View {
     }
 
     init(
-        _ title: LocalizedStringKey,
+        _ title: String,
         isBordered: Bool = true,
         @ViewBuilder content: () -> Content
     ) where Header == Text, Footer == EmptyView {

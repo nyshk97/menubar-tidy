@@ -23,18 +23,18 @@ nonisolated struct ControlItemImageSet: Codable, Hashable, Identifiable {
         case sunglasses = "Sunglasses"
         case custom = "Custom"
 
-        /// Localized string key representation.
-        var localized: LocalizedStringKey {
+        /// The name as shown in the UI.
+        var localized: String {
             switch self {
-            case .arrow: "Arrow"
-            case .chevron: "Chevron"
-            case .chevronDown: "Chevron (Down)"
-            case .door: "Door"
-            case .dot: "Dot"
-            case .ellipsis: "Ellipsis"
+            case .arrow: "矢印"
+            case .chevron: "シェブロン"
+            case .chevronDown: "シェブロン（下向き）"
+            case .door: "ドア"
+            case .dot: "ドット"
+            case .ellipsis: "省略記号"
             case .iceCube: "Ice Cube"
-            case .sunglasses: "Sunglasses"
-            case .custom: "Custom"
+            case .sunglasses: "サングラス"
+            case .custom: "カスタム"
             }
         }
     }

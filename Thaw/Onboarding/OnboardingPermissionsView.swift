@@ -48,13 +48,13 @@ struct ThawPermissionsView: View {
     var body: some View {
         VStack(spacing: 18) {
             VStack(spacing: 7) {
-                Text("Enable Permissions")
+                Text("権限を許可")
                     .font(.title2.bold())
                     .multilineTextAlignment(.center)
 
                 VStack(spacing: 4) {
-                    Text("Almost there! \(Constants.displayName) needs the permissions below to manage your menu bar.")
-                    Text("Your data stays on your Mac — nothing is ever collected or shared.")
+                    Text("あと少しです。\(Constants.displayName) がメニューバーを管理するには、以下の権限が必要です。")
+                    Text("データはあなたの Mac から出ません。収集も共有も一切行いません。")
                         .foregroundStyle(.secondary)
                 }
                 .font(.body)
@@ -79,7 +79,7 @@ struct ThawPermissionsView: View {
                         Button {
                             onQuit()
                         } label: {
-                            Text("Quit")
+                            Text("終了")
                                 .font(.subheadline.weight(.semibold))
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 36)
@@ -90,7 +90,7 @@ struct ThawPermissionsView: View {
                     Button {
                         onContinue()
                     } label: {
-                        Text(requiredGranted && !allGranted ? "Continue in Limited Mode" : "Continue")
+                        Text(requiredGranted && !allGranted ? "制限モードで続ける" : "続ける")
                             .font(.subheadline.weight(.semibold))
                             .frame(maxWidth: .infinity)
                             .frame(height: 36)
@@ -148,7 +148,7 @@ private struct OnboardingPermissionCard: View {
             Spacer(minLength: 0)
 
             if permission.hasPermission {
-                Label("Permission Granted", systemImage: "checkmark")
+                Label("権限が許可されました", systemImage: "checkmark")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.green)
                     .frame(maxWidth: .infinity)
@@ -157,7 +157,7 @@ private struct OnboardingPermissionCard: View {
                 Button {
                     permission.performRequest()
                 } label: {
-                    Text("Grant Permission")
+                    Text("権限を許可")
                         .font(.system(size: 12, weight: .semibold))
                         .frame(maxWidth: .infinity)
                         .frame(height: 30)

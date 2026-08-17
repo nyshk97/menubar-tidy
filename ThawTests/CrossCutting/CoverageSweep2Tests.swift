@@ -50,21 +50,15 @@ struct CoverageSweep2Tests {
 
         @Test("Every layout has its own label")
         func localizedLabels() {
-            #expect(IceBarLayout.horizontal.localized == LocalizedStringKey("Horizontal"))
-            #expect(IceBarLayout.vertical.localized == LocalizedStringKey("Vertical"))
-            #expect(IceBarLayout.grid.localized == LocalizedStringKey("Grid"))
+            #expect(IceBarLayout.horizontal.localized == "水平")
+            #expect(IceBarLayout.vertical.localized == "垂直")
+            #expect(IceBarLayout.grid.localized == "グリッド")
         }
 
         @Test("No two layouts share a label")
         func localizedLabelsAreDistinct() {
-            // `LocalizedStringKey` is Equatable but not Hashable, so this
-            // cannot go through a Set.
             let labels = IceBarLayout.allCases.map(\.localized)
-            for (offset, label) in labels.enumerated() {
-                for other in labels[(offset + 1)...] {
-                    #expect(label != other)
-                }
-            }
+            #expect(Set(labels).count == labels.count)
         }
 
         /// `fromString` backs `thaw://set?key=iceBarLayout&value=…`, so both
@@ -94,20 +88,16 @@ struct CoverageSweep2Tests {
     struct BarLocationTests {
         @Test("The fixed labels are the documented ones")
         func localizedLabels() {
-            #expect(IceBarLocation.dynamic.localized == LocalizedStringKey("Dynamic"))
-            #expect(IceBarLocation.mousePointer.localized == LocalizedStringKey("Mouse pointer"))
-            #expect(IceBarLocation.leftAligned.localized == LocalizedStringKey("Left aligned"))
-            #expect(IceBarLocation.rightAligned.localized == LocalizedStringKey("Right aligned"))
+            #expect(IceBarLocation.dynamic.localized == "ダイナミック")
+            #expect(IceBarLocation.mousePointer.localized == "マウスポインター")
+            #expect(IceBarLocation.leftAligned.localized == "左揃え")
+            #expect(IceBarLocation.rightAligned.localized == "右揃え")
         }
 
         @Test("No two locations share a label")
         func localizedLabelsAreDistinct() {
             let labels = IceBarLocation.allCases.map(\.localized)
-            for (offset, label) in labels.enumerated() {
-                for other in labels[(offset + 1)...] {
-                    #expect(label != other)
-                }
-            }
+            #expect(Set(labels).count == labels.count)
         }
     }
 
@@ -148,8 +138,8 @@ struct CoverageSweep2Tests {
         /// here. This exists to prove it keeps working for the next one.
         @Test("A String-raw conformer labels itself with its raw value")
         func defaultLocalizedUsesTheRawValue() {
-            #expect(SweepNavigationIdentifier.first.localized == LocalizedStringKey("First Destination"))
-            #expect(SweepNavigationIdentifier.second.localized == LocalizedStringKey("Second Destination"))
+            #expect(SweepNavigationIdentifier.first.localized == "First Destination")
+            #expect(SweepNavigationIdentifier.second.localized == "Second Destination")
         }
     }
 }

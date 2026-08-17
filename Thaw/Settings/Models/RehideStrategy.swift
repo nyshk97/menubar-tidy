@@ -21,12 +21,12 @@ nonisolated enum RehideStrategy: Int, CaseIterable, Identifiable {
         rawValue
     }
 
-    /// Localized string key representation.
-    var localized: LocalizedStringKey {
+    /// The name as shown in the UI.
+    var localized: String {
         switch self {
-        case .smart: "Smart"
-        case .timed: "Timed"
-        case .focusedApp: "Focus"
+        case .smart: "スマート"
+        case .timed: "時間指定"
+        case .focusedApp: "フォーカス"
         }
     }
 

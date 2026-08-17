@@ -253,10 +253,9 @@
 				};
 			};
 			buildConfigurationList = 716683252A767E6A006ABF84 /* Build configuration list for PBXProject "Thaw" */;
-			developmentRegion = en;
+			developmentRegion = ja;
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				en,
 				ja,
 				Base,
 			);

@@ -493,7 +493,7 @@ final class MenuBarManager {
         let menu = NSMenu(title: "\(Constants.displayName)")
 
         let editLayoutItem = NSMenuItem(
-            title: String(localized: "Edit Menu Bar Layout…"),
+            title: "メニューバーのレイアウトを編集…",
             action: #selector(showMenuBarLayoutSettings),
             keyEquivalent: ""
         )
@@ -506,7 +506,7 @@ final class MenuBarManager {
             menu.addItem(.separator())
 
             let profilesItem = NSMenuItem(
-                title: String(localized: "Profiles"),
+                title: "プロファイル",
                 action: nil,
                 keyEquivalent: ""
             )
@@ -535,7 +535,7 @@ final class MenuBarManager {
         menu.addItem(.separator())
 
         let settingsItem = NSMenuItem(
-            title: String(localized: "\(Constants.displayName) Settings…"),
+            title: "\(Constants.displayName) 設定…",
             action: #selector(AppDelegate.openSettingsWindow),
             keyEquivalent: ","
         )
@@ -546,7 +546,7 @@ final class MenuBarManager {
             menu.addItem(.separator())
 
             let quitItem = NSMenuItem(
-                title: String(localized: "Quit \(Constants.displayName)"),
+                title: "\(Constants.displayName) を終了",
                 action: #selector(quitFromSecondaryContextMenu),
                 keyEquivalent: "q"
             )
@@ -556,7 +556,7 @@ final class MenuBarManager {
             menu.addItem(quitItem)
 
             let restartItem = NSMenuItem(
-                title: String(localized: "Restart \(Constants.displayName)"),
+                title: "\(Constants.displayName) を再起動",
                 action: #selector(restartFromSecondaryContextMenu),
                 keyEquivalent: "q"
             )

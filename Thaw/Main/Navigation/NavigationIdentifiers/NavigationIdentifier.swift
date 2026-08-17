@@ -13,8 +13,8 @@ nonisolated protocol NavigationIdentifier: CaseIterable, Hashable, Identifiable,
     /// An icon for the identifier's navigation destination.
     var iconResource: IconResource { get }
 
-    /// A localized description for the identifier's navigation destination.
-    var localized: LocalizedStringKey { get }
+    /// A description for the identifier's navigation destination.
+    var localized: String { get }
 }
 
 nonisolated extension NavigationIdentifier where ID == Int {
@@ -24,7 +24,7 @@ nonisolated extension NavigationIdentifier where ID == Int {
 }
 
 nonisolated extension NavigationIdentifier where RawValue == String {
-    var localized: LocalizedStringKey {
-        LocalizedStringKey(rawValue)
+    var localized: String {
+        rawValue
     }
 }

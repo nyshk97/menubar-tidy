@@ -49,12 +49,12 @@ nonisolated extension MenuBarSection {
             }
         }
 
-        /// Localized string key representation.
-        var localized: LocalizedStringKey {
+        /// The name as shown in the UI.
+        var localized: String {
             switch self {
-            case .visible: LocalizedStringKey("Visible")
-            case .hidden: LocalizedStringKey("Hidden")
-            case .alwaysHidden: LocalizedStringKey("Always-Hidden")
+            case .visible: "表示"
+            case .hidden: "非表示"
+            case .alwaysHidden: "常に非表示"
             }
         }
     }

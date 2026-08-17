@@ -39,7 +39,7 @@ final class LayoutBarNewItemsBadgeView: LayoutBarArrangedView {
             .foregroundColor: NSColor.labelColor,
         ]
         let title = NSAttributedString(
-            string: String(localized: "New Items"),
+            string: "新着アイテム",
             attributes: tempAttributes
         )
         let textWidth = ceil(title.size().width)
@@ -78,7 +78,7 @@ final class LayoutBarNewItemsBadgeView: LayoutBarArrangedView {
         pillPath.stroke()
 
         let title = NSAttributedString(
-            string: String(localized: "New Items"),
+            string: "新着アイテム",
             attributes: textAttributes
         )
         let titleSize = title.size()

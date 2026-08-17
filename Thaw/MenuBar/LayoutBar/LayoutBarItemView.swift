@@ -170,13 +170,13 @@ final class LayoutBarItemView: LayoutBarArrangedView {
     /// fallback the identity the decision was made on never matched.
     func provideAlertForDisabledItem(axResolvedName: String? = nil) -> NSAlert {
         let alert = NSAlert()
-        alert.messageText = String(localized: "Menu bar item is not movable.")
+        alert.messageText = "このメニューバー項目は移動できません。"
         switch item.immovabilityReason {
         case .unresolvedControlCenterPlaceholder:
             let name = axResolvedName ?? item.displayName
-            alert.informativeText = String(localized: "\(Constants.displayName) can't currently tell which app owns \"\(name)\", so moving it is disabled. This usually resolves on its own; relaunching the app that owns the item can help.")
+            alert.informativeText = "\(Constants.displayName) は現在「\(name)」の所有アプリを特定できないため、移動が無効になっています。通常は自然に解消します。項目を所有するアプリを再起動すると改善する場合があります。"
         case .prohibitedSystemItem, nil:
-            alert.informativeText = String(localized: "macOS prohibits \"\(item.displayName)\" from being moved.")
+            alert.informativeText = "macOS により \"\(item.displayName)\" は移動できません。"
         }
         return alert
     }
@@ -281,7 +281,7 @@ final class LayoutBarItemView: LayoutBarArrangedView {
     /// Provides an alert to display when a menu bar item is unresponsive.
     func provideAlertForUnresponsiveItem() -> NSAlert {
         let alert = provideAlertForDisabledItem()
-        alert.informativeText = String(localized: "\(item.displayName) is unresponsive. Until it is restarted, it cannot be moved. Movement of other menu bar items may also be affected until this is resolved.")
+        alert.informativeText = "\(item.displayName) は応答していません。再起動するまで移動できません。この問題が解決するまで、他のメニューバー項目の移動にも影響が出る場合があります。"
         return alert
     }
 

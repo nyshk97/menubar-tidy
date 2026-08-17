@@ -48,7 +48,7 @@ final class IceBarPanel: NSPanel {
             backing: .buffered,
             defer: false
         )
-        self.title = String(localized: "\(Constants.displayName) Bar")
+        self.title = "\(Constants.displayName) バー"
         self.titlebarAppearsTransparent = true
         self.isMovableByWindowBackground = true
         self.allowsToolTipsWhenApplicationIsInactive = true
@@ -516,12 +516,12 @@ private struct IceBarContentView: View {
     private var content: some View {
         if !ScreenCapture.cachedCheckPermissions() {
             HStack {
-                Text("The \(Constants.displayName) Bar requires screen recording permissions.")
+                Text("\(Constants.displayName) バーには画面収録の権限が必要です。")
 
                 Button {
                     openPermissionsSettings()
                 } label: {
-                    Text("Open System Settings")
+                    Text("システム設定を開く")
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(.link)
@@ -533,11 +533,11 @@ private struct IceBarContentView: View {
         } else if section == .alwaysHidden || section == .hidden, items.isEmpty {
             HStack {
                 if cacheGracePeriodActive {
-                    Text("Loading menu bar items…")
+                    Text("メニューバー項目を読み込んでいます…")
                 } else if !loadingTimedOut {
-                    Text("No items in this section")
+                    Text("このセクションに項目はありません")
                 } else {
-                    Text("No items in this section")
+                    Text("このセクションに項目はありません")
                 }
             }
             .padding(.horizontal, 10)
@@ -553,16 +553,16 @@ private struct IceBarContentView: View {
         } else if itemManager.itemCache.managedItems.isEmpty {
             HStack {
                 if loadingTimedOut {
-                    Text("Unable to load menu bar items")
+                    Text("メニューバー項目を読み込めません")
                     Button {
                         openPermissionsSettings()
                     } label: {
-                        Text("Check permissions")
+                        Text("権限を確認")
                     }
                     .buttonStyle(.plain)
                     .foregroundStyle(.link)
                 } else {
-                    Text("Loading menu bar items…")
+                    Text("メニューバー項目を読み込んでいます…")
                 }
             }
             .padding(.horizontal, 10)
@@ -575,19 +575,19 @@ private struct IceBarContentView: View {
         } else if imageCache.cacheFailed(for: section) {
             HStack {
                 if cacheGracePeriodActive {
-                    Text("Loading menu bar items…")
+                    Text("メニューバー項目を読み込んでいます…")
                 } else if loadingTimedOut {
                     // Final state: no further automatic retry.
-                    Text("Unable to display menu bar items")
+                    Text("メニューバー項目を表示できません")
                     Button {
                         openPermissionsSettings()
                     } label: {
-                        Text("Check permissions")
+                        Text("権限を確認")
                     }
                     .buttonStyle(.plain)
                     .foregroundStyle(.link)
                 } else {
-                    Text("Loading menu bar items…")
+                    Text("メニューバー項目を読み込んでいます…")
                 }
             }
             .padding(.horizontal, 10)
@@ -848,8 +848,8 @@ private struct IceBarItemView: View {
                 }
                 .animation(.easeInOut(duration: 0.15), value: isHovered)
                 .accessibilityLabel(item.displayName)
-                .accessibilityAction(named: "left click", leftClickAction)
-                .accessibilityAction(named: "right click", rightClickAction)
+                .accessibilityAction(named: "左クリック", leftClickAction)
+                .accessibilityAction(named: "右クリック", rightClickAction)
         }
     }
 }

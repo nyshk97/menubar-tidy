@@ -112,8 +112,8 @@ final class LayoutBarPaddingView: NSView {
         {
             let alert = NSAlert()
             alert.alertStyle = .warning
-            alert.messageText = String(localized: "Cannot move \(Constants.displayName) icon.")
-            alert.informativeText = String(localized: "The \(Constants.displayName) icon must always remain in the visible section.")
+            alert.messageText = "\(Constants.displayName) アイコンを移動できません。"
+            alert.informativeText = "\(Constants.displayName) アイコンは常に表示セクション内に置く必要があります。"
 
             if let window {
                 alert.beginSheetModal(for: window)
@@ -320,16 +320,16 @@ final class LayoutBarPaddingView: NSView {
                         let alert = NSAlert()
                         alert.alertStyle = .warning
                         alert.messageText = container.section == .alwaysHidden
-                            ? String(localized: "Couldn't move \(item.displayName) to the always-hidden section.")
-                            : String(localized: "Couldn't move \(item.displayName) to the hidden section.")
-                        alert.informativeText = String(localized: "The item was left in the visible section so it isn't stuck offscreen. Try dragging it again in a moment.")
+                            ? "\(item.displayName) を常に非表示セクションへ移動できませんでした。"
+                            : "\(item.displayName) を非表示セクションへ移動できませんでした。"
+                        alert.informativeText = "画面外で動かせなくならないよう、この項目は表示セクションに残しました。少し時間をおいてから、もう一度ドラッグしてみてください。"
                         alert.runModal()
                     }
                 case .alertControlItemsMissing:
                     let alert = NSAlert()
                     alert.alertStyle = .warning
-                    alert.messageText = String(localized: "Couldn't move the item right now.")
-                    alert.informativeText = String(localized: "\(Constants.displayName) can't locate its hidden-section divider right now. It is attempting recovery in the background — try again in a few seconds.")
+                    alert.messageText = "現在、この項目を移動できませんでした。"
+                    alert.informativeText = "\(Constants.displayName) は現在、非表示セクションの仕切りを見つけられません。バックグラウンドで復旧を試みています。数秒後にもう一度お試しください。"
                     alert.runModal()
                 case .alertGeneric:
                     let alert = NSAlert(error: error)

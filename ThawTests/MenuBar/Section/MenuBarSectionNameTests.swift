@@ -87,27 +87,21 @@ struct MenuBarSectionNameTests {
 
     // MARK: - localized
 
-    // LocalizedStringKey is not Equatable and doesn't expose its key
-    // directly; comparing `String(describing:)` against a key built from
-    // the expected string is the closest meaningful check of which key
-    // `localized` actually returns.
+    // `localized` is the label the UI shows, so these pin the exact strings.
 
-    @Test("visible exposes the \"Visible\" localized key")
+    @Test("visible is labelled 表示")
     func localizedVisible() {
-        let localized = MenuBarSection.Name.visible.localized
-        #expect(String(describing: localized) == String(describing: LocalizedStringKey("Visible")))
+        #expect(MenuBarSection.Name.visible.localized == "表示")
     }
 
-    @Test("hidden exposes the \"Hidden\" localized key")
+    @Test("hidden is labelled 非表示")
     func localizedHidden() {
-        let localized = MenuBarSection.Name.hidden.localized
-        #expect(String(describing: localized) == String(describing: LocalizedStringKey("Hidden")))
+        #expect(MenuBarSection.Name.hidden.localized == "非表示")
     }
 
-    @Test("alwaysHidden exposes the \"Always-Hidden\" localized key")
+    @Test("alwaysHidden is labelled 常に非表示")
     func localizedAlwaysHidden() {
-        let localized = MenuBarSection.Name.alwaysHidden.localized
-        #expect(String(describing: localized) == String(describing: LocalizedStringKey("Always-Hidden")))
+        #expect(MenuBarSection.Name.alwaysHidden.localized == "常に非表示")
     }
 
     // MARK: - notchGap Static Constant

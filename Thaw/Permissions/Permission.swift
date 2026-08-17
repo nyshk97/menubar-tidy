@@ -145,13 +145,13 @@ class Permission: Identifiable {
 final class AccessibilityPermission: Permission {
     init() {
         super.init(
-            title: String(localized: "Accessibility"),
+            title: "アクセシビリティ",
             iconName: "accessibility",
             iconColor: .blue,
             details: [
-                String(localized: "Detect the menu bar items on your Mac and where they're positioned."),
-                String(localized: "Move menu bar items to rearrange or hide them."),
-                String(localized: "Click menu bar items on your behalf, such as when using the search bar."),
+                "Mac 上のメニューバー項目と、その配置を検出します。",
+                "メニューバー項目を移動して、並べ替えたり隠したりします。",
+                "\(Constants.displayName) バーの項目を押したときなど、あなたの代わりにメニューバー項目をクリックします。",
             ],
             isRequired: true,
             // Keep an explicit settings URL so every click can recover the
@@ -175,13 +175,12 @@ final class AccessibilityPermission: Permission {
 final class ScreenRecordingPermission: Permission {
     init() {
         super.init(
-            title: String(localized: "Screen Recording"),
+            title: "画面収録",
             iconName: "record.circle",
             iconColor: .red,
             details: [
-                String(localized: "Show live previews of your menu bar items."),
-                String(localized: "Sample colors from the menu bar to adjust its tint and appearance."),
-                String(localized: "Find menu bar items visually when searching."),
+                "メニューバー項目のライブプレビューを表示します。",
+                "メニューバーの色を読み取り、\(Constants.displayName) バーの背景をメニューバーに合わせます。",
             ],
             isRequired: false,
             settingsURL: URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture"),

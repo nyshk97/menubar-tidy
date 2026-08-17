@@ -47,18 +47,14 @@ enum ConflictingAppDetector {
         let appList = conflicts.joined(separator: ", ")
         let alert = NSAlert()
         alert.alertStyle = .warning
-        alert.messageText = String(
-            localized: "Conflicting Menu Bar Manager Detected"
-        )
-        alert.informativeText = String(
-            localized: """
-            \(appList) is currently running. Running multiple menu bar \
-            managers at the same time can cause display issues and unexpected \
-            behavior. Consider quitting \(appList) before using \(Constants.displayName).
-            """
-        )
-        alert.addButton(withTitle: String(localized: "Continue Anyway"))
-        alert.addButton(withTitle: String(localized: "Quit \(Constants.displayName)"))
+        alert.messageText = "競合するメニューバーマネージャーが検出されました"
+        alert.informativeText = """
+        \(appList) は現在実行中です。複数のメニューバーマネージャーを同時に実行すると、\
+        表示の問題や予期しない動作が発生する可能性があります。\
+        \(Constants.displayName) を使用する前に \(appList) を終了することをおすすめします。
+        """
+        alert.addButton(withTitle: "このまま続ける")
+        alert.addButton(withTitle: "\(Constants.displayName) を終了")
 
         let response = alert.runModal()
         if response == .alertSecondButtonReturn {

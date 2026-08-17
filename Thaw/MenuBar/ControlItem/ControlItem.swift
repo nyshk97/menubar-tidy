@@ -842,7 +842,7 @@ final class ControlItem {
         let menu = NSMenu(title: Bundle.main.displayName)
 
         let settingsItem = NSMenuItem(
-            title: String(localized: "\(Constants.displayName) Settings…"),
+            title: "\(Constants.displayName) 設定…",
             action: #selector(AppDelegate.openSettingsWindow),
             keyEquivalent: ","
         )
@@ -864,19 +864,19 @@ final class ControlItem {
             let iconName: String
             switch (section.isHidden, name) {
             case (true, .hidden):
-                sectionTitle = String(localized: "Show Hidden Section")
+                sectionTitle = "非表示セクションを表示"
                 iconName = "eye"
             case (false, .hidden):
-                sectionTitle = String(localized: "Hide Hidden Section")
+                sectionTitle = "非表示セクションを隠す"
                 iconName = "eye.slash"
             case (true, .alwaysHidden):
-                sectionTitle = String(localized: "Show Always-Hidden Section")
+                sectionTitle = "常に非表示セクションを表示"
                 iconName = "eye"
             case (false, .alwaysHidden):
-                sectionTitle = String(localized: "Hide Always-Hidden Section")
+                sectionTitle = "常に非表示セクションを隠す"
                 iconName = "eye.slash"
             default:
-                sectionTitle = String(localized: "\(section.isHidden ? "Show" : "Hide") \(name.displayString) Section")
+                sectionTitle = "\(section.isHidden ? "Show" : "Hide") \(name.displayString) セクション"
                 iconName = section.isHidden ? "eye" : "eye.slash"
             }
             let item = NSMenuItem(
@@ -896,7 +896,7 @@ final class ControlItem {
             menu.addItem(.separator())
 
             let profilesItem = NSMenuItem(
-                title: String(localized: "Profiles"),
+                title: "プロファイル",
                 action: nil,
                 keyEquivalent: ""
             )
@@ -925,7 +925,7 @@ final class ControlItem {
         menu.addItem(.separator())
 
         let supportItem = NSMenuItem(
-            title: String(localized: "Support \(Constants.displayName)…"),
+            title: "\(Constants.displayName) をサポート…",
             action: #selector(openDonateURL),
             keyEquivalent: ""
         )
@@ -936,7 +936,7 @@ final class ControlItem {
         menu.addItem(.separator())
 
         let quitItem = NSMenuItem(
-            title: String(localized: "Quit \(Constants.displayName)"),
+            title: "\(Constants.displayName) を終了",
             action: #selector(NSApp.terminate),
             keyEquivalent: "q"
         )
@@ -945,7 +945,7 @@ final class ControlItem {
         menu.addItem(quitItem)
 
         let restartItem = NSMenuItem(
-            title: String(localized: "Restart \(Constants.displayName)"),
+            title: "\(Constants.displayName) を再起動",
             action: #selector(restartFromMenu),
             keyEquivalent: "q"
         )

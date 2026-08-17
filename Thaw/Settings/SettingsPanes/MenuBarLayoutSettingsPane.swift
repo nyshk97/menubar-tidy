@@ -95,7 +95,7 @@ struct MenuBarLayoutSettingsPane: View {
     private var layoutBarsSection: some View {
         IceSection {
             if let editingDisplayName {
-                Text("Active display: \(editingDisplayName)")
+                Text("使用中のディスプレイ: \(editingDisplayName)")
                     // Redrawn on the same signals LayoutBarPaddingView uses to
                     // re-evaluate the notch indicator, so the title and the
                     // bars below it can never disagree about which screen
@@ -122,16 +122,16 @@ struct MenuBarLayoutSettingsPane: View {
                     if loadDeadlineReached {
                         VStack(spacing: 4) {
                             if areControlItemsDisabledBySystem {
-                                Text("One or more section dividers are hidden by macOS")
-                                Text("Check System Settings > Menu Bar and enable \(Constants.displayName)")
+                                Text("1つ以上のセクション区切りが macOS によって非表示にされています")
+                                Text("システム設定 > メニューバー を確認して \(Constants.displayName) を有効にしてください")
                                     .font(.callout.bold())
                                     .foregroundStyle(.secondary)
                             } else {
-                                Text("Unable to load menu bar items")
+                                Text("メニューバー項目を読み込めません")
                             }
                         }
                     } else {
-                        Text("Loading menu bar items…")
+                        Text("メニューバー項目を読み込んでいます…")
                         ProgressView()
                     }
                 }
@@ -163,9 +163,9 @@ struct MenuBarLayoutSettingsPane: View {
         IceSection {
             HStack(alignment: .firstTextBaseline, spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Reset menu bar layout")
+                    Text("メニューバーのレイアウトをリセット")
                         .font(.headline)
-                    Text("Resets dividers and moves every movable item except the \(Constants.displayName) icon to the selected section.")
+                    Text("仕切りをリセットし、\(Constants.displayName) のアイコンを除く移動可能なすべての項目を選択したセクションへ移動します。")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -180,7 +180,7 @@ struct MenuBarLayoutSettingsPane: View {
                         ProgressView()
                             .controlSize(.small)
                     } else {
-                        Text("Reset Layout…")
+                        Text("レイアウトをリセット…")
                     }
                 }
                 .buttonStyle(.bordered)
@@ -202,17 +202,17 @@ struct MenuBarLayoutSettingsPane: View {
 
     private var resetTargetControls: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Choose where to move the menu bar items:")
+            Text("メニューバー項目の移動先を選択:")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
 
             HStack(spacing: 8) {
-                Button("Visible") { resetMenuBarLayout(to: .visible) }
-                Button("Hidden") { resetMenuBarLayout(to: .hidden) }
+                Button("表示") { resetMenuBarLayout(to: .visible) }
+                Button("非表示") { resetMenuBarLayout(to: .hidden) }
                 if appState.settings.advanced.enableAlwaysHiddenSection {
-                    Button("Always Hidden") { resetMenuBarLayout(to: .alwaysHidden) }
+                    Button("常に非表示") { resetMenuBarLayout(to: .alwaysHidden) }
                 }
-                Button("Cancel", role: .cancel) {
+                Button("キャンセル", role: .cancel) {
                     isConfirmingReset = false
                 }
             }
@@ -221,14 +221,14 @@ struct MenuBarLayoutSettingsPane: View {
     }
 
     private var cannotArrange: some View {
-        Text("\(Constants.displayName) cannot arrange menu bar items in automatically hidden menu bars.")
+        Text("\(Constants.displayName) は自動的に非表示になるメニューバーではメニューバー項目を整理できません。")
             .font(.title3)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
     }
 
     private var missingScreenRecordingPermissions: some View {
         VStack {
-            Text("Menu bar layout requires screen recording permissions.")
+            Text("メニューバーのレイアウトには画面収録の権限が必要です。")
                 .font(.title2)
 
             // Upstream links to its Advanced pane, which lists the permission
@@ -237,7 +237,7 @@ struct MenuBarLayoutSettingsPane: View {
             Button {
                 appState.permissions.screenRecording.performRequest()
             } label: {
-                Text("Open System Settings")
+                Text("システム設定を開く")
             }
             .buttonStyle(.link)
         }
@@ -315,15 +315,15 @@ struct MenuBarLayoutSettingsPane: View {
         var message: String {
             switch self {
             case .success(.visible):
-                String(localized: "Items were moved to the Visible section.")
+                "項目を表示セクションへ移動しました。"
             case .success(.hidden):
-                String(localized: "Layout reset. Items were moved to the Hidden section.")
+                "レイアウトをリセットしました。項目は非表示セクションに移動されました。"
             case .success(.alwaysHidden):
-                String(localized: "Layout reset. Items were moved to the Always Hidden section.")
+                "レイアウトをリセットしました。項目を常に非表示セクションへ移動しました。"
             case let .partialFailure(count):
-                String(localized: "Reset completed with \(count) item(s) that could not be moved. Check the menu bar and try again if needed.")
+                "リセットが完了しましたが、\(count) 個の項目を移動できませんでした。必要に応じてメニューバーを確認し、再試行してください。"
             case let .failure(message):
-                String(localized: "Reset failed: \(message)")
+                "リセットに失敗しました: \(message)"
             }
         }
 

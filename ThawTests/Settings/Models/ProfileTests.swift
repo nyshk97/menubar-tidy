@@ -429,7 +429,7 @@ struct ProfileFullTests {
         let decoded = try decoder.decode(Profile.self, from: json)
 
         // Should use defaults
-        #expect(decoded.name == String(localized: "Untitled"))
+        #expect(decoded.name == "無題")
     }
 
     @Test("Hotkeys and display configurations survive the round trip")

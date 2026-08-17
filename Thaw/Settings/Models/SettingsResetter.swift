@@ -55,7 +55,6 @@ extension AppSettings {
         advanced.useDoubleClickToShowAlwaysHiddenSection = Defaults.DefaultValue.useDoubleClickToShowAlwaysHiddenSection
         advanced.showAllSectionsOnUserDrag = Defaults.DefaultValue.showAllSectionsOnUserDrag
         appState?.itemManager.updateNewItemsPlacement(section: .hidden, arrangedViews: [])
-        advanced.sectionDividerStyle = Defaults.DefaultValue.sectionDividerStyle
         advanced.hideApplicationMenus = Defaults.DefaultValue.hideApplicationMenus
         advanced.enableSecondaryContextMenu = Defaults.DefaultValue.enableSecondaryContextMenu
         advanced.enableSecondaryContextMenuQuit = Defaults.DefaultValue.enableSecondaryContextMenuQuit
@@ -65,8 +64,6 @@ extension AppSettings {
         advanced.iconRefreshInterval = Defaults.DefaultValue.iconRefreshInterval
         advanced.enableDiagnosticLogging = Defaults.DefaultValue.enableDiagnosticLogging
         advanced.enableMenuBarItemOverflow = Defaults.DefaultValue.enableMenuBarItemOverflow
-        advanced.useThawBarOnNotchOverflow = Defaults.DefaultValue.useThawBarOnNotchOverflow
-        advanced.automaticArrangementEnabled = Defaults.DefaultValue.automaticArrangementEnabled
         advanced.useAXClickDelivery = Defaults.DefaultValue.useAXClickDelivery
         advanced.searchSectionOrder = AdvancedSettings.sanitizedSearchSectionOrder(
             from: Defaults.DefaultValue.searchSectionOrder

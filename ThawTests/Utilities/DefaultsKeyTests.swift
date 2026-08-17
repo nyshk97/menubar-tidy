@@ -29,7 +29,6 @@ struct DefaultsKeyTests {
         #expect(Defaults.Key.bulkApplyIdleThresholdMs.rawValue == "bulkApplyIdleThresholdMs")
         #expect(Defaults.Key.bulkApplyIdleWaitCapMs.rawValue == "bulkApplyIdleWaitCapMs")
         #expect(Defaults.Key.enforceConcealedSectionOrder.rawValue == "enforceConcealedSectionOrder")
-        #expect(Defaults.Key.automaticArrangementEnabled.rawValue == "automaticArrangementEnabled")
         #expect(Defaults.Key.postMoveEventsToWindowOwner.rawValue == "postMoveEventsToWindowOwner")
         #expect(Defaults.Key.discardStrayMoveEvents.rawValue == "discardStrayMoveEvents")
         #expect(Defaults.Key.failFastOnEventWindowMismatch.rawValue == "failFastOnEventWindowMismatch")
@@ -48,7 +47,6 @@ struct DefaultsKeyTests {
         #expect(Defaults.DefaultValue.enforceConcealedSectionOrder == false)
         // True keeps Thaw arranging on its own initiative; false is the
         // manual-only escape hatch.
-        #expect(Defaults.DefaultValue.automaticArrangementEnabled == true)
         // True: on macOS 26 the window's owner is the process that receives
         // the drag, and it is what lets an unresolved slot move at all.
         #expect(Defaults.DefaultValue.postMoveEventsToWindowOwner == true)

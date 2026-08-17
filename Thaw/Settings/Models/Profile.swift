@@ -96,7 +96,6 @@ nonisolated struct GeneralSettingsSnapshot: Codable {
 nonisolated struct AdvancedSettingsSnapshot: Codable {
     var enableAlwaysHiddenSection: Bool
     var showAllSectionsOnUserDrag: Bool
-    var sectionDividerStyle: Int
     var hideApplicationMenus: Bool
     var enableSecondaryContextMenu: Bool
     var enableSecondaryContextMenuQuit: Bool
@@ -122,7 +121,6 @@ nonisolated struct AdvancedSettingsSnapshot: Codable {
     var useDoubleClickToShowAlwaysHiddenSection: Bool
     var useOptionClickToShowAlwaysHiddenSection: Bool
     var enableMenuBarItemOverflow: Bool
-    var useThawBarOnNotchOverflow: Bool
     var searchSectionOrder: [String]
     var searchIncludeVisible: Bool
     var searchIncludeHidden: Bool
@@ -134,7 +132,6 @@ nonisolated struct AdvancedSettingsSnapshot: Codable {
         AdvancedSettingsSnapshot(
             enableAlwaysHiddenSection: settings.enableAlwaysHiddenSection,
             showAllSectionsOnUserDrag: settings.showAllSectionsOnUserDrag,
-            sectionDividerStyle: settings.sectionDividerStyle.rawValue,
             hideApplicationMenus: settings.hideApplicationMenus,
             enableSecondaryContextMenu: settings.enableSecondaryContextMenu,
             enableSecondaryContextMenuQuit: settings.enableSecondaryContextMenuQuit,
@@ -145,7 +142,6 @@ nonisolated struct AdvancedSettingsSnapshot: Codable {
             useDoubleClickToShowAlwaysHiddenSection: settings.useDoubleClickToShowAlwaysHiddenSection,
             useOptionClickToShowAlwaysHiddenSection: settings.useOptionClickToShowAlwaysHiddenSection,
             enableMenuBarItemOverflow: settings.enableMenuBarItemOverflow,
-            useThawBarOnNotchOverflow: settings.useThawBarOnNotchOverflow,
             searchSectionOrder: settings.searchSectionOrder.map(\.rawValue),
             searchIncludeVisible: settings.searchIncludeVisible,
             searchIncludeHidden: settings.searchIncludeHidden,
@@ -158,9 +154,6 @@ nonisolated struct AdvancedSettingsSnapshot: Codable {
     func apply(to settings: AdvancedSettings) {
         settings.enableAlwaysHiddenSection = enableAlwaysHiddenSection
         settings.showAllSectionsOnUserDrag = showAllSectionsOnUserDrag
-        if let style = SectionDividerStyle(rawValue: sectionDividerStyle) {
-            settings.sectionDividerStyle = style
-        }
         settings.hideApplicationMenus = hideApplicationMenus
         settings.enableSecondaryContextMenu = enableSecondaryContextMenu
         settings.enableSecondaryContextMenuQuit = enableSecondaryContextMenuQuit
@@ -172,7 +165,6 @@ nonisolated struct AdvancedSettingsSnapshot: Codable {
         settings.useDoubleClickToShowAlwaysHiddenSection = useDoubleClickToShowAlwaysHiddenSection
         settings.useOptionClickToShowAlwaysHiddenSection = useOptionClickToShowAlwaysHiddenSection
         settings.enableMenuBarItemOverflow = enableMenuBarItemOverflow
-        settings.useThawBarOnNotchOverflow = useThawBarOnNotchOverflow
         settings.searchSectionOrder = AdvancedSettings.sanitizedSearchSectionOrder(from: searchSectionOrder)
         settings.searchIncludeVisible = searchIncludeVisible
         settings.searchIncludeHidden = searchIncludeHidden
@@ -183,7 +175,6 @@ nonisolated struct AdvancedSettingsSnapshot: Codable {
     enum CodingKeys: String, CodingKey {
         case enableAlwaysHiddenSection
         case showAllSectionsOnUserDrag
-        case sectionDividerStyle
         case hideApplicationMenus
         case enableSecondaryContextMenu
         case enableSecondaryContextMenuQuit
@@ -194,7 +185,6 @@ nonisolated struct AdvancedSettingsSnapshot: Codable {
         case useDoubleClickToShowAlwaysHiddenSection
         case useOptionClickToShowAlwaysHiddenSection
         case enableMenuBarItemOverflow
-        case useThawBarOnNotchOverflow
         case searchSectionOrder
         case searchIncludeVisible
         case searchIncludeHidden
@@ -205,7 +195,6 @@ nonisolated struct AdvancedSettingsSnapshot: Codable {
     init(
         enableAlwaysHiddenSection: Bool,
         showAllSectionsOnUserDrag: Bool,
-        sectionDividerStyle: Int,
         hideApplicationMenus: Bool,
         enableSecondaryContextMenu: Bool,
         enableSecondaryContextMenuQuit: Bool,
@@ -216,7 +205,6 @@ nonisolated struct AdvancedSettingsSnapshot: Codable {
         useDoubleClickToShowAlwaysHiddenSection: Bool,
         useOptionClickToShowAlwaysHiddenSection: Bool,
         enableMenuBarItemOverflow: Bool,
-        useThawBarOnNotchOverflow: Bool = Defaults.DefaultValue.useThawBarOnNotchOverflow,
         searchSectionOrder: [String],
         searchIncludeVisible: Bool,
         searchIncludeHidden: Bool,
@@ -225,7 +213,6 @@ nonisolated struct AdvancedSettingsSnapshot: Codable {
     ) {
         self.enableAlwaysHiddenSection = enableAlwaysHiddenSection
         self.showAllSectionsOnUserDrag = showAllSectionsOnUserDrag
-        self.sectionDividerStyle = sectionDividerStyle
         self.hideApplicationMenus = hideApplicationMenus
         self.enableSecondaryContextMenu = enableSecondaryContextMenu
         self.enableSecondaryContextMenuQuit = enableSecondaryContextMenuQuit
@@ -236,7 +223,6 @@ nonisolated struct AdvancedSettingsSnapshot: Codable {
         self.useDoubleClickToShowAlwaysHiddenSection = useDoubleClickToShowAlwaysHiddenSection
         self.useOptionClickToShowAlwaysHiddenSection = useOptionClickToShowAlwaysHiddenSection
         self.enableMenuBarItemOverflow = enableMenuBarItemOverflow
-        self.useThawBarOnNotchOverflow = useThawBarOnNotchOverflow
         self.searchSectionOrder = searchSectionOrder
         self.searchIncludeVisible = searchIncludeVisible
         self.searchIncludeHidden = searchIncludeHidden
@@ -252,9 +238,6 @@ nonisolated struct AdvancedSettingsSnapshot: Codable {
         showAllSectionsOnUserDrag = try container.decodeIfPresent(
             Bool.self, forKey: .showAllSectionsOnUserDrag
         ) ?? Defaults.DefaultValue.showAllSectionsOnUserDrag
-        sectionDividerStyle = try container.decodeIfPresent(
-            Int.self, forKey: .sectionDividerStyle
-        ) ?? Defaults.DefaultValue.sectionDividerStyle.rawValue
         hideApplicationMenus = try container.decodeIfPresent(
             Bool.self, forKey: .hideApplicationMenus
         ) ?? Defaults.DefaultValue.hideApplicationMenus
@@ -287,9 +270,6 @@ nonisolated struct AdvancedSettingsSnapshot: Codable {
         enableMenuBarItemOverflow = try container.decodeIfPresent(
             Bool.self, forKey: .enableMenuBarItemOverflow
         ) ?? Defaults.DefaultValue.enableMenuBarItemOverflow
-        useThawBarOnNotchOverflow = try container.decodeIfPresent(
-            Bool.self, forKey: .useThawBarOnNotchOverflow
-        ) ?? Defaults.DefaultValue.useThawBarOnNotchOverflow
         searchSectionOrder = try container.decodeIfPresent(
             [String].self, forKey: .searchSectionOrder
         ) ?? Defaults.DefaultValue.searchSectionOrder
@@ -523,7 +503,6 @@ nonisolated struct Profile: Codable, Identifiable {
         ) ?? AdvancedSettingsSnapshot(
             enableAlwaysHiddenSection: Defaults.DefaultValue.enableAlwaysHiddenSection,
             showAllSectionsOnUserDrag: Defaults.DefaultValue.showAllSectionsOnUserDrag,
-            sectionDividerStyle: Defaults.DefaultValue.sectionDividerStyle.rawValue,
             hideApplicationMenus: Defaults.DefaultValue.hideApplicationMenus,
             enableSecondaryContextMenu: Defaults.DefaultValue.enableSecondaryContextMenu,
             enableSecondaryContextMenuQuit: Defaults.DefaultValue.enableSecondaryContextMenuQuit,
@@ -534,7 +513,6 @@ nonisolated struct Profile: Codable, Identifiable {
             useDoubleClickToShowAlwaysHiddenSection: Defaults.DefaultValue.useDoubleClickToShowAlwaysHiddenSection,
             useOptionClickToShowAlwaysHiddenSection: Defaults.DefaultValue.useOptionClickToShowAlwaysHiddenSection,
             enableMenuBarItemOverflow: Defaults.DefaultValue.enableMenuBarItemOverflow,
-            useThawBarOnNotchOverflow: Defaults.DefaultValue.useThawBarOnNotchOverflow,
             searchSectionOrder: Defaults.DefaultValue.searchSectionOrder,
             searchIncludeVisible: Defaults.DefaultValue.searchIncludeVisible,
             searchIncludeHidden: Defaults.DefaultValue.searchIncludeHidden,

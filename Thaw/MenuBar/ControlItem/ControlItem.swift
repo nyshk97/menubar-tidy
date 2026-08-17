@@ -206,7 +206,6 @@ final class ControlItem {
     /// sequence instead of `$property` publishers.
     private var showIceIconObservationTask: Task<Void, Never>?
     private var iceIconObservationTask: Task<Void, Never>?
-    private var sectionDividerStyleObservationTask: Task<Void, Never>?
     private var alwaysHiddenSectionObservationTask: Task<Void, Never>?
 
     /// Task observing `appState.isDraggingMenuBarItem` (wave 4), which is
@@ -217,7 +216,6 @@ final class ControlItem {
     deinit {
         showIceIconObservationTask?.cancel()
         iceIconObservationTask?.cancel()
-        sectionDividerStyleObservationTask?.cancel()
         alwaysHiddenSectionObservationTask?.cancel()
         isDraggingMenuBarItemObservationTask?.cancel()
     }
@@ -359,18 +357,6 @@ final class ControlItem {
                 iceIconObservationTask?.cancel()
                 iceIconObservationTask = Task { [weak self] in
                     let changes = Observations { (generalSettings.iceIcon, generalSettings.customIceIconIsTemplate) }
-                    for await _ in changes {
-                        guard let self else { return }
-                        updateStatusItem()
-                    }
-                }
-            }
-
-            if isSectionDivider {
-                let advancedSettings = appState.settings.advanced
-                sectionDividerStyleObservationTask?.cancel()
-                sectionDividerStyleObservationTask = Task { [weak self] in
-                    let changes = Observations { advancedSettings.sectionDividerStyle }
                     for await _ in changes {
                         guard let self else { return }
                         updateStatusItem()
@@ -612,23 +598,15 @@ final class ControlItem {
             case .showSection:
                 button.isEnabled = true
                 button.alphaValue = 1
-                switch appState.settings.advanced.sectionDividerStyle {
-                case .noDivider:
-                    updateStatusItemVisibility(false)
-                    button.appearsDisabled = true
-                    button.isHighlighted = false
+                // Upstream offers a chevron here as well, drawn as a visible
+                // divider. This fork keeps only the invisible one.
+                updateStatusItemVisibility(false)
+                button.appearsDisabled = true
+                button.isHighlighted = false
 
-                    if appState.isDraggingMenuBarItem, appState.settings.advanced.showAllSectionsOnUserDrag {
-                        // We still want a subtle marker between sections.
-                        button.title = "|"
-                    }
-                case .chevron:
-                    updateStatusItemVisibility(true)
-                    button.appearsDisabled = false
-
-                    if identifier != .visible {
-                        button.image = ControlItemImage.builtin(.chevronSmall).nsImage(for: appState)
-                    }
+                if appState.isDraggingMenuBarItem, appState.settings.advanced.showAllSectionsOnUserDrag {
+                    // We still want a subtle marker between sections.
+                    button.title = "|"
                 }
             case .hideSection:
                 updateStatusItemVisibility(true)

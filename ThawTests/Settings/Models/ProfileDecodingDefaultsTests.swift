@@ -243,7 +243,6 @@ struct ProfileSnapshotLiveSettingsTests {
             let settings = AdvancedSettings()
             settings.enableAlwaysHiddenSection = true
             settings.showAllSectionsOnUserDrag = false
-            settings.sectionDividerStyle = .chevron
             settings.hideApplicationMenus = false
             settings.enableSecondaryContextMenu = false
             settings.enableSecondaryContextMenuQuit = true
@@ -254,7 +253,6 @@ struct ProfileSnapshotLiveSettingsTests {
             settings.useDoubleClickToShowAlwaysHiddenSection = true
             settings.useOptionClickToShowAlwaysHiddenSection = true
             settings.enableMenuBarItemOverflow = false
-            settings.useThawBarOnNotchOverflow = false
             settings.searchSectionOrder = [.alwaysHidden, .visible, .hidden]
             settings.searchIncludeVisible = false
             settings.searchIncludeHidden = false
@@ -265,7 +263,6 @@ struct ProfileSnapshotLiveSettingsTests {
 
             #expect(snapshot.enableAlwaysHiddenSection)
             #expect(snapshot.showAllSectionsOnUserDrag == false)
-            #expect(snapshot.sectionDividerStyle == SectionDividerStyle.chevron.rawValue)
             #expect(snapshot.hideApplicationMenus == false)
             #expect(snapshot.enableSecondaryContextMenu == false)
             #expect(snapshot.enableSecondaryContextMenuQuit)
@@ -276,7 +273,6 @@ struct ProfileSnapshotLiveSettingsTests {
             #expect(snapshot.useDoubleClickToShowAlwaysHiddenSection)
             #expect(snapshot.useOptionClickToShowAlwaysHiddenSection)
             #expect(snapshot.enableMenuBarItemOverflow == false)
-            #expect(snapshot.useThawBarOnNotchOverflow == false)
             // The snapshot stores raw strings so a section name this build does
             // not know still survives the profile.
             #expect(snapshot.searchSectionOrder == ["alwaysHidden", "visible", "hidden"])
@@ -295,7 +291,6 @@ struct ProfileSnapshotLiveSettingsTests {
             let snapshot = AdvancedSettingsSnapshot(
                 enableAlwaysHiddenSection: true,
                 showAllSectionsOnUserDrag: false,
-                sectionDividerStyle: SectionDividerStyle.chevron.rawValue,
                 hideApplicationMenus: false,
                 enableSecondaryContextMenu: false,
                 enableSecondaryContextMenuQuit: true,
@@ -306,7 +301,6 @@ struct ProfileSnapshotLiveSettingsTests {
                 useDoubleClickToShowAlwaysHiddenSection: true,
                 useOptionClickToShowAlwaysHiddenSection: true,
                 enableMenuBarItemOverflow: false,
-                useThawBarOnNotchOverflow: false,
                 searchSectionOrder: ["alwaysHidden", "hidden", "visible"],
                 searchIncludeVisible: false,
                 searchIncludeHidden: false,
@@ -318,7 +312,6 @@ struct ProfileSnapshotLiveSettingsTests {
 
             #expect(settings.enableAlwaysHiddenSection)
             #expect(settings.showAllSectionsOnUserDrag == false)
-            #expect(settings.sectionDividerStyle == .chevron)
             #expect(settings.hideApplicationMenus == false)
             #expect(settings.enableSecondaryContextMenu == false)
             #expect(settings.enableSecondaryContextMenuQuit)
@@ -330,7 +323,6 @@ struct ProfileSnapshotLiveSettingsTests {
             #expect(settings.useDoubleClickToShowAlwaysHiddenSection)
             #expect(settings.useOptionClickToShowAlwaysHiddenSection)
             #expect(settings.enableMenuBarItemOverflow == false)
-            #expect(settings.useThawBarOnNotchOverflow == false)
             #expect(settings.searchSectionOrder == [.alwaysHidden, .hidden, .visible])
             #expect(settings.searchIncludeVisible == false)
             #expect(settings.searchIncludeHidden == false)
@@ -366,15 +358,11 @@ struct ProfileSnapshotLiveSettingsTests {
     func applyAdvancedSettingsWithUnknownDividerStyle() throws {
         try withScratchDefaults { _ in
             let settings = AdvancedSettings()
-            settings.sectionDividerStyle = .chevron
             var snapshot = AdvancedSettingsSnapshot.capture(from: settings)
-            // No `SectionDividerStyle` case has this raw value.
-            snapshot.sectionDividerStyle = 9999
             snapshot.tooltipDelay = 3
 
             snapshot.apply(to: settings)
 
-            #expect(settings.sectionDividerStyle == .chevron)
             // The rest of the snapshot still lands.
             #expect(settings.tooltipDelay == 3)
         }
@@ -385,16 +373,11 @@ struct ProfileSnapshotLiveSettingsTests {
         try withScratchDefaults { suite in
             let settings = AdvancedSettings()
             var snapshot = AdvancedSettingsSnapshot.capture(from: settings)
-            snapshot.sectionDividerStyle = SectionDividerStyle.chevron.rawValue
             snapshot.tooltipDelay = 4.5
             snapshot.searchSectionOrder = ["alwaysHidden", "hidden", "visible"]
 
             snapshot.apply(to: settings)
 
-            #expect(
-                suite.object(forKey: Defaults.Key.sectionDividerStyle.rawValue) as? Int
-                    == SectionDividerStyle.chevron.rawValue
-            )
             #expect(suite.object(forKey: Defaults.Key.tooltipDelay.rawValue) as? Double == 4.5)
             #expect(
                 suite.object(forKey: Defaults.Key.searchSectionOrder.rawValue) as? [String]
@@ -456,7 +439,6 @@ struct ProfileSnapshotLiveSettingsTests {
             let source = AdvancedSettings()
             source.enableAlwaysHiddenSection = true
             source.showAllSectionsOnUserDrag = false
-            source.sectionDividerStyle = .chevron
             source.hideApplicationMenus = false
             source.enableSecondaryContextMenu = false
             source.enableSecondaryContextMenuQuit = true
@@ -467,7 +449,6 @@ struct ProfileSnapshotLiveSettingsTests {
             source.useDoubleClickToShowAlwaysHiddenSection = true
             source.useOptionClickToShowAlwaysHiddenSection = true
             source.enableMenuBarItemOverflow = false
-            source.useThawBarOnNotchOverflow = false
             source.searchSectionOrder = [.hidden, .alwaysHidden, .visible]
             source.searchIncludeVisible = false
             source.searchIncludeHidden = false
@@ -480,7 +461,6 @@ struct ProfileSnapshotLiveSettingsTests {
 
             #expect(destination.enableAlwaysHiddenSection == source.enableAlwaysHiddenSection)
             #expect(destination.showAllSectionsOnUserDrag == source.showAllSectionsOnUserDrag)
-            #expect(destination.sectionDividerStyle == source.sectionDividerStyle)
             #expect(destination.hideApplicationMenus == source.hideApplicationMenus)
             #expect(destination.enableSecondaryContextMenu == source.enableSecondaryContextMenu)
             #expect(destination.enableSecondaryContextMenuQuit == source.enableSecondaryContextMenuQuit)
@@ -497,7 +477,6 @@ struct ProfileSnapshotLiveSettingsTests {
                     == source.useOptionClickToShowAlwaysHiddenSection
             )
             #expect(destination.enableMenuBarItemOverflow == source.enableMenuBarItemOverflow)
-            #expect(destination.useThawBarOnNotchOverflow == source.useThawBarOnNotchOverflow)
             #expect(destination.searchSectionOrder == source.searchSectionOrder)
             #expect(destination.searchIncludeVisible == source.searchIncludeVisible)
             #expect(destination.searchIncludeHidden == source.searchIncludeHidden)
@@ -643,10 +622,6 @@ struct ProfilePartialSettingsDecodingTests {
 
         #expect(profile.advancedSettings.tooltipDelay == 9)
         #expect(profile.advancedSettings.showOnHoverDelay == Defaults.DefaultValue.showOnHoverDelay)
-        #expect(
-            profile.advancedSettings.sectionDividerStyle
-                == Defaults.DefaultValue.sectionDividerStyle.rawValue
-        )
         #expect(profile.advancedSettings.searchSectionOrder == Defaults.DefaultValue.searchSectionOrder)
     }
 

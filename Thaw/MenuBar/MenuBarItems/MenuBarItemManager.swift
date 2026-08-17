@@ -8727,18 +8727,6 @@ extension MenuBarItemManager {
         // for it to happen, and their hand is still on the mouse that
         // picked it.
         if automatic {
-            // The escape hatch. Checked before the idle wait so a bar in
-            // manual mode spends nothing at all on an apply it will not
-            // perform, and before armProfileState so no profile state is
-            // armed for a sequence that never runs.
-            let automaticArrangementEnabled = (Defaults.object(forKey: .automaticArrangementEnabled) as? Bool)
-                ?? Defaults.DefaultValue.automaticArrangementEnabled
-            guard automaticArrangementEnabled else {
-                MenuBarItemManager.diagLog.info(
-                    "Profile layout: skipping automatic apply; automaticArrangementEnabled is false (manual arrangement only)"
-                )
-                return
-            }
             // The dispatch sites check this too, but every automatic caller
             // funnels through here, so enforcing it at the funnel keeps a
             // future dispatch site from bypassing the breaker unknowingly.

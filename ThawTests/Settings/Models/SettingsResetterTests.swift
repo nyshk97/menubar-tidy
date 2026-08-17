@@ -112,7 +112,6 @@ struct SettingsResetterTests {
     /// `hideApplicationMenus` and `showMenuBarTooltips` stay in as controls —
     /// they already reset before the fix and must keep doing so.
     ///
-    /// `automaticArrangementEnabled` and `moveCursorToRevealedItem` reopened
     /// the same hole: both landed after the original fix and were persisted,
     /// user-facing, and absent from the reset. Any boolean added to
     /// `AdvancedSettings` belongs in both `resetAdvanced()` and this test.
@@ -124,9 +123,7 @@ struct SettingsResetterTests {
             settings.advanced.useDoubleClickToShowAlwaysHiddenSection = !Defaults.DefaultValue.useDoubleClickToShowAlwaysHiddenSection
             settings.advanced.enableSecondaryContextMenuQuit = !Defaults.DefaultValue.enableSecondaryContextMenuQuit
             settings.advanced.enableMenuBarItemOverflow = !Defaults.DefaultValue.enableMenuBarItemOverflow
-            settings.advanced.useThawBarOnNotchOverflow = !Defaults.DefaultValue.useThawBarOnNotchOverflow
             settings.advanced.useAXClickDelivery = !Defaults.DefaultValue.useAXClickDelivery
-            settings.advanced.automaticArrangementEnabled = !Defaults.DefaultValue.automaticArrangementEnabled
             settings.advanced.moveCursorToRevealedItem = !Defaults.DefaultValue.moveCursorToRevealedItem
             // Controls — already reset before the fix; keep them covered.
             settings.advanced.hideApplicationMenus = !Defaults.DefaultValue.hideApplicationMenus
@@ -138,9 +135,7 @@ struct SettingsResetterTests {
             #expect(settings.advanced.useDoubleClickToShowAlwaysHiddenSection == Defaults.DefaultValue.useDoubleClickToShowAlwaysHiddenSection)
             #expect(settings.advanced.enableSecondaryContextMenuQuit == Defaults.DefaultValue.enableSecondaryContextMenuQuit)
             #expect(settings.advanced.enableMenuBarItemOverflow == Defaults.DefaultValue.enableMenuBarItemOverflow)
-            #expect(settings.advanced.useThawBarOnNotchOverflow == Defaults.DefaultValue.useThawBarOnNotchOverflow)
             #expect(settings.advanced.useAXClickDelivery == Defaults.DefaultValue.useAXClickDelivery)
-            #expect(settings.advanced.automaticArrangementEnabled == Defaults.DefaultValue.automaticArrangementEnabled)
             #expect(settings.advanced.moveCursorToRevealedItem == Defaults.DefaultValue.moveCursorToRevealedItem)
             #expect(settings.advanced.hideApplicationMenus == Defaults.DefaultValue.hideApplicationMenus)
             #expect(settings.advanced.showMenuBarTooltips == Defaults.DefaultValue.showMenuBarTooltips)

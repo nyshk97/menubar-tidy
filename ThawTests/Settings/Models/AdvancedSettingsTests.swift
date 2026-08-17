@@ -60,7 +60,6 @@ struct AdvancedSettingsTests {
             Defaults.set(3.5, forKey: .iconRefreshInterval)
             Defaults.set(true, forKey: .showMenuBarTooltips)
             Defaults.set(false, forKey: .enableMenuBarItemOverflow)
-            Defaults.set(false, forKey: .useThawBarOnNotchOverflow)
             Defaults.set(true, forKey: .useAXClickDelivery)
             Defaults.set(false, forKey: .searchIncludeVisible)
             Defaults.set(false, forKey: .searchIncludeHidden)
@@ -82,7 +81,6 @@ struct AdvancedSettingsTests {
             #expect(Defaults.double(forKey: .iconRefreshInterval) == 1.0)
             #expect(settings.showMenuBarTooltips)
             #expect(!settings.enableMenuBarItemOverflow)
-            #expect(!settings.useThawBarOnNotchOverflow)
             #expect(settings.useAXClickDelivery)
             #expect(!settings.searchIncludeVisible)
             #expect(!settings.searchIncludeHidden)
@@ -98,7 +96,6 @@ struct AdvancedSettingsTests {
 
             #expect(settings.enableAlwaysHiddenSection == Defaults.DefaultValue.enableAlwaysHiddenSection)
             #expect(settings.showAllSectionsOnUserDrag == Defaults.DefaultValue.showAllSectionsOnUserDrag)
-            #expect(settings.sectionDividerStyle == Defaults.DefaultValue.sectionDividerStyle)
             #expect(settings.hideApplicationMenus == Defaults.DefaultValue.hideApplicationMenus)
             #expect(settings.showOnHoverDelay == Defaults.DefaultValue.showOnHoverDelay)
             #expect(settings.tooltipDelay == Defaults.DefaultValue.tooltipDelay)
@@ -108,23 +105,7 @@ struct AdvancedSettingsTests {
         }
     }
 
-    @Test("A stored divider style is loaded")
-    func storedDividerStyleIsLoaded() throws {
-        try withScratchDefaults { _ in
-            Defaults.set(SectionDividerStyle.chevron.rawValue, forKey: .sectionDividerStyle)
 
-            #expect(makeSettings().sectionDividerStyle == .chevron)
-        }
-    }
-
-    @Test("An unrecognized divider style leaves the default in place")
-    func unrecognizedDividerStyleIsIgnored() throws {
-        try withScratchDefaults { _ in
-            Defaults.set(42, forKey: .sectionDividerStyle)
-
-            #expect(makeSettings().sectionDividerStyle == Defaults.DefaultValue.sectionDividerStyle)
-        }
-    }
 
     // MARK: Search section order
 
@@ -179,14 +160,12 @@ struct AdvancedSettingsTests {
 
             settings.enableAlwaysHiddenSection = true
             settings.tooltipDelay = 1.25
-            settings.sectionDividerStyle = .chevron
             settings.searchSectionOrder = [.alwaysHidden, .hidden, .visible]
             settings.moveCursorToRevealedItem = true
 
             #expect(Defaults.bool(forKey: .moveCursorToRevealedItem))
             #expect(Defaults.bool(forKey: .enableAlwaysHiddenSection))
             #expect(Defaults.double(forKey: .tooltipDelay) == 1.25)
-            #expect(Defaults.integer(forKey: .sectionDividerStyle) == SectionDividerStyle.chevron.rawValue)
             #expect(Defaults.stringArray(forKey: .searchSectionOrder) == ["alwaysHidden", "hidden", "visible"])
         }
     }
@@ -196,13 +175,11 @@ struct AdvancedSettingsTests {
         try withScratchDefaults { _ in
             let settings = makeSettings()
             settings.enableAlwaysHiddenSection = true
-            settings.sectionDividerStyle = .chevron
             settings.searchSectionOrder = [.hidden, .alwaysHidden, .visible]
 
             let reloaded = makeSettings()
 
             #expect(reloaded.enableAlwaysHiddenSection)
-            #expect(reloaded.sectionDividerStyle == .chevron)
             #expect(reloaded.searchSectionOrder == [.hidden, .alwaysHidden, .visible])
         }
     }

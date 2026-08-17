@@ -178,7 +178,6 @@ nonisolated extension Defaults {
         static let showAllSectionsOnUserDrag = true
         static let newItemsSection = "hidden"
         static let newItemsPlacementData: Data? = nil
-        static let sectionDividerStyle: SectionDividerStyle = .noDivider
         static let hideApplicationMenus = true
         static let enableSecondaryContextMenu = true
         static let enableSecondaryContextMenuQuit = false
@@ -194,7 +193,6 @@ nonisolated extension Defaults {
         static let useOptionClickToShowAlwaysHiddenSection = false
         static let useDoubleClickToShowAlwaysHiddenSection = false
         static let enableMenuBarItemOverflow = true
-        static let useThawBarOnNotchOverflow = true
         static let useAXClickDelivery = true
 
         // MARK: Search
@@ -227,7 +225,6 @@ nonisolated extension Defaults {
         static let bulkApplyIdleThresholdMs = 300
         static let bulkApplyIdleWaitCapMs = 2000
         static let enforceConcealedSectionOrder = false
-        static let automaticArrangementEnabled = true
         static let postMoveEventsToWindowOwner = true
         static let discardStrayMoveEvents = true
         static let failFastOnEventWindowMismatch = false
@@ -271,7 +268,6 @@ nonisolated extension Defaults {
         case showAllSectionsOnUserDrag = "ShowAllSectionsOnUserDrag"
         case newItemsSection = "NewItemsSection"
         case newItemsPlacementData = "NewItemsPlacementData"
-        case sectionDividerStyle = "SectionDividerStyle"
         case hideApplicationMenus = "HideApplicationMenus"
         case enableSecondaryContextMenu = "EnableSecondaryContextMenu"
         case enableSecondaryContextMenuQuit = "EnableSecondaryContextMenuQuit"
@@ -283,7 +279,6 @@ nonisolated extension Defaults {
         case useOptionClickToShowAlwaysHiddenSection = "UseOptionClickToShowAlwaysHiddenSection"
         case useDoubleClickToShowAlwaysHiddenSection = "UseDoubleClickToShowAlwaysHiddenSection"
         case enableMenuBarItemOverflow = "EnableMenuBarItemOverflow"
-        case useThawBarOnNotchOverflow = "UseThawBarOnNotchOverflow"
         case useAXClickDelivery = "UseAXClickDelivery"
 
         // MARK: Search
@@ -413,22 +408,6 @@ nonisolated extension Defaults {
         /// Hidden diagnostic flag; not exposed in Settings. Default: false.
         case enforceConcealedSectionOrder = "enforceConcealedSectionOrder"
 
-        /// Whether Thaw rearranges the bar on its own initiative.
-        ///
-        /// The escape hatch for bars where the automatic paths misbehave in
-        /// ways no gate has caught. Set to false and the late-arrival
-        /// re-sort and the saved-layout restore both stand down; applying a
-        /// profile still works, so the user keeps a way to arrange the bar
-        /// deliberately — they just decide when.
-        ///
-        /// This is the blunt instrument. The graduated responses —
-        /// ``bulkApplyIdleThresholdMs``, ``enforceConcealedSectionOrder``,
-        /// and the unfinished-batch rationing in
-        /// `automaticBulkApplyPermitted` — are all better first attempts.
-        /// Reach for this when they have not helped.
-        ///
-        /// Hidden diagnostic flag; not exposed in Settings. Default: true.
-        case automaticArrangementEnabled = "automaticArrangementEnabled"
 
         /// Whether synthetic move events are posted to the process that owns
         /// the item's *window* rather than the app that owns the *item*.

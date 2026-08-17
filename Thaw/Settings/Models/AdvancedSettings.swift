@@ -48,14 +48,6 @@ final class AdvancedSettings {
         }
     }
 
-    /// The display style for section divider control items.
-    var sectionDividerStyle = Defaults.DefaultValue.sectionDividerStyle {
-        didSet {
-            guard oldValue != sectionDividerStyle else { return }
-            Defaults.set(sectionDividerStyle.rawValue, forKey: .sectionDividerStyle)
-        }
-    }
-
     /// A Boolean value that indicates whether the application menus
     /// should be hidden if needed to show all menu bar items.
     var hideApplicationMenus = Defaults.DefaultValue.hideApplicationMenus {
@@ -164,38 +156,6 @@ final class AdvancedSettings {
         }
     }
 
-    /// A Boolean value that controls whether Thaw rearranges the menu bar on
-    /// its own initiative.
-    ///
-    /// The escape hatch for bars where the automatic paths misbehave. When
-    /// off, the late-arrival re-sort and the saved-layout restore both stand
-    /// down; applying a profile still works, and items can still be arranged
-    /// by ⌘ Command + dragging them in the menu bar. Read at the single
-    /// choke point in `MenuBarItemManager.applyProfileLayout`, which is also
-    /// where the graduated responses (the idle gate, concealed-order
-    /// relaxation, unfinished-batch rationing) live.
-    var automaticArrangementEnabled = Defaults.DefaultValue.automaticArrangementEnabled {
-        didSet {
-            guard oldValue != automaticArrangementEnabled else { return }
-            Defaults.set(automaticArrangementEnabled, forKey: .automaticArrangementEnabled)
-        }
-    }
-
-    /// A Boolean value that controls whether the Thaw Bar is used to reveal
-    /// hidden items while notch overflow has items ejected.
-    ///
-    /// Expanding the hidden section inline cannot show items that overflow
-    /// ejected: they were ejected precisely because the visible row had no room
-    /// left beside the notch. When this is on, a display with ejected items
-    /// reveals through the Thaw Bar regardless of its per-display Thaw Bar
-    /// setting. Only affects displays that currently have ejected items.
-    var useThawBarOnNotchOverflow = Defaults.DefaultValue.useThawBarOnNotchOverflow {
-        didSet {
-            guard oldValue != useThawBarOnNotchOverflow else { return }
-            Defaults.set(useThawBarOnNotchOverflow, forKey: .useThawBarOnNotchOverflow)
-        }
-    }
-
     /// A Boolean value that controls whether left-clicks on menu bar items
     /// from the IceBar are delivered via an accessibility action (AXShowMenu,
     /// falling back to AXPress) instead of a synthetic mouse click.
@@ -289,19 +249,11 @@ final class AdvancedSettings {
         Defaults.ifPresent(key: .iconRefreshInterval, assign: &iconRefreshInterval)
         Defaults.ifPresent(key: .enableDiagnosticLogging, assign: &enableDiagnosticLogging)
         Defaults.ifPresent(key: .enableMenuBarItemOverflow, assign: &enableMenuBarItemOverflow)
-        Defaults.ifPresent(key: .automaticArrangementEnabled, assign: &automaticArrangementEnabled)
-        Defaults.ifPresent(key: .useThawBarOnNotchOverflow, assign: &useThawBarOnNotchOverflow)
         Defaults.ifPresent(key: .useAXClickDelivery, assign: &useAXClickDelivery)
         Defaults.ifPresent(key: .searchIncludeVisible, assign: &searchIncludeVisible)
         Defaults.ifPresent(key: .searchIncludeHidden, assign: &searchIncludeHidden)
         Defaults.ifPresent(key: .searchIncludeAlwaysHidden, assign: &searchIncludeAlwaysHidden)
         Defaults.ifPresent(key: .moveCursorToRevealedItem, assign: &moveCursorToRevealedItem)
-
-        Defaults.ifPresent(key: .sectionDividerStyle) { rawValue in
-            if let style = SectionDividerStyle(rawValue: rawValue) {
-                sectionDividerStyle = style
-            }
-        }
 
         Defaults.ifPresent(key: .searchSectionOrder) { (rawValues: [String]) in
             searchSectionOrder = Self.sanitizedSearchSectionOrder(from: rawValues)

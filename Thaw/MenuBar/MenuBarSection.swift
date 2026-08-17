@@ -51,9 +51,13 @@ final class MenuBarSection {
         settings: AdvancedSettings,
         hasEjectedItems: Bool
     ) -> Bool {
+        // Upstream gates this on a second setting, "use the Thaw Bar while
+        // items are overflowed", which only matters to a display whose own
+        // Thaw Bar setting is off. This fork reveals through the Thaw Bar
+        // either way, so the gate is always open.
         forcesIceBarForNotchOverflow(
             overflowEnabled: settings.enableMenuBarItemOverflow,
-            useThawBarOnOverflow: settings.useThawBarOnNotchOverflow,
+            useThawBarOnOverflow: true,
             hasEjectedItems: hasEjectedItems
         )
     }

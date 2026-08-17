@@ -32,7 +32,6 @@ struct AdvancedSettingsSnapshotTests {
         AdvancedSettingsSnapshot(
             enableAlwaysHiddenSection: true,
             showAllSectionsOnUserDrag: true,
-            sectionDividerStyle: 0,
             hideApplicationMenus: false,
             enableSecondaryContextMenu: true,
             enableSecondaryContextMenuQuit: false,
@@ -54,7 +53,6 @@ struct AdvancedSettingsSnapshotTests {
         AdvancedSettingsSnapshot(
             enableAlwaysHiddenSection: false,
             showAllSectionsOnUserDrag: false,
-            sectionDividerStyle: 1,
             hideApplicationMenus: true,
             enableSecondaryContextMenu: false,
             enableSecondaryContextMenuQuit: true,
@@ -80,7 +78,6 @@ struct AdvancedSettingsSnapshotTests {
 
         #expect(snapshot.enableAlwaysHiddenSection)
         #expect(snapshot.showAllSectionsOnUserDrag)
-        #expect(snapshot.sectionDividerStyle == 0)
         #expect(!snapshot.hideApplicationMenus)
         #expect(snapshot.enableSecondaryContextMenu)
         #expect(snapshot.showOnHoverDelay == 0.2)
@@ -96,7 +93,6 @@ struct AdvancedSettingsSnapshotTests {
 
         #expect(!snapshot.enableAlwaysHiddenSection)
         #expect(!snapshot.showAllSectionsOnUserDrag)
-        #expect(snapshot.sectionDividerStyle == 1)
         #expect(snapshot.hideApplicationMenus)
         #expect(!snapshot.enableSecondaryContextMenu)
         #expect(snapshot.showOnHoverDelay == 0.5)
@@ -117,7 +113,6 @@ struct AdvancedSettingsSnapshotTests {
 
         #expect(decoded.enableAlwaysHiddenSection == original.enableAlwaysHiddenSection)
         #expect(decoded.showAllSectionsOnUserDrag == original.showAllSectionsOnUserDrag)
-        #expect(decoded.sectionDividerStyle == original.sectionDividerStyle)
         #expect(decoded.hideApplicationMenus == original.hideApplicationMenus)
         #expect(decoded.enableSecondaryContextMenu == original.enableSecondaryContextMenu)
         #expect(decoded.showOnHoverDelay == original.showOnHoverDelay)
@@ -136,7 +131,6 @@ struct AdvancedSettingsSnapshotTests {
 
         #expect(decoded.enableAlwaysHiddenSection == false)
         #expect(decoded.showAllSectionsOnUserDrag == false)
-        #expect(decoded.sectionDividerStyle == 1)
         #expect(decoded.hideApplicationMenus == true)
         #expect(decoded.enableSecondaryContextMenu == false)
         #expect(decoded.showOnHoverDelay == 0.5)
@@ -157,7 +151,6 @@ struct AdvancedSettingsSnapshotTests {
         {
             "enableAlwaysHiddenSection": true,
             "showAllSectionsOnUserDrag": false,
-            "sectionDividerStyle": 0,
             "hideApplicationMenus": true,
             "enableSecondaryContextMenu": true,
             "showOnHoverDelay": 0.2,
@@ -193,28 +186,9 @@ struct AdvancedSettingsSnapshotTests {
                 == Defaults.DefaultValue.enableAlwaysHiddenSection
         )
         #expect(
-            decoded.sectionDividerStyle
-                == Defaults.DefaultValue.sectionDividerStyle.rawValue
-        )
-        #expect(
             decoded.enableSecondaryContextMenuQuit
                 == Defaults.DefaultValue.enableSecondaryContextMenuQuit
         )
-    }
-
-    // MARK: - SectionDividerStyle Tests
-
-    @Test("Every section divider style survives a round trip")
-    func allSectionDividerStyles() throws {
-        for style in SectionDividerStyle.allCases {
-            var snapshot = makeDefaultSnapshot()
-            snapshot.sectionDividerStyle = style.rawValue
-
-            let data = try encoder.encode(snapshot)
-            let decoded = try decoder.decode(AdvancedSettingsSnapshot.self, from: data)
-
-            #expect(decoded.sectionDividerStyle == style.rawValue)
-        }
     }
 
     // MARK: - TimeInterval Edge Cases
@@ -307,7 +281,6 @@ struct AdvancedSettingsSnapshotTests {
         let snapshot = AdvancedSettingsSnapshot(
             enableAlwaysHiddenSection: false,
             showAllSectionsOnUserDrag: false,
-            sectionDividerStyle: 0,
             hideApplicationMenus: false,
             enableSecondaryContextMenu: false,
             enableSecondaryContextMenuQuit: false,
@@ -344,7 +317,6 @@ struct AdvancedSettingsSnapshotTests {
         let snapshot = AdvancedSettingsSnapshot(
             enableAlwaysHiddenSection: true,
             showAllSectionsOnUserDrag: true,
-            sectionDividerStyle: 0,
             hideApplicationMenus: true,
             enableSecondaryContextMenu: true,
             enableSecondaryContextMenuQuit: true,
@@ -400,7 +372,6 @@ struct AdvancedSettingsSnapshotTests {
         {
             "enableAlwaysHiddenSection": true,
             "showAllSectionsOnUserDrag": false,
-            "sectionDividerStyle": 0,
             "hideApplicationMenus": true,
             "enableSecondaryContextMenu": true,
             "showOnHoverDelay": 0.2,
@@ -447,7 +418,6 @@ struct AdvancedSettingsSnapshotTests {
         {
             "enableAlwaysHiddenSection": true,
             "showAllSectionsOnUserDrag": false,
-            "sectionDividerStyle": 0,
             "hideApplicationMenus": true,
             "enableSecondaryContextMenu": true,
             "showOnHoverDelay": 0.2,

@@ -43,7 +43,6 @@ func makeTestAdvancedSettings() -> AdvancedSettingsSnapshot {
     AdvancedSettingsSnapshot(
         enableAlwaysHiddenSection: true,
         showAllSectionsOnUserDrag: true,
-        sectionDividerStyle: 0,
         hideApplicationMenus: false,
         enableSecondaryContextMenu: true,
         enableSecondaryContextMenuQuit: false,

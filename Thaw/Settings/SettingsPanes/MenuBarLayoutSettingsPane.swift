@@ -44,7 +44,6 @@ struct MenuBarLayoutSettingsPane: View {
         } else {
             IceForm {
                 layoutBarsSection
-                layoutSectionsCard
                 iconPreviewsCard
                 advancedLayoutControlsCard
                 resetControls
@@ -76,16 +75,6 @@ struct MenuBarLayoutSettingsPane: View {
         }
     }
 
-    private var layoutSectionsCard: some View {
-        IceSection("Sections") {
-            Toggle(
-                "Enable the always-hidden section",
-                isOn: $advancedSettings.enableAlwaysHiddenSection
-            )
-            sectionDividerStyle
-        }
-    }
-
     private var iconPreviewsCard: some View {
         IceSection("Icon previews") {
             iconRefreshInterval
@@ -95,29 +84,8 @@ struct MenuBarLayoutSettingsPane: View {
     private var advancedLayoutControlsCard: some View {
         IceSection {
             DisclosureGroup("Advanced layout controls", isExpanded: $isAdvancedExpanded) {
-                automaticArrangementEnabled
                 enableMenuBarItemOverflow
-                if advancedSettings.enableMenuBarItemOverflow {
-                    useThawBarOnNotchOverflow
-                }
             }
-        }
-    }
-
-    /// Both strings are reused verbatim from the existing catalog so this
-    /// control ships fully translated: "Arrange menu bar items." and the
-    /// ⌘ Command + drag line already carry all 19 localizations. The
-    /// trailing period in the toggle label is the catalog's, not a slip —
-    /// matching the existing key exactly is what avoids a new translation
-    /// round.
-    private var automaticArrangementEnabled: some View {
-        Toggle(
-            "Arrange menu bar items.",
-            isOn: $advancedSettings.automaticArrangementEnabled
-        )
-        .annotation {
-            Text("Items can also be arranged by ⌘ Command + dragging them in the menu bar.")
-                .padding(.trailing, 75)
         }
     }
 
@@ -137,32 +105,6 @@ struct MenuBarLayoutSettingsPane: View {
                 """
             )
             .padding(.trailing, 75)
-        }
-    }
-
-    private var useThawBarOnNotchOverflow: some View {
-        Toggle(
-            "Use the Thaw Bar while items are overflowed",
-            isOn: $advancedSettings.useThawBarOnNotchOverflow
-        )
-        .annotation {
-            Text(
-                """
-                Reveal hidden items through the Thaw Bar while overflow has items \
-                ejected. The visible row has no room left beside the notch at that \
-                point, so expanding the hidden section inline cannot show them. \
-                Disable to always follow the per-display Thaw Bar setting.
-                """
-            )
-            .padding(.trailing, 75)
-        }
-    }
-
-    private var sectionDividerStyle: some View {
-        IcePicker("Section divider style", selection: $advancedSettings.sectionDividerStyle) {
-            ForEach(SectionDividerStyle.allCases) { style in
-                Text(style.localized).tag(style)
-            }
         }
     }
 

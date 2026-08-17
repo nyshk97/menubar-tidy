@@ -22,7 +22,6 @@ import Testing
 ///   is part of that public surface.
 /// - `IceBarLocation.localized` (`IceBarLocationTests` covers everything
 ///   else about the type).
-/// - `SectionDividerStyle.localized`.
 /// - `ControlItemImageSet.id`, which is `hashValue` rather than the name —
 ///   worth pinning because a `List` selection keyed on it must survive two
 ///   equal sets colliding.
@@ -110,19 +109,6 @@ struct CoverageSweep2Tests {
                     #expect(label != other)
                 }
             }
-        }
-    }
-
-    // MARK: - SectionDividerStyle
-
-    @MainActor
-    @Suite("SectionDividerStyle labels")
-    struct DividerStyleTests {
-        @Test("Each style has its own label")
-        func localizedLabels() {
-            #expect(SectionDividerStyle.noDivider.localized == LocalizedStringKey("None"))
-            #expect(SectionDividerStyle.chevron.localized == LocalizedStringKey("Chevron"))
-            #expect(SectionDividerStyle.noDivider.localized != SectionDividerStyle.chevron.localized)
         }
     }
 

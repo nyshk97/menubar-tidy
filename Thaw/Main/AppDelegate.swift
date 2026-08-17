@@ -333,13 +333,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// Toggles a menu bar section on behalf of a `thaw://` action.
     private func toggleSection(named name: MenuBarSection.Name) {
-        guard let section = appState.menuBarManager.section(withName: name) else {
-            return
-        }
-        section.toggle(triggeredByHotkey: true)
-        if !section.isHidden {
-            appState.menuBarManager.showOnHoverAllowed = false
-        }
+        appState.menuBarManager.section(withName: name)?.toggle(triggeredByHotkey: true)
     }
 
     /// Handles settings manipulation URLs (set/toggle).

@@ -14,7 +14,7 @@ import os
 
 /// Manager that monitors input events and implements the features
 /// that are triggered by them, such as showing hidden items on
-/// click/hover/scroll.
+/// clicks.
 @MainActor
 @Observable
 final class HIDEventManager {
@@ -26,18 +26,6 @@ final class HIDEventManager {
 
     /// The shared app state.
     private weak var appState: AppState?
-
-    /// Minimum interval between processed mouse-moved events (~30 fps).
-    ///
-    /// Time-based, not count-based: a count divisor scales its effective
-    /// work rate with the input device's polling rate, so a 1000 Hz mouse
-    /// would do 8x the work of a 125 Hz mouse for identical physical
-    /// motion. A wall-clock gate keeps the cost independent of the device.
-    static nonisolated let mouseMovedThrottleInterval: TimeInterval = 1.0 / 30.0
-
-    /// Timestamp of the last processed mouse-moved event, used to rate
-    /// limit the mouse-moved tap on wall-clock time.
-    private nonisolated let lastMouseMovedProcessTime = OSAllocatedUnfairLock(initialState: TimeInterval(0))
 
     /// Cursor location at the last processed mouse-moved event.
     ///
@@ -60,12 +48,6 @@ final class HIDEventManager {
     @ObservationIgnored
     private var cancellables = Set<AnyCancellable>()
 
-    /// Task observing `GeneralSettings.showOnHover`, `AdvancedSettings.
-    /// showMenuBarTooltips`, and `DisplaySettingsManager.configurations` —
-    /// all `@Observable` rather than Combine `ObservableObject`s, so they
-    /// can no longer feed the `Publishers.CombineLatest3` this used to be.
-    private var hoverSettingsObservationTask: Task<Void, Never>?
-
     /// Task observing `itemManager.itemCache` (wave 4), which is
     /// `@Observable` rather than a Combine `ObservableObject`, replacing the
     /// old `$itemCache.removeDuplicates().receive(on:).sink` pipeline.
@@ -74,27 +56,6 @@ final class HIDEventManager {
     /// Timer that periodically checks whether the event tap is still
     /// valid and attempts to recreate it if the Mach port was invalidated.
     private var healthCheckTimer: Timer?
-
-    /// The currently pending show-on-hover delay task.
-    private var hoverTask: Task<Void, any Error>?
-
-    /// Identity token for the current hover task so an older task cannot
-    /// clear state that belongs to a newer one.
-    private var hoverTaskToken: UUID?
-
-    /// A short-lived recovery task that repeatedly re-evaluates show-on-hover
-    /// right after the setting is enabled, so the first hover does not depend
-    /// on a later mouse-moved event or the periodic health check.
-    private var hoverRearmTask: Task<Void, Never>?
-    private var hoverRearmTaskToken: UUID?
-
-    /// Tracks the last seen value of showOnHover so the CombineLatest3 sink
-    /// can restrict rearm logic to false→true transitions only.
-    private var lastShowOnHover: Bool?
-
-    /// The currently pending hover action, used to avoid restarting the same
-    /// delay window on every small mouse move inside the same region.
-    private var pendingHoverAction: HoverAction?
 
     /// The pending task that clears the temporary show-on-click guard.
     private var clickTask: Task<Void, Never>?
@@ -131,11 +92,6 @@ final class HIDEventManager {
     /// The number of times the manager has been told to stop.
     private var disableCount = 0
 
-    private enum HoverAction {
-        case show
-        case hide
-    }
-
     /// Timestamp of the last `stopAll()` call, used by the health check
     /// to detect a stuck disabled state.
     private var lastStopTimestamp: ContinuousClock.Instant?
@@ -153,18 +109,11 @@ final class HIDEventManager {
         initialState: [(windowID: CGWindowID, bounds: CGRect)]()
     )
 
-    /// The window ID of the menu bar item the mouse is currently hovering over,
-    /// used to detect when the cursor moves to a different item.
-    private var tooltipHoveredWindowID: CGWindowID?
-
     /// The ID of the display the mouse was last seen on.
     private var lastMouseScreenID: CGDirectDisplayID?
 
     /// The ID of the display that last had the active menu bar.
     private var lastActiveMenuBarDisplayID: CGDirectDisplayID?
-
-    /// The pending tooltip show task.
-    private var tooltipTask: Task<Void, any Error>?
 
     /// The pending secondary-context-menu reveal task. Holding a reference lets
     /// a subsequent click (right or left) cancel the pre-100ms-delay reveal so
@@ -181,14 +130,10 @@ final class HIDEventManager {
                 for monitor in allMonitors {
                     monitor.start()
                 }
-                if let appState, needsMouseMovedTap(appState: appState) {
-                    mouseMovedTap.start()
-                }
             } else {
                 for monitor in allMonitors {
                     monitor.stop()
                 }
-                mouseMovedTap.stop()
                 lastMouseScreenID = nil
                 lastActiveMenuBarDisplayID = nil
             }
@@ -242,12 +187,6 @@ final class HIDEventManager {
         default:
             return event
         }
-        handlePreventShowOnHover(
-            with: event,
-            appState: appState,
-            screen: screen
-        )
-        dismissMenuBarTooltip()
 
         // update control item states when active menu bar display changes
         let currentMenuBarID = NSScreen.screenWithActiveMenuBar?.displayID
@@ -282,106 +221,6 @@ final class HIDEventManager {
                 appState: appState,
                 screen: screen
             )
-        }
-        return event
-    }
-
-    /// Tap for mouse moved events.
-    @ObservationIgnored
-    private(set) lazy var mouseMovedTap = EventTap(
-        type: .mouseMoved,
-        location: .hidEventTap,
-        placement: .tailAppendEventTap,
-        option: .listenOnly
-    ) { [weak self] _, event in
-        guard let self, isEnabled else {
-            return event
-        }
-
-        // Throttling: rate limit on wall-clock time so cost stays bounded
-        // regardless of the input device's polling rate.
-        let now = CACurrentMediaTime()
-        guard Self.shouldProcessMouseMoved(now: now, lastProcessTime: lastMouseMovedProcessTime) else {
-            return event
-        }
-
-        // Cheap gate: skip the screen queries below when the cursor hasn't
-        // moved meaningfully since the last processed event. A sub-point
-        // move cannot put the cursor on a different screen or change which
-        // display owns the active menu bar, so those queries would return
-        // the same answers. Compared against the last *processed* location
-        // (only updated when we proceed past this gate) rather than the
-        // last *observed* one, so a slow drift of under a point per tick
-        // still accumulates past the threshold instead of never triggering.
-        let currentLocation = NSEvent.mouseLocation
-        let lastLocation = lastMouseMovedLocation.withLock { $0 }
-        let dx = currentLocation.x - lastLocation.x
-        let dy = currentLocation.y - lastLocation.y
-        guard (dx * dx) + (dy * dy) >= Self.mouseMovedLocationEpsilonSquared else {
-            return event
-        }
-        lastMouseMovedLocation.withLock { $0 = currentLocation }
-
-        if let appState {
-            guard let screen = NSScreen.screenWithMouse ?? NSScreen.main else {
-                return event
-            }
-            let screenID = screen.displayID
-
-            if screenID != lastMouseScreenID {
-                lastMouseScreenID = screenID
-                appState.menuBarManager.updateControlItemStates(for: screen)
-            }
-
-            // also re-evaluate when active menu bar display changes
-            let currentMenuBarID = NSScreen.screenWithActiveMenuBar?.displayID
-            if currentMenuBarID != lastActiveMenuBarDisplayID {
-                lastActiveMenuBarDisplayID = currentMenuBarID
-                appState.menuBarManager.updateControlItemStates(for: screen)
-            }
-
-            handleShowOnHover(appState: appState, screen: screen)
-            handleMenuBarTooltip(appState: appState, screen: screen)
-        }
-        return event
-    }
-
-    /// The minimum squared distance (in points) the cursor must move
-    /// between processed mouse-moved events before the screen queries in
-    /// `mouseMovedTap` run again. Squared so the hot-path comparison can
-    /// avoid a square root.
-    private static let mouseMovedLocationEpsilonSquared: CGFloat = 1.0 * 1.0
-
-    /// Determines whether a mouse-moved event observed at `now` should be
-    /// processed, given the timestamp of the last processed event, and
-    /// atomically records `now` as the new last-processed time when it
-    /// does.
-    ///
-    /// The read-and-set happens under a single lock acquisition so two
-    /// concurrent callers can't both observe an elapsed interval and both
-    /// pass the gate. Extracted as a pure function of `now` (rather than
-    /// reading `CACurrentMediaTime()` internally) so it's directly testable
-    /// without a real event tap.
-    static nonisolated func shouldProcessMouseMoved(
-        now: TimeInterval,
-        lastProcessTime: OSAllocatedUnfairLock<TimeInterval>
-    ) -> Bool {
-        lastProcessTime.withLock { last in
-            guard now - last >= mouseMovedThrottleInterval else {
-                return false
-            }
-            last = now
-            return true
-        }
-    }
-
-    /// Monitor for scroll wheel events.
-    @ObservationIgnored
-    private(set) lazy var scrollWheelMonitor = EventMonitor.universal(
-        for: .scrollWheel
-    ) { [weak self] event in
-        if let self, isEnabled, let appState, let screen = bestScreen(appState: appState) {
-            handleShowOnScroll(with: event, appState: appState, screen: screen)
         }
         return event
     }
@@ -455,7 +294,6 @@ final class HIDEventManager {
         mouseDownMonitor,
         mouseUpMonitor,
         mouseDraggedMonitor,
-        scrollWheelMonitor,
     ]
 
     // MARK: Setup
@@ -465,13 +303,6 @@ final class HIDEventManager {
         self.appState = appState
         startAll()
         configureCancellables()
-    }
-
-    /// Whether the mouse-moved event tap should be active based on current settings.
-    private func needsMouseMovedTap(appState: AppState) -> Bool {
-        appState.settings.general.showOnHover ||
-            appState.settings.advanced.showMenuBarTooltips ||
-            appState.settings.displaySettings.isAlwaysShowEnabledOnAnyDisplay
     }
 
     /// Maximum width a normal menu bar item can have. Windows wider than
@@ -557,68 +388,6 @@ final class HIDEventManager {
         var c = Set<AnyCancellable>()
 
         if let appState {
-            // Pre-seed so the initial CombineLatest3 emission is treated as a
-            // no-op when showOnHover is already true at subscription time,
-            // avoiding unnecessary startup rearm work.
-            lastShowOnHover = appState.settings.general.showOnHover
-
-            // Start or stop the mouse-moved tap when show-on-hover,
-            // menu-bar-tooltips, or per-display configurations change.
-            //
-            // `GeneralSettings`, `AdvancedSettings`, and `DisplaySettingsManager`
-            // are `@Observable` rather than Combine `ObservableObject`s, so
-            // this is now driven by the `Observations` async sequence instead
-            // of `Publishers.CombineLatest3`. `continue` below (rather than
-            // `return`) preserves the old sink's per-event early-outs without
-            // ending the observation.
-            let generalSettings = appState.settings.general
-            let advancedSettings = appState.settings.advanced
-            let displaySettings = appState.settings.displaySettings
-            hoverSettingsObservationTask = Task { [weak self] in
-                let changes = Observations {
-                    (generalSettings.showOnHover, advancedSettings.showMenuBarTooltips, displaySettings.configurations)
-                }
-                for await (showOnHover, _, _) in changes {
-                    guard let self else { return }
-                    guard isEnabled else { continue }
-                    if needsMouseMovedTap(appState: appState) {
-                        mouseMovedTap.start()
-                    } else {
-                        mouseMovedTap.stop()
-                    }
-
-                    defer { lastShowOnHover = showOnHover }
-
-                    if !showOnHover {
-                        hoverRearmTask?.cancel()
-                        hoverRearmTask = nil
-                        hoverRearmTaskToken = nil
-                        hoverTask?.cancel()
-                        hoverTask = nil
-                        hoverTaskToken = nil
-                        pendingHoverAction = nil
-                        continue
-                    }
-
-                    // Only rearm when showOnHover transitions false→true; skip the
-                    // rearm path when other inputs (tooltips, display config) change
-                    // while showOnHover was already enabled.
-                    guard lastShowOnHover != true else {
-                        continue
-                    }
-
-                    appState.menuBarManager.showOnHoverAllowed = true
-                    hoverRearmTask?.cancel()
-                    hoverRearmTask = nil
-                    hoverRearmTaskToken = nil
-                    hoverTask?.cancel()
-                    hoverTask = nil
-                    hoverTaskToken = nil
-                    pendingHoverAction = nil
-                    scheduleHoverRearmChecks(appState: appState)
-                }
-            }
-
             // Rebuild the window bounds lookup whenever the item cache changes.
             // This replaces per-event Window Server IPC calls with an in-memory lookup.
             // `itemManager` is now `@Observable` (wave 4), so it no longer has
@@ -674,7 +443,7 @@ final class HIDEventManager {
             rebuildWindowBoundsLookup(from: appState.itemManager.itemCache)
         }
 
-        // Periodically check that the mouseMovedTap is still alive.
+        // Periodically check that the event taps are still alive.
         // macOS can invalidate the Mach port under resource pressure or
         // when accessibility permissions change. If it becomes invalid,
         // ensureValid() will recreate it.
@@ -721,15 +490,6 @@ final class HIDEventManager {
             monitor.ensureRunning()
         }
 
-        // Check the mouseMovedTap if it should be active.
-        if let appState,
-           needsMouseMovedTap(appState: appState),
-           mouseMovedTap.ensureValid(),
-           !mouseMovedTap.isEnabled
-        {
-            Self.diagLog.warning("mouseMovedTap was valid but not enabled, re-enabling")
-            mouseMovedTap.start()
-        }
     }
 
     // MARK: Start/Stop
@@ -752,21 +512,12 @@ final class HIDEventManager {
         }
         disableCount += 1
         lastStopTimestamp = .now
-        hoverRearmTask?.cancel()
-        hoverRearmTask = nil
-        hoverRearmTaskToken = nil
-        hoverTask?.cancel()
-        hoverTask = nil
-        hoverTaskToken = nil
-        pendingHoverAction = nil
         disarmShowOnClickGuard()
-        dismissMenuBarTooltip()
     }
 
     @MainActor
     deinit {
         healthCheckTimer?.invalidate()
-        hoverSettingsObservationTask?.cancel()
         itemCacheWindowBoundsObservationTask?.cancel()
     }
 }
@@ -774,75 +525,6 @@ final class HIDEventManager {
 // MARK: - Handler Methods
 
 extension HIDEventManager {
-    private func isMouseNearMenuBar(screen: NSScreen, verticalPadding: CGFloat = 80) -> Bool {
-        guard
-            let mouseLocation = MouseHelpers.locationAppKit,
-            let menuBarHeight = screen.getMenuBarHeight()
-        else {
-            return false
-        }
-
-        return mouseLocation.x >= screen.frame.minX
-            && mouseLocation.x <= screen.frame.maxX
-            && mouseLocation.y <= screen.frame.maxY
-            && mouseLocation.y >= screen.frame.maxY - menuBarHeight - verticalPadding
-    }
-
-    private func scheduleHoverRearmChecks(appState: AppState) {
-        let taskToken = UUID()
-        hoverRearmTaskToken = taskToken
-        hoverRearmTask = Task { @MainActor [weak self, weak appState] in
-            guard let self, let appState else {
-                return
-            }
-
-            defer {
-                if hoverRearmTaskToken == taskToken {
-                    hoverRearmTask = nil
-                    hoverRearmTaskToken = nil
-                }
-            }
-
-            for attempt in 0 ..< 12 {
-                do {
-                    try await Task.sleep(for: attempt == 0 ? .milliseconds(50) : .milliseconds(200))
-                } catch {
-                    return
-                }
-
-                guard
-                    hoverRearmTaskToken == taskToken,
-                    isEnabled,
-                    appState.settings.general.showOnHover,
-                    appState.menuBarManager.showOnHoverAllowed
-                else {
-                    return
-                }
-
-                if needsMouseMovedTap(appState: appState) {
-                    _ = mouseMovedTap.ensureValid()
-                    mouseMovedTap.start()
-                }
-
-                guard let screen = NSScreen.screenWithMouse ?? bestScreen(appState: appState) else {
-                    continue
-                }
-
-                guard isMouseNearMenuBar(screen: screen) else {
-                    return
-                }
-
-                handleShowOnHover(appState: appState, screen: screen)
-
-                if pendingHoverAction == .show ||
-                    !(appState.menuBarManager.section(withName: .hidden)?.isHidden ?? true)
-                {
-                    return
-                }
-            }
-        }
-    }
-
     // MARK: Handle Show On Click
 
     private func handleShowOnClick(appState: AppState, screen: NSScreen, clickLocation: CGPoint, modifierFlags: NSEvent.ModifierFlags, isDoubleClick: Bool = false) {
@@ -1401,211 +1083,12 @@ extension HIDEventManager {
             }
         }
     }
-
-    // MARK: Handle Show On Hover
-
-    private func handleShowOnHover(appState: AppState, screen: NSScreen) {
-        // Make sure the "ShowOnHover" feature is enabled and allowed.
-        guard
-            appState.settings.general.showOnHover,
-            appState.menuBarManager.showOnHoverAllowed
-        else {
-            return
-        }
-
-        // Only continue if we have a hidden section (we should).
-        guard
-            let hiddenSection = appState.menuBarManager.section(
-                withName: .hidden
-            )
-        else {
-            return
-        }
-
-        let delay = appState.settings.advanced.showOnHoverDelay
-
-        if hiddenSection.isHidden {
-            guard
-                isMouseInsideEmptyMenuBarSpace(
-                    appState: appState,
-                    screen: screen
-                ),
-                !isCursorOverForeignWidgetUIElement()
-            else {
-                if pendingHoverAction == .show {
-                    hoverTask?.cancel()
-                    hoverTask = nil
-                    hoverTaskToken = nil
-                    pendingHoverAction = nil
-                }
-                return
-            }
-            guard pendingHoverAction != .show else {
-                return
-            }
-            hoverTask?.cancel()
-            pendingHoverAction = .show
-            let taskToken = UUID()
-            hoverTaskToken = taskToken
-            hoverTask = Task {
-                defer {
-                    if hoverTaskToken == taskToken {
-                        hoverTask = nil
-                        hoverTaskToken = nil
-                        if pendingHoverAction == .show {
-                            pendingHoverAction = nil
-                        }
-                    }
-                }
-                try await Task.sleep(for: .seconds(delay))
-                // Make sure the manager is still enabled and the mouse is still inside.
-                guard
-                    isEnabled,
-                    isMouseInsideEmptyMenuBarSpace(
-                        appState: appState,
-                        screen: screen
-                    )
-                else {
-                    return
-                }
-                hiddenSection.show()
-            }
-        } else {
-            guard
-                !isMouseInsideMenuBar(appState: appState, screen: screen),
-                !isMouseInsideIceBar(appState: appState)
-            else {
-                if pendingHoverAction == .hide {
-                    hoverTask?.cancel()
-                    hoverTask = nil
-                    hoverTaskToken = nil
-                    pendingHoverAction = nil
-                }
-                return
-            }
-            guard pendingHoverAction != .hide else {
-                return
-            }
-            hoverTask?.cancel()
-            pendingHoverAction = .hide
-            let taskToken = UUID()
-            hoverTaskToken = taskToken
-            // When the Thaw Bar (Ice Bar) is the active presentation, the
-            // rehide interval — not the hover delay — should govern how
-            // long the panel stays open after the cursor leaves. The start
-            // rehide checks already use rehideInterval; a 0.2 s hover
-            // delay always wins that race and snaps the panel shut before
-            // the user can click an icon.
-            let hideDelay: TimeInterval = if let activeDisplay = appState.hidEventManager.bestScreen(appState: appState),
-                                             appState.settings.displaySettings.useIceBar(for: activeDisplay.displayID)
-            {
-                appState.settings.general.rehideInterval
-            } else {
-                delay
-            }
-            hoverTask = Task {
-                defer {
-                    if hoverTaskToken == taskToken {
-                        hoverTask = nil
-                        hoverTaskToken = nil
-                        if pendingHoverAction == .hide {
-                            pendingHoverAction = nil
-                        }
-                    }
-                }
-                try await Task.sleep(for: .seconds(hideDelay))
-                guard
-                    isEnabled,
-                    !isMouseInsideMenuBar(appState: appState, screen: screen),
-                    !isMouseInsideIceBar(appState: appState)
-                else {
-                    return
-                }
-                hiddenSection.hide()
-            }
-        }
-    }
-
-    // MARK: Handle Prevent Show On Hover
-
-    private func handlePreventShowOnHover(
-        with event: NSEvent,
-        appState: AppState,
-        screen: NSScreen
-    ) {
-        guard
-            appState.settings.general.showOnHover,
-            !appState.settings.displaySettings.useIceBar(for: screen.displayID)
-        else {
-            return
-        }
-
-        guard isMouseInsideMenuBar(appState: appState, screen: screen) else {
-            return
-        }
-
-        if isMouseInsideMenuBarItem(appState: appState, screen: screen) {
-            switch event.type {
-            case .leftMouseDown:
-                if appState.menuBarManager.hasVisibleSection {
-                    break
-                }
-                if isMouseInsideIceIcon(appState: appState) {
-                    break
-                }
-                return
-            case .rightMouseDown:
-                if appState.menuBarManager.hasVisibleSection {
-                    break
-                }
-                return
-            default:
-                return
-            }
-        } else if isMouseInsideApplicationMenuClickRegion(
-            appState: appState,
-            screen: screen
-        ) == true {
-            return
-        }
-
-        // Mouse is inside the menu bar, outside an item or application
-        // menu, so it must be inside an empty menu bar space.
-        appState.menuBarManager.showOnHoverAllowed = false
-    }
-
-    // MARK: Handle Show On Scroll
-
-    private func handleShowOnScroll(
-        with event: NSEvent,
-        appState: AppState,
-        screen: NSScreen
-    ) {
-        guard
-            appState.settings.general.showOnScroll,
-            isMouseInsideEmptyMenuBarSpace(appState: appState, screen: screen),
-            !isCursorOverForeignWidgetUIElement(),
-            let hiddenSection = appState.menuBarManager.section(
-                withName: .hidden
-            )
-        else {
-            return
-        }
-
-        let averageDelta = (event.scrollingDeltaX + event.scrollingDeltaY) / 2
-
-        if averageDelta > 5 {
-            hiddenSection.show()
-        } else if averageDelta < -5 {
-            hiddenSection.hide()
-        }
-    }
 }
 
 // MARK: - Helper Methods
 
 extension HIDEventManager {
-    /// Returns the best screen to use for hover, scroll, and tooltip calculations.
+    /// Returns the best screen to use for menu bar calculations.
     ///
     /// Always returns the screen that currently owns the active menu bar.
     /// This prevents showing the hidden section or IceBar on a monitor
@@ -1617,101 +1100,6 @@ extension HIDEventManager {
     /// display's menu bar are evaluated against the correct display geometry.
     func bestScreen(appState _: AppState) -> NSScreen? {
         NSScreen.screenWithActiveMenuBar ?? NSScreen.main
-    }
-
-    // MARK: Menu Bar Tooltips
-
-    /// Shows a tooltip for the menu bar item under the cursor, if enabled.
-    private func handleMenuBarTooltip(appState: AppState, screen: NSScreen) {
-        guard ScreenCapture.cachedCheckPermissions() else {
-            return
-        }
-
-        guard appState.settings.advanced.showMenuBarTooltips else {
-            return
-        }
-
-        guard isMouseInsideMenuBar(appState: appState, screen: screen) else {
-            dismissMenuBarTooltip()
-            return
-        }
-
-        guard let mouseLocation = MouseHelpers.locationCoreGraphics else {
-            dismissMenuBarTooltip()
-            return
-        }
-
-        // Find the specific window under the cursor using the cached bounds lookup.
-        // This avoids per-event IPC calls to the Window Server.
-        let entries = windowBoundsLock.withLock { $0 }
-        let hoveredEntry = entries.first(where: { $0.bounds.contains(mouseLocation) })
-
-        guard let hoveredEntry else {
-            dismissMenuBarTooltip()
-            return
-        }
-
-        let hoveredID = hoveredEntry.windowID
-
-        // If we're still over the same item, nothing to do.
-        if hoveredID == tooltipHoveredWindowID {
-            return
-        }
-
-        // Moved to a different item — cancel the old tooltip and start a new delay.
-        dismissMenuBarTooltip()
-        tooltipHoveredWindowID = hoveredID
-
-        let cachedBounds = hoveredEntry.bounds
-        let delay = appState.settings.advanced.tooltipDelay
-        tooltipTask = Task {
-            if delay > 0 {
-                try await Task.sleep(for: .seconds(delay))
-            }
-            try Task.checkCancellation()
-
-            // Re-read from the lock to pick up any cache rebuilds during the delay.
-            let freshEntries = windowBoundsLock.withLock { $0 }
-            let positionBounds = freshEntries.first(where: { $0.windowID == hoveredID })?.bounds ?? cachedBounds
-
-            // Look up the item from the cache by window ID.
-            let allItems = appState.itemManager.itemCache.managedItems
-            let displayName: String
-            if let item = allItems.first(where: { $0.windowID == hoveredID }) {
-                displayName = item.displayName
-            } else if appState.menuBarManager.sections.contains(where: {
-                $0.controlItem.window?.windowNumber == Int(hoveredID)
-            }) {
-                displayName = Constants.displayName
-            } else {
-                return
-            }
-
-            // Position the tooltip below the item, centered horizontally.
-            // Item bounds are in CoreGraphics coordinates (top-left origin);
-            // convert to AppKit (bottom-left origin) for the panel.
-            guard let primaryScreen = NSScreen.screens.first else { return }
-            let appKitOrigin = CGPoint(
-                x: positionBounds.midX,
-                y: primaryScreen.frame.height - positionBounds.maxY
-            )
-
-            CustomTooltipPanel.shared.show(
-                text: displayName,
-                near: appKitOrigin,
-                in: screen,
-                owner: "menuBar"
-            )
-        }
-    }
-
-    /// Cancels any pending tooltip and hides the tooltip panel.
-    /// Only dismisses the panel if it was shown by the menu bar tooltip handler.
-    private func dismissMenuBarTooltip() {
-        tooltipTask?.cancel()
-        tooltipTask = nil
-        tooltipHoveredWindowID = nil
-        CustomTooltipPanel.shared.dismiss(owner: "menuBar")
     }
 
     // MARK: Mouse Location Helpers
@@ -1758,7 +1146,7 @@ extension HIDEventManager {
     }
 
     /// Returns `true` when the current mouse location hits a cached menu bar item
-    /// bounds entry. This is the fast path used by hover/click hit testing.
+    /// bounds entry. This is the fast path used by click hit testing.
     private func isMouseInsideCachedMenuBarItem() -> Bool {
         guard let mouseLocation = MouseHelpers.locationCoreGraphics else {
             return false

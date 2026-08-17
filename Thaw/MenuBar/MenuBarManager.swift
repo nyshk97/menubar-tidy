@@ -30,9 +30,6 @@ final class MenuBarManager {
     /// according to a value stored in UserDefaults.
     private(set) var isMenuBarHiddenBySystemUserDefaults = false
 
-    /// A Boolean value that indicates whether the "ShowOnHover" feature is allowed.
-    var showOnHoverAllowed = true
-
     /// Timestamp of the last time a section was shown.
     private(set) var lastShowTimestamp: ContinuousClock.Instant?
 

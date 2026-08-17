@@ -333,7 +333,6 @@ final class MenuBarSection {
         }
 
         menuBarManager.iceBarPanel.close() // Make sure Thaw Bar is always closed.
-        menuBarManager.showOnHoverAllowed = true
 
         for section in menuBarManager.sections {
             section.desiredState = .hideSection

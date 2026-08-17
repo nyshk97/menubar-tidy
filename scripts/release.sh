@@ -23,7 +23,7 @@ cd "$REPO_ROOT"
 APP_NAME="MenuBar Tidy"
 BUNDLE_ID="com.nyshk97.MenuBarTidy"
 TEAM_ID="VYDUR99LAM"
-NOTARY_PROFILE="${NOTARY_PROFILE:-notary}"
+NOTARY_PROFILE="${NOTARY_PROFILE:-nyshk97-notary}"
 GITHUB_REPO="nyshk97/menubar-tidy"
 TAP_REPO="nyshk97/homebrew-tap"
 CASK_TOKEN="menubar-tidy"
@@ -75,8 +75,9 @@ if ! NOTARY_CHECK="$(xcrun notarytool history --keychain-profile "$NOTARY_PROFIL
   echo "❌ notarize の keychain プロファイル '$NOTARY_PROFILE' が使えません:"
   echo "$NOTARY_CHECK" | head -3
   echo "   作成: xcrun notarytool store-credentials $NOTARY_PROFILE \\"
-  echo "           --apple-id <Apple ID> --team-id $TEAM_ID"
-  echo "   （パスワードは appleid.apple.com で発行する App 用パスワード）"
+  echo "           --key ~/Library/CloudStorage/Dropbox/secrets/AuthKey_M4FG2B8JFX.p8 \\"
+  echo "           --key-id M4FG2B8JFX --issuer 024fc873-10f9-49a4-8d6f-20fb5c7bd522"
+  echo "   （App Store Connect の API キー。.p8 は Dropbox の secrets/ にある）"
   exit 1
 fi
 if ! gh auth status >/dev/null 2>&1; then

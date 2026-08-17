@@ -2,11 +2,12 @@
 # dist/MenuBarTidy-<version>.zip を notarize して staple 済みの zip に差し替える
 #
 # 資格情報は `xcrun notarytool store-credentials <プロファイル名>` で作った
-# keychain プロファイル（既定 "notary"）を使う。
+# keychain プロファイル（既定 "nyshk97-notary"）を使う。中身は App Store Connect の
+# API キー（.p8 は Dropbox の secrets/）。登録は mise run doctor の案内を参照。
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-PROFILE="${NOTARY_PROFILE:-notary}"
+PROFILE="${NOTARY_PROFILE:-nyshk97-notary}"
 APP="Build/Build/Products/Release/MenuBar Tidy.app"
 VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP/Contents/Info.plist")
 ZIP="dist/MenuBarTidy-$VERSION.zip"

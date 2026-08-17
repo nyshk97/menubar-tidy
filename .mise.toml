@@ -26,7 +26,7 @@ shell = "bash -c"
 run = '''
 set -uo pipefail
 TEAM_ID="VYDUR99LAM"
-PROFILE="${NOTARY_PROFILE:-notary}"
+PROFILE="${NOTARY_PROFILE:-nyshk97-notary}"
 status=0
 ok() { printf '  OK  %s\n' "$1"; }
 ng() { printf '  NG  %s\n      → %s\n' "$1" "$2"; status=1; }
@@ -60,7 +60,7 @@ if xcrun notarytool history --keychain-profile "$PROFILE" > /dev/null 2>&1; then
     ok "notarytool の keychain プロファイル '$PROFILE'"
 else
     ng "notarytool の keychain プロファイル '$PROFILE' が無い/使えない" \
-       "自分の Terminal で確認 → 無ければ xcrun notarytool store-credentials $PROFILE --apple-id <Apple ID> --team-id $TEAM_ID"
+       "自分の Terminal で確認 → 無ければ xcrun notarytool store-credentials $PROFILE --key ~/Library/CloudStorage/Dropbox/secrets/AuthKey_M4FG2B8JFX.p8 --key-id M4FG2B8JFX --issuer 024fc873-10f9-49a4-8d6f-20fb5c7bd522"
 fi
 if gh auth status > /dev/null 2>&1; then
     ok "gh 認証済み（GitHub Release と homebrew-tap の更新に使う）"

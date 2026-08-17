@@ -48,9 +48,17 @@ mise run doctor  # Xcode・証明書・notarize プロファイル・gh の過�
 
 - Xcode → Settings → Accounts でサインインすると、`Apple Development`（Debug 用）と
   `Developer ID Application`（Release 用）の証明書が降りてくる
-- notarize の資格情報はリリースするときだけ必要（`mise run release` の事前確認でも見る）:
-  `xcrun notarytool store-credentials notary --apple-id <Apple ID> --team-id VYDUR99LAM`。
-  パスワードは appleid.apple.com で発行する **App 用パスワード**
+- notarize の資格情報はリリースするときだけ必要（`mise run release` の事前確認でも見る）。
+  自作 Mac アプリ共通の keychain プロファイル `nyshk97-notary` を作る:
+
+  ```sh
+  xcrun notarytool store-credentials nyshk97-notary \
+    --key ~/Library/CloudStorage/Dropbox/secrets/AuthKey_M4FG2B8JFX.p8 \
+    --key-id M4FG2B8JFX --issuer 024fc873-10f9-49a4-8d6f-20fb5c7bd522
+  ```
+
+  中身は App Store Connect の API キー（`.p8` は Dropbox の `secrets/` にある）。
+  **App 用パスワードは使わない**（発行時しか値が見えず、マシンを増やすたびに再発行になる）
 - TCC（アクセシビリティ・画面収録）は Mac ごとに付け直す。バンドルIDが同じでも移行されない
 - Team ID・バンドルID・`nyshk97/*` のリポジトリ名は**アカウント側の値なので開発機を移しても
   変えない**（変えると TCC の許可も cask の導線も切れる）
@@ -352,8 +360,8 @@ mise run release            # patch bump。minor / major / x.y.z も指定でき
   `CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO` で `get-task-allow` の注入を止めてある
 - **配布物は常用版の名前・バンドルIDで出る**（`MenuBar Tidy.app` / `com.nyshk97.MenuBarTidy`）。
   dev 版の名前が混ざっていないかは `mise run release:zip` の後に `codesign -dvv` で確認できる
-- notarize の資格情報は keychain プロファイル `notary`（`NOTARY_PROFILE` で変えられる）。
-  無いときは `xcrun notarytool store-credentials notary --apple-id <id> --team-id VYDUR99LAM`
+- notarize の資格情報は keychain プロファイル `nyshk97-notary`（`NOTARY_PROFILE` で変えられる）。
+  無いときの作り方は §0「開発機を移したとき」を参照（App Store Connect の API キーで登録する）
 - zip 化は `ditto -c -k --sequesterRsrc --keepParent`。`zip -r` は symlink を潰して署名を壊す
 - 配布物の最終確認:
 

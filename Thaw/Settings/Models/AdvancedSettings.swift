@@ -83,14 +83,13 @@ final class AdvancedSettings {
         }
     }
 
-
     /// Snaps an icon-refresh interval onto the values the slider can express.
     ///
     /// - `<= 0` stays Off (`0`).
     /// - Otherwise snaps to `1 / clamp(round(1 / interval), 1, ceiling)`,
     ///   where the ceiling is ``MenuBarItemImageCache/maxIconRefreshRate``.
     /// - Idempotent: already-on-grid values round-trip unchanged.
-    nonisolated static func normalizedIconRefreshInterval(_ interval: TimeInterval) -> TimeInterval {
+    static nonisolated func normalizedIconRefreshInterval(_ interval: TimeInterval) -> TimeInterval {
         guard interval > 0 else { return 0 }
         let ceiling = MenuBarItemImageCache.maxIconRefreshRate
         let fps = min(max((1.0 / interval).rounded(), 1), ceiling)
@@ -111,7 +110,6 @@ final class AdvancedSettings {
             #endif
         }
     }
-
 
     /// A Boolean value that controls whether left-clicks on menu bar items
     /// from the IceBar are delivered via an accessibility action (AXShowMenu,

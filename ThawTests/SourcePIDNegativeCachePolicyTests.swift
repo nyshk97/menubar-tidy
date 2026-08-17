@@ -5,7 +5,6 @@
 //  Copyright (Ice) © 2023–2025 Jordan Baird
 //  Copyright (Thaw) © 2026 Toni Förster
 //  Licensed under the GNU GPLv3
-//
 
 import Testing
 @testable import Thaw
@@ -29,14 +28,14 @@ struct SourcePIDNegativeCachePolicyTests {
     }
 
     @Test func repeatFailuresReachSteadyStateAndStayThere() {
-        for failures in 3...20 {
+        for failures in 3 ... 20 {
             #expect(SourcePIDNegativeCachePolicy.ttl(afterConsecutiveFailures: failures) == .seconds(60))
         }
     }
 
     @Test func ladderIsMonotonicNondecreasing() {
         var previous = SourcePIDNegativeCachePolicy.ttl(afterConsecutiveFailures: 1)
-        for failures in 2...10 {
+        for failures in 2 ... 10 {
             let current = SourcePIDNegativeCachePolicy.ttl(afterConsecutiveFailures: failures)
             #expect(current >= previous)
             previous = current

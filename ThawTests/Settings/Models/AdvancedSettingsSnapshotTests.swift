@@ -170,7 +170,6 @@ struct AdvancedSettingsSnapshotTests {
 
         let data = try encoder.encode(snapshot)
         let decoded = try decoder.decode(AdvancedSettingsSnapshot.self, from: data)
-
     }
 
     @Test("A large hover delay round-trips")
@@ -179,7 +178,6 @@ struct AdvancedSettingsSnapshotTests {
 
         let data = try encoder.encode(snapshot)
         let decoded = try decoder.decode(AdvancedSettingsSnapshot.self, from: data)
-
     }
 
     @Test("A zero tooltip delay round-trips")
@@ -210,7 +208,6 @@ struct AdvancedSettingsSnapshotTests {
 
         let data = try encoder.encode(snapshot)
         let decoded = try decoder.decode(AdvancedSettingsSnapshot.self, from: data)
-
     }
 
     @Test("A large icon refresh interval round-trips")
@@ -219,7 +216,6 @@ struct AdvancedSettingsSnapshotTests {
 
         let data = try encoder.encode(snapshot)
         let decoded = try decoder.decode(AdvancedSettingsSnapshot.self, from: data)
-
     }
 
     @Test("Fractional delays round-trip within tolerance")

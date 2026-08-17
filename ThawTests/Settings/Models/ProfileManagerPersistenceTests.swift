@@ -459,7 +459,6 @@ struct ProfileManagerPersistenceTests {
 
     // MARK: - Inert Without an App State
 
-
     @Test("Re-applying the active profile before setup has run schedules no layout work")
     func reapplyWithoutAnAppStateSchedulesNothing() throws {
         let seed = makeProfile(named: "Desk")

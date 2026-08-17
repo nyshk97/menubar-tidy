@@ -71,8 +71,6 @@ struct MenuBarLayoutSettingsPane: View {
         }
     }
 
-
-
     /// The name of the display whose layout the bars below are showing.
     ///
     /// The editor has no display picker: it always reflects the screen that

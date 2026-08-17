@@ -95,7 +95,7 @@ extension ProfileManager {
     func applyProfile(
         _ profile: Profile,
         to appState: AppState,
-        previousProfileID: UUID? = nil
+        previousProfileID _: UUID? = nil
     ) {
         diagLog.debug(
             "applyProfile entered: name=\(profile.name)"

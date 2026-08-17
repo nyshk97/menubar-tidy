@@ -243,11 +243,11 @@ final class MenuBarItemImageCache: @unchecked Sendable {
     /// not deliver. 30 matches the historical slider top. Higher rates pin a
     /// core while Search / Layout / Thaw Bar stay open (composite SCK +
     /// per-item crop); leave the SkyLight offscreen floor at 1 s separately.
-    nonisolated static let maxIconRefreshRate: Double = 30
+    static nonisolated let maxIconRefreshRate: Double = 30
 
     /// Minimum spacing enforced between visible-section SCK captures, in seconds.
     /// Reciprocal of ``maxIconRefreshRate``.
-    nonisolated static let minIconRefreshInterval: TimeInterval = 1.0 / maxIconRefreshRate
+    static nonisolated let minIconRefreshInterval: TimeInterval = 1.0 / maxIconRefreshRate
 
     /// How often the live loop recaptures item icons, in seconds — 4fps.
     ///
@@ -258,7 +258,7 @@ final class MenuBarItemImageCache: @unchecked Sendable {
     /// (RunCat and friends) still moves in the bar, and far below the 30fps
     /// ceiling, which would pin a core to smooth an animation nobody watches
     /// for long.
-    nonisolated static let iconRefreshInterval: TimeInterval = 0.25
+    static nonisolated let iconRefreshInterval: TimeInterval = 0.25
 
     /// Minimum spacing enforced between visible-section SCK captures.
     private static let minSCKRefreshInterval: Duration = .seconds(minIconRefreshInterval)

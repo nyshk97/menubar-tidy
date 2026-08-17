@@ -10917,7 +10917,6 @@ extension MenuBarItemManager {
     static nonisolated func isBudgetedManagedItem(_ item: MenuBarItem) -> Bool {
         (item.canBeHidden || item.tag == .visibleControlItem) && item.isMovable
     }
-
 }
 
 // MARK: - CGEventField Helpers

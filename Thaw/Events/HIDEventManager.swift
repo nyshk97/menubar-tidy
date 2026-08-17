@@ -489,7 +489,6 @@ final class HIDEventManager {
         for monitor in allMonitors {
             monitor.ensureRunning()
         }
-
     }
 
     // MARK: Start/Stop

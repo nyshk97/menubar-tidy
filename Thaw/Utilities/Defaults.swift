@@ -191,7 +191,6 @@ nonisolated extension Defaults {
 
         // MARK: Search
 
-
         // MARK: Hotkeys Settings
 
         static nonisolated(unsafe) let hotkeys: [Any]? = nil
@@ -260,9 +259,7 @@ nonisolated extension Defaults {
 
         // MARK: Search
 
-
         // MARK: Internal
-
 
         // MARK: Menu Bar Item Custom Names
 
@@ -370,7 +367,6 @@ nonisolated extension Defaults {
         ///
         /// Hidden diagnostic flag; not exposed in Settings. Default: false.
         case enforceConcealedSectionOrder = "enforceConcealedSectionOrder"
-
 
         /// Whether synthetic move events are posted to the process that owns
         /// the item's *window* rather than the app that owns the *item*.

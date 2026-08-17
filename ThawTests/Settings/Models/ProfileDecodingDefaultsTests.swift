@@ -268,7 +268,7 @@ struct ProfileSnapshotLiveSettingsTests {
                 enableSecondaryContextMenuQuit: true,
                 tooltipDelay: 1.25,
                 useDoubleClickToShowAlwaysHiddenSection: true,
-                useOptionClickToShowAlwaysHiddenSection: true,
+                useOptionClickToShowAlwaysHiddenSection: true
             )
 
             snapshot.apply(to: settings)

@@ -245,6 +245,7 @@ final class DisplaySettingsManager {
     ) -> Bool {
         currentUUID == lastUUID
     }
+
     // MARK: - Lookup
 
     /// Returns the configuration for a given display ID.

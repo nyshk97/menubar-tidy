@@ -349,10 +349,6 @@ nonisolated extension Defaults {
 
         case hasCompletedFirstLaunch
 
-        // MARK: Updates Consent
-
-        case hasSeenUpdateConsent
-
         // MARK: Onboarding
 
         case hasSeenOnboarding

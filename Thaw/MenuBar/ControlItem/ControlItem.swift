@@ -994,15 +994,6 @@ final class ControlItem {
 
         menu.addItem(.separator())
 
-        let checkForUpdatesItem = NSMenuItem(
-            title: String(localized: "Check for Updates…"),
-            action: #selector(checkForUpdates),
-            keyEquivalent: ""
-        )
-        checkForUpdatesItem.image = NSImage(systemSymbolName: "arrow.triangle.2.circlepath", accessibilityDescription: "Check for Updates")
-        checkForUpdatesItem.target = self
-        menu.addItem(checkForUpdatesItem)
-
         let supportItem = NSMenuItem(
             title: String(localized: "Support \(Constants.displayName)…"),
             action: #selector(openDonateURL),
@@ -1078,14 +1069,6 @@ final class ControlItem {
             profileManager.activeProfileID = profileID
             profileManager.applyProfile(profile, to: appState, previousProfileID: previousID)
         }
-    }
-
-    /// Opens the settings window and checks for app updates.
-    @objc private func checkForUpdates() {
-        guard let appState else {
-            return
-        }
-        appState.updatesManager.checkForUpdates()
     }
 
     /// Opens the donate URL.

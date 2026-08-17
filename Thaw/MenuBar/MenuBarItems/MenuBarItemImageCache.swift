@@ -534,7 +534,6 @@ final class MenuBarItemImageCache: @unchecked Sendable {
                     (
                         navigationState.isIceBarPresented,
                         navigationState.isSettingsPresented,
-                        navigationState.settingsNavigationIdentifier,
                         navigationState.isAppFrontmost
                     )
                 }
@@ -571,7 +570,6 @@ final class MenuBarItemImageCache: @unchecked Sendable {
         let isIceBarPresented: Bool
         let isAppFrontmost: Bool
         let isSettingsPresented: Bool
-        let settingsNavigationIdentifier: SettingsNavigationIdentifier?
     }
 
     /// Constructs a NavigationStateSnapshot from the current appState in a single MainActor hop.
@@ -582,15 +580,13 @@ final class MenuBarItemImageCache: @unchecked Sendable {
             return NavigationStateSnapshot(
                 isIceBarPresented: false,
                 isAppFrontmost: false,
-                isSettingsPresented: false,
-                settingsNavigationIdentifier: nil
+                isSettingsPresented: false
             )
         }
         return NavigationStateSnapshot(
             isIceBarPresented: appState.navigationState.isIceBarPresented,
             isAppFrontmost: appState.navigationState.isAppFrontmost,
-            isSettingsPresented: appState.navigationState.isSettingsPresented,
-            settingsNavigationIdentifier: appState.navigationState.settingsNavigationIdentifier
+            isSettingsPresented: appState.navigationState.isSettingsPresented
         )
     }
 
@@ -649,10 +645,10 @@ final class MenuBarItemImageCache: @unchecked Sendable {
             return true
         }
 
-        guard nav.isAppFrontmost, nav.isSettingsPresented else {
-            return false
-        }
-        return nav.settingsNavigationIdentifier == .menuBarLayout
+        // The settings window has one screen now — the layout editor — so
+        // its being frontmost is the same statement as the editor being on
+        // screen. Upstream had to name the pane here.
+        return nav.isAppFrontmost && nav.isSettingsPresented
     }
 
     /// Convenience overload that reads current state on MainActor when no snapshot is provided.
@@ -664,8 +660,7 @@ final class MenuBarItemImageCache: @unchecked Sendable {
         let nav = NavigationStateSnapshot(
             isIceBarPresented: appState.navigationState.isIceBarPresented,
             isAppFrontmost: appState.navigationState.isAppFrontmost,
-            isSettingsPresented: appState.navigationState.isSettingsPresented,
-            settingsNavigationIdentifier: appState.navigationState.settingsNavigationIdentifier
+            isSettingsPresented: appState.navigationState.isSettingsPresented
         )
         return hasVisibleCaptureConsumer(nav: nav)
     }
@@ -755,7 +750,6 @@ final class MenuBarItemImageCache: @unchecked Sendable {
             // layout pane, which always shows every section.
             let sections: [MenuBarSection.Name]
             let isLayoutPane = nav.isSettingsPresented
-                && nav.settingsNavigationIdentifier == .menuBarLayout
             if isLayoutPane {
                 sections = MenuBarSection.Name.allCases
             } else if nav.isIceBarPresented,

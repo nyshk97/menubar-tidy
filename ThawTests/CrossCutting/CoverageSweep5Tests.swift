@@ -254,50 +254,6 @@ struct CoverageSweep5Tests {
         }
     }
 
-    // MARK: - SearchEntry
-
-    @MainActor
-    @Suite("Search entry section headers")
-    struct SearchEntrySectionTests {
-        /// `String(localized:)` picks its localization from the bundle, not
-        /// from a `locale:` argument, so resolving against a specific
-        /// `.lproj` is the only way to pin the lookup in-process.
-        private static func localizationBundle(_ identifier: String) throws -> Bundle {
-            let path = try #require(Bundle.main.path(forResource: identifier, ofType: "lproj"))
-            return try #require(Bundle(path: path))
-        }
-
-        @Test("A sectioned entry resolves its header through the catalog")
-        func sectionedEntryResolvesItsHeader() throws {
-            let entry = try #require(SearchIndex.entries.first { $0.id == "general.showOnClick" })
-            let english = try Self.localizationBundle("en")
-
-            #expect(entry.sectionText == "Empty menu bar area")
-            // The English source doubles as the catalog key, so resolving
-            // against `en` has to give the source string back.
-            #expect(entry.localizedSection(bundle: english) == "Empty menu bar area")
-        }
-
-        @Test("An entry without a section header resolves to nil")
-        func unsectionedEntryResolvesToNil() throws {
-            let entry = try #require(SearchIndex.entries.first { $0.id == "pane.general" })
-
-            #expect(entry.sectionText == nil)
-            #expect(entry.localizedSection() == nil)
-        }
-
-        @Test("Every entry that has a section header can resolve it")
-        func everySectionedEntryResolves() throws {
-            let english = try Self.localizationBundle("en")
-            let sectioned = SearchIndex.entries.filter { $0.sectionText != nil }
-
-            #expect(!sectioned.isEmpty)
-            for entry in sectioned {
-                #expect(entry.localizedSection(bundle: english) == entry.sectionText)
-            }
-        }
-    }
-
     // MARK: - DispatchQueue
 
     @MainActor

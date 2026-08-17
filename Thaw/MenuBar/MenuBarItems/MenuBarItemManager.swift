@@ -1974,21 +1974,19 @@ final class MenuBarItemManager {
         }
         .store(in: &c)
 
-        // `navigationState` (AppNavigationState) is @Observable (wave 3), so
-        // its old `$settingsNavigationIdentifier`/`$isSettingsPresented`
-        // Combine projections are gone. Both old subscribers wanted the same
-        // outcome (refresh the image cache once Menu Bar Layout becomes the
-        // presented settings pane), just triggered from two different edges
-        // (identifier changing while already presented, vs. presented
-        // becoming true while identifier is already .menuBarLayout), so they
-        // are combined into a single Observations-Task tracking both.
+        // Refresh the image cache when the layout editor comes on screen, so
+        // it opens showing current icons rather than filling in as captures
+        // land. Upstream tracks the presented pane alongside the window's
+        // visibility, because the editor is one pane of nine; here the
+        // settings window has nothing else in it, so the window becoming
+        // visible is the same event.
         navigationStateObservationTask = Task { [weak self] in
             guard let appState = self?.appState else { return }
             let changes = Observations { [weak navigationState = appState.navigationState] in
-                (navigationState?.settingsNavigationIdentifier, navigationState?.isSettingsPresented)
+                navigationState?.isSettingsPresented
             }
-            for await (identifier, isPresented) in changes {
-                guard isPresented == true, identifier == .menuBarLayout else { continue }
+            for await isPresented in changes {
+                guard isPresented == true else { continue }
                 guard let self else { return }
                 await self.appState?.imageCache.updateCache(sections: MenuBarSection.Name.allCases)
             }

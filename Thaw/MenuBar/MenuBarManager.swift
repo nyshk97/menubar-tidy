@@ -848,11 +848,13 @@ final class MenuBarManager {
     }
 
     /// Shows the menu bar layout settings pane.
+    ///
+    /// Upstream selects the pane first, since the settings window opens on
+    /// whichever one was last shown. Here it is the only pane.
     @objc private func showMenuBarLayoutSettings() {
         guard let appState else {
             return
         }
-        appState.navigationState.settingsNavigationIdentifier = .menuBarLayout
         appState.activate(withPolicy: .regular)
         appState.openWindow(.settings)
     }

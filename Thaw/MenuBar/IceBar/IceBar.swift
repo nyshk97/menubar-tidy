@@ -520,12 +520,15 @@ private struct IceBarContentView: View {
 
     private static let diagLog = DiagLog(category: "IceBar.Content")
 
-    /// Opens the permissions settings pane, hiding the current section first.
+    /// Requests Screen Recording, hiding the current section first.
+    ///
+    /// Upstream opens its Advanced settings pane, which lists the permission
+    /// alongside a button to request it. That pane is gone, so this goes
+    /// straight to the request — which is what the user was two clicks away
+    /// from anyway.
     private func openPermissionsSettings() {
         menuBarManager.section(withName: section)?.hide()
-        appState.navigationState.settingsNavigationIdentifier = .advanced
-        appState.activate(withPolicy: .regular)
-        appState.openWindow(.settings)
+        appState.permissions.screenRecording.performRequest()
     }
 
     @ViewBuilder
@@ -537,7 +540,7 @@ private struct IceBarContentView: View {
                 Button {
                     openPermissionsSettings()
                 } label: {
-                    Text("Open \(Constants.displayName) Settings")
+                    Text("Open System Settings")
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(.link)

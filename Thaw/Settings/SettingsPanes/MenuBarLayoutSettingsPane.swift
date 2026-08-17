@@ -102,14 +102,6 @@ struct MenuBarLayoutSettingsPane: View {
                 }
             }
         }
-        .onChange(of: appState.navigationState.requestedSettingsDisclosure, initial: true) { _, _ in
-            if SettingsSearchNavigation.consumeDisclosure(
-                .advancedLayoutControls,
-                navigationState: appState.navigationState
-            ) {
-                isAdvancedExpanded = true
-            }
-        }
     }
 
     /// Both strings are reused verbatim from the existing catalog so this
@@ -234,13 +226,6 @@ struct MenuBarLayoutSettingsPane: View {
             }
         } content: {
             layoutBars
-        } footer: {
-            // Native grouped Section footer beneath the bars. Interpolated so
-            // the three translated strings flow as one wrapping paragraph
-            // instead of three fixed lines (Text + is deprecated on macOS 26;
-            // each inner Text keeps its own localization key).
-            Text("\(Text("Drag to arrange your menu bar items into different sections.")) \(Text("Move the New Items badge to choose where newly detected items will appear.")) \(Text("Items can also be arranged by ⌘ Command + dragging them in the menu bar."))")
-                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
@@ -368,10 +353,13 @@ struct MenuBarLayoutSettingsPane: View {
             Text("Menu bar layout requires screen recording permissions.")
                 .font(.title2)
 
+            // Upstream links to its Advanced pane, which lists the permission
+            // and a button to request it. That pane is gone, so send the user
+            // where the grant actually happens.
             Button {
-                appState.navigationState.settingsNavigationIdentifier = .advanced
+                appState.permissions.screenRecording.performRequest()
             } label: {
-                Text("Go to Advanced Settings")
+                Text("Open System Settings")
             }
             .buttonStyle(.link)
         }

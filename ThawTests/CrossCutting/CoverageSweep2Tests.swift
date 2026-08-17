@@ -26,9 +26,9 @@ import Testing
 /// - `ControlItemImageSet.id`, which is `hashValue` rather than the name —
 ///   worth pinning because a `List` selection keyed on it must survive two
 ///   equal sets colliding.
-/// - `NavigationIdentifier`'s *default* `localized`, which no shipping
-///   conformer uses: `SettingsNavigationIdentifier` overrides it. The
-///   default is exercised through a test-local conformer.
+/// - `NavigationIdentifier`'s *default* `localized`. No shipping conformer
+///   reaches it — the one that overrode it went with the settings sidebar —
+///   so it is exercised through a test-local conformer.
 /// - `SecondsLabel` and `GlassIconBubble`'s defaulted members.
 ///
 /// Deliberate gaps: `IceBarLocation.iceIcon`'s label interpolates
@@ -158,23 +158,13 @@ struct CoverageSweep2Tests {
     @MainActor
     @Suite("NavigationIdentifier default label")
     struct NavigationIdentifierTests {
-        /// `SettingsNavigationIdentifier` supplies its own `localized`, so
-        /// the protocol's `RawValue == String` default is only reachable
-        /// through a conformer that does not. This exists to prove the
-        /// default keeps working for the next such conformer.
+        /// The protocol's `RawValue == String` default has no shipping
+        /// caller left, so it is only reachable through a conformer declared
+        /// here. This exists to prove it keeps working for the next one.
         @Test("A String-raw conformer labels itself with its raw value")
         func defaultLocalizedUsesTheRawValue() {
             #expect(SweepNavigationIdentifier.first.localized == LocalizedStringKey("First Destination"))
             #expect(SweepNavigationIdentifier.second.localized == LocalizedStringKey("Second Destination"))
-        }
-
-        @Test("The shipping conformer overrides the default rather than inheriting it")
-        func settingsIdentifierOverridesTheDefault() {
-            // `menuBarLayout`'s raw value is its persisted name; its label is
-            // the short sidebar title. If the override were ever dropped the
-            // sidebar would start reading "Menu Bar Layout".
-            #expect(SettingsNavigationIdentifier.menuBarLayout.rawValue == "Menu Bar Layout")
-            #expect(SettingsNavigationIdentifier.menuBarLayout.localized == LocalizedStringKey("Layout"))
         }
     }
 

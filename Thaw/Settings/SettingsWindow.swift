@@ -15,7 +15,7 @@ struct SettingsWindow: Scene {
 
     var body: some Scene {
         IceWindow(id: .settings) {
-            SettingsView(appState: appState, navigationState: appState.navigationState)
+            SettingsView(appState: appState)
                 .frame(minWidth: 850, minHeight: 600)
         }
         .windowResizability(.contentSize)

@@ -42,24 +42,12 @@ nonisolated enum Constants {
 
     // MARK: - App URLs (from Info.plist)
 
-    /// Info.plist key used to configure the repository URL.
-    static let repositoryURLInfoPlistKey = "ThawRepositoryURL"
-
     /// Info.plist key used to configure the donation URL.
     static let donateURLInfoPlistKey = "ThawDonateURL"
 
     /// Info.plist key used to configure the executable URI for
     /// `MenuBarItemSpacingManager` shell commands.
     static let menuBarItemSpacingExecutableURIInfoPlistKey = "ThawMenuBarItemSpacingExecutableURI"
-
-    /// The project's GitHub repository URL.
-    static let repositoryURL: URL = requiredInfoPlistURL(repositoryURLInfoPlistKey)
-
-    /// The URL for filing issues.
-    static let issuesURL = repositoryURL.appendingPathComponent("issues")
-
-    /// The URL for downloading preview builds.
-    static let releasesURL = repositoryURL.appendingPathComponent("releases")
 
     /// The URL for sponsoring/donating.
     static let donateURL: URL = requiredInfoPlistURL(donateURLInfoPlistKey)

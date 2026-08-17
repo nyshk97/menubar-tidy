@@ -7,6 +7,7 @@
 //  Licensed under the GNU GPLv3
 
 import AXSwift6
+import LaunchAtLogin
 import SwiftUI
 
 @MainActor
@@ -83,6 +84,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         #endif
 
+        registerForLaunchAtLogin()
+
         // Warn if another menu bar manager is running.
         ConflictingAppDetector.showWarningIfNeeded()
 
@@ -107,6 +110,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if isFirstLaunch || appState.permissions.permissionsState == .missing {
             appState.openWindow(.permissions)
         }
+    }
+
+    /// Registers the app to start at login.
+    ///
+    /// Upstream exposed this as a toggle in the General settings pane; that
+    /// pane was cut down to the layout editor, taking the toggle with it and
+    /// leaving the app unable to register itself at all. A menu bar manager
+    /// that has to be launched by hand after every restart is not much of a
+    /// menu bar manager, so registration is unconditional here.
+    ///
+    /// - Important: This re-registers on every launch, so removing the app
+    ///   from System Settings' login items does not stick. There is no UI to
+    ///   turn it off — stop launching the app, or delete this call.
+    ///
+    /// `SMAppService` registers whatever bundle is running, so a debug build
+    /// registers its path inside `Build/`. Wiping that directory leaves a
+    /// login item pointing at nothing; re-register by launching a fresh build.
+    private func registerForLaunchAtLogin() {
+        guard !LaunchAtLogin.isEnabled else { return }
+        LaunchAtLogin.isEnabled = true
+        appState.diagLog.debug("Registered for launch at login")
     }
 
     func applicationShouldHandleReopen(_: NSApplication, hasVisibleWindows _: Bool) -> Bool {

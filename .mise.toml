@@ -13,6 +13,61 @@ BUNDLE_ID = "com.nyshk97.MenuBarTidy"
 # `swiftformat .` にはしない。
 SOURCES = "MenuBarItemService Shared Thaw ThawTests"
 
+# --- 開発機のセットアップ -------------------------------------------------
+
+[tasks.doctor]
+description = "この Mac で開発・リリースに必要なものが揃っているか確認する"
+# 証明書も notarize の資格情報も keychain にあり、リポジトリには入らない。
+# 開発機を移したとき欠けるのはここだけなので、まとめて見えるようにしておく。
+shell = "bash -c"
+run = '''
+set -uo pipefail
+TEAM_ID="VYDUR99LAM"
+PROFILE="${NOTARY_PROFILE:-notary}"
+status=0
+ok() { printf '  OK  %s\n' "$1"; }
+ng() { printf '  NG  %s\n      → %s\n' "$1" "$2"; status=1; }
+IDS="$(security find-identity -v -p codesigning 2>/dev/null || true)"
+
+echo "== 開発（Debug ビルド・テスト）=="
+if command -v xcodebuild > /dev/null 2>&1; then
+    ok "$(xcodebuild -version | head -1)"
+else
+    ng "Xcode がない" "Xcode 26 以上を入れて xcode-select -s で選ぶ"
+fi
+for tool in swiftformat swiftlint; do
+    if command -v "$tool" > /dev/null 2>&1; then
+        ok "$tool $("$tool" --version 2>/dev/null | tail -1)"
+    else
+        ng "$tool がない" "mise install"
+    fi
+done
+case "$IDS" in
+    *"Apple Development"*) ok "Apple Development 証明書（Debug の署名）" ;;
+    *) ng "Apple Development 証明書がない" "Xcode → Settings → Accounts でサインインする" ;;
+esac
+
+echo "== リリース =="
+case "$IDS" in
+    *"Developer ID Application"*"($TEAM_ID)"*) ok "Developer ID Application 証明書（${TEAM_ID}）" ;;
+    *) ng "Developer ID Application 証明書（${TEAM_ID}）がない" \
+          "Xcode → Settings → Accounts → Manage Certificates から取得する" ;;
+esac
+if xcrun notarytool history --keychain-profile "$PROFILE" > /dev/null 2>&1; then
+    ok "notarytool の keychain プロファイル '$PROFILE'"
+else
+    ng "notarytool の keychain プロファイル '$PROFILE' が無い/使えない" \
+       "xcrun notarytool store-credentials $PROFILE --apple-id <Apple ID> --team-id $TEAM_ID"
+fi
+if gh auth status > /dev/null 2>&1; then
+    ok "gh 認証済み（GitHub Release と homebrew-tap の更新に使う）"
+else
+    ng "gh が未認証" "gh auth login"
+fi
+
+exit "$status"
+'''
+
 # --- ビルドと実行 ---------------------------------------------------------
 
 [tasks.build]
@@ -30,7 +85,10 @@ run = 'open "$APP"'
 
 [tasks.kill]
 description = "ビルド済みアプリとテストホストの常駐を止める"
-run = 'pkill -f "menubar-tidy/Build.*MenuBar Tidy" || true'
+# パターンは作業ツリーの絶対パスから組む。チェックアウト名を決め打ちすると、
+# 別のパスに clone した開発機で何も止まらず、しかも成功したように見える。
+# インストール済みの /Applications 版を巻き込まないためにパスで絞るのは維持する。
+run = 'pkill -f "${MISE_PROJECT_ROOT:-$PWD}/$DERIVED_DATA/.*MenuBar Tidy" || true'
 
 [tasks.clean]
 description = "ビルド成果物を捨てる"
@@ -72,7 +130,7 @@ description = "テストが残す常駐プロセスと UserDefaults の汚染を
 run = '''
 set -uo pipefail
 
-pkill -f "menubar-tidy/Build.*MenuBar Tidy" || true
+pkill -f "${MISE_PROJECT_ROOT:-$PWD}/$DERIVED_DATA/.*MenuBar Tidy" || true
 
 # ShowOnHover の既定は false。1 が読めたらテストの書き込みが実ドメインに
 # 落ちている（アイコンが潰れる・空欄クリックが効かない等の原因になる）。

@@ -19,6 +19,8 @@ cd "$REPO_ROOT"
 
 APP_NAME="MenuBar Tidy"
 BUNDLE_ID="com.nyshk97.MenuBarTidy"
+TEAM_ID="VYDUR99LAM"
+NOTARY_PROFILE="${NOTARY_PROFILE:-notary}"
 GITHUB_REPO="nyshk97/menubar-tidy"
 TAP_REPO="nyshk97/homebrew-tap"
 CASK_TOKEN="menubar-tidy"
@@ -36,7 +38,7 @@ case "$BUMP" in
   minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
   patch) PATCH=$((PATCH + 1)) ;;
   [0-9]*.[0-9]*.[0-9]*) IFS='.' read -r MAJOR MINOR PATCH <<< "$BUMP" ;;
-  *) echo "不正なバージョン指定: $BUMP（patch|minor|major|x.y.z）"; exit 1 ;;
+  *) echo "不正なバージョン指定: ${BUMP}（patch|minor|major|x.y.z）"; exit 1 ;;
 esac
 NEW_VERSION="$MAJOR.$MINOR.$PATCH"
 BUILD_NUMBER="$(date +%Y%m%d%H%M%S)"
@@ -52,6 +54,30 @@ if [ -n "$(git status --porcelain)" ]; then
 fi
 if gh release view "$TAG" --repo "$GITHUB_REPO" >/dev/null 2>&1; then
   echo "❌ リリース $TAG は既に存在します。"
+  exit 1
+fi
+
+# ===== 環境の事前確認 =====
+# 署名証明書も notarize の資格情報も keychain にあり、リポジトリには入らない。
+# 開発機を移すとここだけが欠ける。先に見ておかないと、5〜10 分の Release ビルドを
+# 終えてから notarize で落ち、bump 済みの pbxproj が中途半端に残る。
+IDENTITIES="$(security find-identity -v -p codesigning 2>/dev/null || true)"
+case "$IDENTITIES" in
+  *"Developer ID Application"*"($TEAM_ID)"*) ;;
+  *) echo "❌ Developer ID Application 証明書（${TEAM_ID}）が keychain にありません。"
+     echo "   Xcode → Settings → Accounts → Manage Certificates から取得してください。"
+     exit 1 ;;
+esac
+if ! NOTARY_CHECK="$(xcrun notarytool history --keychain-profile "$NOTARY_PROFILE" 2>&1)"; then
+  echo "❌ notarize の keychain プロファイル '$NOTARY_PROFILE' が使えません:"
+  echo "$NOTARY_CHECK" | head -3
+  echo "   作成: xcrun notarytool store-credentials $NOTARY_PROFILE \\"
+  echo "           --apple-id <Apple ID> --team-id $TEAM_ID"
+  echo "   （パスワードは appleid.apple.com で発行する App 用パスワード）"
+  exit 1
+fi
+if ! gh auth status >/dev/null 2>&1; then
+  echo "❌ gh が未認証です。gh auth login を先に済ませてください。"
   exit 1
 fi
 

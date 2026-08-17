@@ -22,6 +22,25 @@
   - 本家 Thaw（`com.stonerl.Thaw` / **アンバー**アイコン）は**アンインストール済み**。
     入れ直すと同じメニューバーを奪い合うので、両方を同時に起動しないこと
 
+### 開発機を移したとき
+
+リポジトリに入っているのはビルド設定まで。**署名証明書・notarize の資格情報・`gh` の
+認証は keychain にあり、リポジトリを持ち出しても付いてこない**。新しい Mac では:
+
+```sh
+mise install     # swiftformat / swiftlint を .mise.toml のバージョンで入れる
+mise run doctor  # Xcode・証明書・notarize プロファイル・gh の過不足を一覧する
+```
+
+- Xcode → Settings → Accounts でサインインすると、`Apple Development`（Debug 用）と
+  `Developer ID Application`（Release 用）の証明書が降りてくる
+- notarize の資格情報はリリースするときだけ必要（`mise run release` の事前確認でも見る）:
+  `xcrun notarytool store-credentials notary --apple-id <Apple ID> --team-id VYDUR99LAM`。
+  パスワードは appleid.apple.com で発行する **App 用パスワード**
+- TCC（アクセシビリティ・画面収録）は Mac ごとに付け直す。バンドルIDが同じでも移行されない
+- Team ID・バンドルID・`nyshk97/*` のリポジトリ名は**アカウント側の値なので開発機を移しても
+  変えない**（変えると TCC の許可も cask の導線も切れる）
+
 ---
 
 ## 1. ビルド

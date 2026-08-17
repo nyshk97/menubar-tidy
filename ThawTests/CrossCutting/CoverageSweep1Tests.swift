@@ -27,8 +27,6 @@ import Testing
 ///   value. That decoder is the read side of a persisted format, so its
 ///   refusal path is load-bearing: silently defaulting instead of throwing
 ///   would let a corrupt appearance blob resurrect as `noShape`,
-/// - `MenuBarAppearanceConfigurationV1.hasRoundedShape` (the legacy Ice
-///   format read by `IceSettingsImporter`),
 /// - `MenuBarAppearanceConfigurationV2.current`'s dynamic/static selection.
 ///
 /// Deliberate gap: `MenuBarAppearanceConfigurationV2.current` is exercised
@@ -151,58 +149,6 @@ struct CoverageSweep1Tests {
         func rawValuesArePinned() {
             #expect(MenuBarGlassStyle.regular.rawValue == 0)
             #expect(MenuBarGlassStyle.clear.rawValue == 1)
-        }
-    }
-
-    // MARK: - MenuBarAppearanceConfigurationV1
-
-    @MainActor
-    @Suite("MenuBarAppearanceConfigurationV1.hasRoundedShape")
-    struct LegacyConfigurationTests {
-        private func configuration(
-            shapeKind: MenuBarShapeKind,
-            fullShapeInfo: MenuBarFullShapeInfo = .defaultValue,
-            splitShapeInfo: MenuBarSplitShapeInfo = .defaultValue
-        ) -> MenuBarAppearanceConfigurationV1 {
-            var configuration = MenuBarAppearanceConfigurationV1.defaultConfiguration
-            configuration.shapeKind = shapeKind
-            configuration.fullShapeInfo = fullShapeInfo
-            configuration.splitShapeInfo = splitShapeInfo
-            return configuration
-        }
-
-        private var squareFull: MenuBarFullShapeInfo {
-            MenuBarFullShapeInfo(leadingEndCap: .square, trailingEndCap: .square)
-        }
-
-        @Test("A shapeless configuration is never rounded")
-        func noShapeIsNeverRounded() {
-            // Round end caps are supplied on purpose: `noShape` must ignore
-            // them rather than read through to the full-shape info.
-            #expect(!configuration(shapeKind: .noShape, fullShapeInfo: .defaultValue).hasRoundedShape)
-        }
-
-        @Test("A full shape reads its rounding from the full shape info")
-        func fullShapeReadsFullShapeInfo() {
-            #expect(configuration(shapeKind: .full, fullShapeInfo: .defaultValue).hasRoundedShape)
-            #expect(!configuration(shapeKind: .full, fullShapeInfo: squareFull).hasRoundedShape)
-        }
-
-        @Test("A split shape reads its rounding from the split shape info")
-        func splitShapeReadsSplitShapeInfo() {
-            let squareSplit = MenuBarSplitShapeInfo(leading: squareFull, trailing: squareFull)
-            // The full-shape info is left rounded to prove the split arm does
-            // not read the wrong field.
-            #expect(configuration(shapeKind: .split, splitShapeInfo: .defaultValue).hasRoundedShape)
-            #expect(!configuration(shapeKind: .split, splitShapeInfo: squareSplit).hasRoundedShape)
-        }
-
-        /// V1 predates the notch shape entirely; the enum case exists only
-        /// because it shares `MenuBarShapeKind` with V2, so the legacy
-        /// configuration must report it as unrounded rather than guessing.
-        @Test("A notch shape is not rounded in the legacy format")
-        func notchShapeIsNeverRoundedInV1() {
-            #expect(!configuration(shapeKind: .notch).hasRoundedShape)
         }
     }
 

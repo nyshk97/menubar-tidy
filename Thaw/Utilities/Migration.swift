@@ -15,8 +15,10 @@ import Foundation
 /// Thaw has only ever read its own defaults domain — `com.stonerl.Thaw`
 /// upstream, `com.nyshk97.Thaw` in this fork — and no Thaw release wrote those
 /// older formats into it, so none of them could run.
-/// Settings that do come from Ice arrive through ``IceSettingsImporter``, which
-/// converts them as it reads them.
+///
+/// Upstream also offered to import an existing Ice install's settings on first
+/// launch. This fork removed that, so nothing written by Ice reaches here at
+/// all and no Ice-era format has a reader any more.
 @MainActor
 struct MigrationManager {
     private let diagLog = DiagLog(category: "Migration")

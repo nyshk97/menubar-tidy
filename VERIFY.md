@@ -38,6 +38,10 @@ xcodebuild -project Thaw.xcodeproj -scheme Thaw -configuration Debug -derivedDat
 - **`Executed 0 tests` は無視してよい**。XCTest 側のカウントで、このプロジェクトは swift-testing (`@Test`)。
   実数は `Test run with N tests` の行に出る
 - 落ちたテストが自分の変更由来か疑わしいときは `git stash` してベースコミットで同じテストを回す
+- **同時に2本走らせない**。同じ `-derivedDataPath` を指す `xcodebuild test` を並行起動すると、
+  2つのテストホストがビルド成果物と UserDefaults ドメインを奪い合い、片方が途中で打ち切られて
+  `TEST FAILED` を返す（実例: 2235 tests のはずが 782 tests で終了）。**コードの問題と見分けが
+  つかない**。実行前に `pgrep -c xcodebuild` で 0 を確認する。件数が想定と違ったら並行実行を疑う
 
 ### ⚠ テストの後始末（必須）
 

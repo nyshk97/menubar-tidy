@@ -15,15 +15,14 @@ import SwiftUI
 // came out of MenuBarItemManager the same way.
 //
 // Everything here is a value type or a function of its arguments: the section
-// names, the presentation modes, the notch gap, and the three rules that decide
-// how a section is shown. Covered by MenuBarSectionNameTests,
-// NotchOverflowRevealTests and MenuBarSectionGeometryTests.
+// names, the presentation modes, the notch gap, and the rules that decide how a
+// section is shown. Covered by MenuBarSectionNameTests and
+// MenuBarSectionGeometryTests.
 //
-// The AdvancedSettings-reading overload of forcesIceBarForNotchOverflow stays
-// in MenuBarSection.swift with the instance half -- show, hide, toggle,
-// updateControlItemState, and the rehide task and event monitor -- all of which
-// need a live ControlItem/NSStatusItem, an AppState and a real NSScreen. New
-// decision logic belongs here, not there.
+// The instance half -- show, hide, toggle, updateControlItemState, and the
+// rehide task and event monitor -- stays in MenuBarSection.swift, since all of
+// it needs a live ControlItem/NSStatusItem, an AppState and a real NSScreen.
+// New decision logic belongs here, not there.
 
 nonisolated extension MenuBarSection {
     /// The name of a menu bar section.
@@ -60,21 +59,6 @@ nonisolated extension MenuBarSection {
         }
     }
 
-    /// Whether notch overflow forces the Thaw Bar even though the display's own
-    /// Thaw Bar setting is off.
-    ///
-    /// Split out as a pure function so the rule is testable without a live
-    /// menu bar. Requires overflow to be enabled, the "use the Thaw Bar while
-    /// items are overflowed" preference to be on, and items to actually be
-    /// ejected right now.
-    static func forcesIceBarForNotchOverflow(
-        overflowEnabled: Bool,
-        useThawBarOnOverflow: Bool,
-        hasEjectedItems: Bool
-    ) -> Bool {
-        overflowEnabled && useThawBarOnOverflow && hasEjectedItems
-    }
-
     /// Whether the given section presents in the Thaw Bar.
     ///
     /// `displayUsesThawBar` sends every section there. `alwaysHiddenUsesThawBar`
@@ -82,9 +66,6 @@ nonisolated extension MenuBarSection {
     /// expand inline, which is the point of the setting: reaching the
     /// always-hidden items inline means expanding the hidden section too,
     /// since always-hidden items sit to the left of the hidden control item.
-    ///
-    /// Notch overflow can force the Thaw Bar on top of this; see
-    /// ``forcesIceBarForNotchOverflow(overflowEnabled:useThawBarOnOverflow:hasEjectedItems:)``.
     static func usesThawBar(
         for name: Name,
         displayUsesThawBar: Bool,

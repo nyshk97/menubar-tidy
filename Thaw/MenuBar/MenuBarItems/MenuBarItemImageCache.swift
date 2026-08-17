@@ -190,10 +190,6 @@ final class MenuBarItemImageCache: @unchecked Sendable {
     /// Storage for internal observers.
     private var cancellables = Set<AnyCancellable>()
 
-    /// Task observing `AdvancedSettings.iconRefreshInterval`, which is
-    /// `@Observable` rather than a Combine `ObservableObject`.
-    private var iconRefreshIntervalObservationTask: Task<Void, Never>?
-
     /// Task observing `AppNavigationState`'s properties (wave 3), which is
     /// `@Observable` rather than a Combine `ObservableObject`.
     private var navigationStateObservationTask: Task<Void, Never>?
@@ -253,6 +249,17 @@ final class MenuBarItemImageCache: @unchecked Sendable {
     /// Reciprocal of ``maxIconRefreshRate``.
     nonisolated static let minIconRefreshInterval: TimeInterval = 1.0 / maxIconRefreshRate
 
+    /// How often the live loop recaptures item icons, in seconds — 4fps.
+    ///
+    /// Upstream exposes this as a slider. Fixed here at what that slider
+    /// defaulted to, because the loop only runs while a panel is showing the
+    /// icons and stops when it closes: for a Thaw Bar opened to click one
+    /// item, that is a second or two. Fast enough that an animated icon
+    /// (RunCat and friends) still moves in the bar, and far below the 30fps
+    /// ceiling, which would pin a core to smooth an animation nobody watches
+    /// for long.
+    nonisolated static let iconRefreshInterval: TimeInterval = 0.25
+
     /// Minimum spacing enforced between visible-section SCK captures.
     private static let minSCKRefreshInterval: Duration = .seconds(minIconRefreshInterval)
 
@@ -267,7 +274,6 @@ final class MenuBarItemImageCache: @unchecked Sendable {
         memoryPressureSource?.cancel()
         currentUpdateTask?.cancel()
         liveRefreshTask?.cancel()
-        iconRefreshIntervalObservationTask?.cancel()
         navigationStateObservationTask?.cancel()
         averageColorInfoObservationTask?.cancel()
         itemCacheObservationTask?.cancel()
@@ -542,22 +548,6 @@ final class MenuBarItemImageCache: @unchecked Sendable {
                     self.startLiveRefreshIfNeeded()
                 }
             }
-
-            // Restart the live refresh loop when the icon refresh interval
-            // changes. `AdvancedSettings` is `@Observable` rather than a
-            // Combine `ObservableObject`, so this is observed via the
-            // `Observations` async sequence instead of `$iconRefreshInterval`.
-            let advancedSettings = appState.settings.advanced
-            iconRefreshIntervalObservationTask = Task { @MainActor [weak self] in
-                let changes = Observations { advancedSettings.iconRefreshInterval }
-                for await _ in changes {
-                    guard let self else { return }
-                    guard self.liveRefreshTask != nil else { continue }
-                    self.liveRefreshTask?.cancel()
-                    self.liveRefreshTask = nil
-                    self.startLiveRefreshIfNeeded()
-                }
-            }
         }
 
         cancellables = c
@@ -717,14 +707,7 @@ final class MenuBarItemImageCache: @unchecked Sendable {
 
         while !Task.isCancelled {
             guard let appState = self.appState else { break }
-            let interval = appState.settings.advanced.iconRefreshInterval
-            guard interval > 0 else {
-                try? await Task.sleep(for: .seconds(1))
-                continue
-            }
-            // Floor the sleep so a sub-millisecond stored interval cannot
-            // truncate to a zero-length sleep and spin the main actor.
-            try? await Task.sleep(for: .seconds(max(interval, Self.minIconRefreshInterval)))
+            try? await Task.sleep(for: .seconds(Self.iconRefreshInterval))
             guard !Task.isCancelled else { break }
 
             let nav = appState.navigationState

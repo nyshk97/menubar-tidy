@@ -122,7 +122,6 @@ struct SettingsResetterTests {
             settings.advanced.useOptionClickToShowAlwaysHiddenSection = !Defaults.DefaultValue.useOptionClickToShowAlwaysHiddenSection
             settings.advanced.useDoubleClickToShowAlwaysHiddenSection = !Defaults.DefaultValue.useDoubleClickToShowAlwaysHiddenSection
             settings.advanced.enableSecondaryContextMenuQuit = !Defaults.DefaultValue.enableSecondaryContextMenuQuit
-            settings.advanced.enableMenuBarItemOverflow = !Defaults.DefaultValue.enableMenuBarItemOverflow
             settings.advanced.useAXClickDelivery = !Defaults.DefaultValue.useAXClickDelivery
             settings.advanced.moveCursorToRevealedItem = !Defaults.DefaultValue.moveCursorToRevealedItem
             // Controls — already reset before the fix; keep them covered.
@@ -134,7 +133,6 @@ struct SettingsResetterTests {
             #expect(settings.advanced.useOptionClickToShowAlwaysHiddenSection == Defaults.DefaultValue.useOptionClickToShowAlwaysHiddenSection)
             #expect(settings.advanced.useDoubleClickToShowAlwaysHiddenSection == Defaults.DefaultValue.useDoubleClickToShowAlwaysHiddenSection)
             #expect(settings.advanced.enableSecondaryContextMenuQuit == Defaults.DefaultValue.enableSecondaryContextMenuQuit)
-            #expect(settings.advanced.enableMenuBarItemOverflow == Defaults.DefaultValue.enableMenuBarItemOverflow)
             #expect(settings.advanced.useAXClickDelivery == Defaults.DefaultValue.useAXClickDelivery)
             #expect(settings.advanced.moveCursorToRevealedItem == Defaults.DefaultValue.moveCursorToRevealedItem)
             #expect(settings.advanced.hideApplicationMenus == Defaults.DefaultValue.hideApplicationMenus)

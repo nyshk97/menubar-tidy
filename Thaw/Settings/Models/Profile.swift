@@ -102,7 +102,6 @@ nonisolated struct AdvancedSettingsSnapshot: Codable {
     var showOnHoverDelay: TimeInterval
     var tooltipDelay: TimeInterval
     var showMenuBarTooltips: Bool
-    var iconRefreshInterval: TimeInterval
     // enableDiagnosticLogging is deliberately NOT part of a profile.
     //
     // It is a diagnostic control, not a preference: a user turns it on to
@@ -120,7 +119,6 @@ nonisolated struct AdvancedSettingsSnapshot: Codable {
     // newly-written profile falls back to the default rather than failing.
     var useDoubleClickToShowAlwaysHiddenSection: Bool
     var useOptionClickToShowAlwaysHiddenSection: Bool
-    var enableMenuBarItemOverflow: Bool
     var searchSectionOrder: [String]
     var searchIncludeVisible: Bool
     var searchIncludeHidden: Bool
@@ -138,10 +136,8 @@ nonisolated struct AdvancedSettingsSnapshot: Codable {
             showOnHoverDelay: settings.showOnHoverDelay,
             tooltipDelay: settings.tooltipDelay,
             showMenuBarTooltips: settings.showMenuBarTooltips,
-            iconRefreshInterval: settings.iconRefreshInterval,
             useDoubleClickToShowAlwaysHiddenSection: settings.useDoubleClickToShowAlwaysHiddenSection,
             useOptionClickToShowAlwaysHiddenSection: settings.useOptionClickToShowAlwaysHiddenSection,
-            enableMenuBarItemOverflow: settings.enableMenuBarItemOverflow,
             searchSectionOrder: settings.searchSectionOrder.map(\.rawValue),
             searchIncludeVisible: settings.searchIncludeVisible,
             searchIncludeHidden: settings.searchIncludeHidden,
@@ -160,11 +156,9 @@ nonisolated struct AdvancedSettingsSnapshot: Codable {
         settings.showOnHoverDelay = showOnHoverDelay
         settings.tooltipDelay = tooltipDelay
         settings.showMenuBarTooltips = showMenuBarTooltips
-        settings.iconRefreshInterval = iconRefreshInterval
         // enableDiagnosticLogging intentionally untouched — see the property list.
         settings.useDoubleClickToShowAlwaysHiddenSection = useDoubleClickToShowAlwaysHiddenSection
         settings.useOptionClickToShowAlwaysHiddenSection = useOptionClickToShowAlwaysHiddenSection
-        settings.enableMenuBarItemOverflow = enableMenuBarItemOverflow
         settings.searchSectionOrder = AdvancedSettings.sanitizedSearchSectionOrder(from: searchSectionOrder)
         settings.searchIncludeVisible = searchIncludeVisible
         settings.searchIncludeHidden = searchIncludeHidden
@@ -181,10 +175,8 @@ nonisolated struct AdvancedSettingsSnapshot: Codable {
         case showOnHoverDelay
         case tooltipDelay
         case showMenuBarTooltips
-        case iconRefreshInterval
         case useDoubleClickToShowAlwaysHiddenSection
         case useOptionClickToShowAlwaysHiddenSection
-        case enableMenuBarItemOverflow
         case searchSectionOrder
         case searchIncludeVisible
         case searchIncludeHidden
@@ -201,10 +193,8 @@ nonisolated struct AdvancedSettingsSnapshot: Codable {
         showOnHoverDelay: TimeInterval,
         tooltipDelay: TimeInterval,
         showMenuBarTooltips: Bool,
-        iconRefreshInterval: TimeInterval,
         useDoubleClickToShowAlwaysHiddenSection: Bool,
         useOptionClickToShowAlwaysHiddenSection: Bool,
-        enableMenuBarItemOverflow: Bool,
         searchSectionOrder: [String],
         searchIncludeVisible: Bool,
         searchIncludeHidden: Bool,
@@ -219,10 +209,8 @@ nonisolated struct AdvancedSettingsSnapshot: Codable {
         self.showOnHoverDelay = showOnHoverDelay
         self.tooltipDelay = tooltipDelay
         self.showMenuBarTooltips = showMenuBarTooltips
-        self.iconRefreshInterval = iconRefreshInterval
         self.useDoubleClickToShowAlwaysHiddenSection = useDoubleClickToShowAlwaysHiddenSection
         self.useOptionClickToShowAlwaysHiddenSection = useOptionClickToShowAlwaysHiddenSection
-        self.enableMenuBarItemOverflow = enableMenuBarItemOverflow
         self.searchSectionOrder = searchSectionOrder
         self.searchIncludeVisible = searchIncludeVisible
         self.searchIncludeHidden = searchIncludeHidden
@@ -256,9 +244,6 @@ nonisolated struct AdvancedSettingsSnapshot: Codable {
         showMenuBarTooltips = try container.decodeIfPresent(
             Bool.self, forKey: .showMenuBarTooltips
         ) ?? Defaults.DefaultValue.showMenuBarTooltips
-        iconRefreshInterval = try container.decodeIfPresent(
-            TimeInterval.self, forKey: .iconRefreshInterval
-        ) ?? Defaults.DefaultValue.iconRefreshInterval
         // No enableDiagnosticLogging decode: the key may still be present in
         // profiles written by earlier builds and is ignored on purpose.
         useDoubleClickToShowAlwaysHiddenSection = try container.decodeIfPresent(
@@ -267,9 +252,6 @@ nonisolated struct AdvancedSettingsSnapshot: Codable {
         useOptionClickToShowAlwaysHiddenSection = try container.decodeIfPresent(
             Bool.self, forKey: .useOptionClickToShowAlwaysHiddenSection
         ) ?? Defaults.DefaultValue.useOptionClickToShowAlwaysHiddenSection
-        enableMenuBarItemOverflow = try container.decodeIfPresent(
-            Bool.self, forKey: .enableMenuBarItemOverflow
-        ) ?? Defaults.DefaultValue.enableMenuBarItemOverflow
         searchSectionOrder = try container.decodeIfPresent(
             [String].self, forKey: .searchSectionOrder
         ) ?? Defaults.DefaultValue.searchSectionOrder
@@ -509,10 +491,8 @@ nonisolated struct Profile: Codable, Identifiable {
             showOnHoverDelay: Defaults.DefaultValue.showOnHoverDelay,
             tooltipDelay: Defaults.DefaultValue.tooltipDelay,
             showMenuBarTooltips: Defaults.DefaultValue.showMenuBarTooltips,
-            iconRefreshInterval: Defaults.DefaultValue.iconRefreshInterval,
             useDoubleClickToShowAlwaysHiddenSection: Defaults.DefaultValue.useDoubleClickToShowAlwaysHiddenSection,
             useOptionClickToShowAlwaysHiddenSection: Defaults.DefaultValue.useOptionClickToShowAlwaysHiddenSection,
-            enableMenuBarItemOverflow: Defaults.DefaultValue.enableMenuBarItemOverflow,
             searchSectionOrder: Defaults.DefaultValue.searchSectionOrder,
             searchIncludeVisible: Defaults.DefaultValue.searchIncludeVisible,
             searchIncludeHidden: Defaults.DefaultValue.searchIncludeHidden,

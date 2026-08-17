@@ -33,32 +33,10 @@ final class MenuBarSection {
         let screen = screenForIceBar
         let displayID = screen?.displayID ?? CGMainDisplayID()
         let displaySettings = appState.settings.displaySettings
-        if Self.usesThawBar(
+        return Self.usesThawBar(
             for: name,
             displayUsesThawBar: displaySettings.useIceBar(for: displayID),
             alwaysHiddenUsesThawBar: displaySettings.useThawBarForAlwaysHidden(for: displayID)
-        ) {
-            return true
-        }
-        return Self.forcesIceBarForNotchOverflow(
-            settings: appState.settings.advanced,
-            hasEjectedItems: appState.itemManager.hasNotchOverflowEjectedItems
-        )
-    }
-
-    @MainActor
-    private static func forcesIceBarForNotchOverflow(
-        settings: AdvancedSettings,
-        hasEjectedItems: Bool
-    ) -> Bool {
-        // Upstream gates this on a second setting, "use the Thaw Bar while
-        // items are overflowed", which only matters to a display whose own
-        // Thaw Bar setting is off. This fork reveals through the Thaw Bar
-        // either way, so the gate is always open.
-        forcesIceBarForNotchOverflow(
-            overflowEnabled: settings.enableMenuBarItemOverflow,
-            useThawBarOnOverflow: true,
-            hasEjectedItems: hasEjectedItems
         )
     }
 
@@ -202,10 +180,6 @@ final class MenuBarSection {
             displayUsesThawBar: displaySettings.useIceBar(for: activeScreen.displayID),
             alwaysHiddenUsesThawBar: displaySettings.useThawBarForAlwaysHidden(for: activeScreen.displayID)
         )
-            || Self.forcesIceBarForNotchOverflow(
-                settings: appState.settings.advanced,
-                hasEjectedItems: appState.itemManager.hasNotchOverflowEjectedItems
-            )
 
         // only apply alwaysShowHiddenItems when mouse + active menu bar on same screen
         let alwaysShow: Bool = if let menuBarScreen = NSScreen.screenWithActiveMenuBar,

@@ -184,7 +184,6 @@ nonisolated extension Defaults {
         static let showOnHoverDelay: TimeInterval = 0.2
         static let tooltipDelay: TimeInterval = 0.5
         static let showMenuBarTooltips = false
-        static let iconRefreshInterval: TimeInterval = 0.25
         #if DEBUG
             static let enableDiagnosticLogging = true
         #else
@@ -192,7 +191,6 @@ nonisolated extension Defaults {
         #endif
         static let useOptionClickToShowAlwaysHiddenSection = false
         static let useDoubleClickToShowAlwaysHiddenSection = false
-        static let enableMenuBarItemOverflow = true
         static let useAXClickDelivery = true
 
         // MARK: Search
@@ -273,12 +271,10 @@ nonisolated extension Defaults {
         case enableSecondaryContextMenuQuit = "EnableSecondaryContextMenuQuit"
         case showOnHoverDelay = "ShowOnHoverDelay"
         case tooltipDelay = "TooltipDelay"
-        case iconRefreshInterval = "IconRefreshInterval"
         case showMenuBarTooltips = "ShowMenuBarTooltips"
         case enableDiagnosticLogging = "EnableDiagnosticLogging"
         case useOptionClickToShowAlwaysHiddenSection = "UseOptionClickToShowAlwaysHiddenSection"
         case useDoubleClickToShowAlwaysHiddenSection = "UseDoubleClickToShowAlwaysHiddenSection"
-        case enableMenuBarItemOverflow = "EnableMenuBarItemOverflow"
         case useAXClickDelivery = "UseAXClickDelivery"
 
         // MARK: Search

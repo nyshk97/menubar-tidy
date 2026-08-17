@@ -249,10 +249,8 @@ struct ProfileSnapshotLiveSettingsTests {
             settings.showOnHoverDelay = 0.75
             settings.tooltipDelay = 1.25
             settings.showMenuBarTooltips = true
-            settings.iconRefreshInterval = 2.5
             settings.useDoubleClickToShowAlwaysHiddenSection = true
             settings.useOptionClickToShowAlwaysHiddenSection = true
-            settings.enableMenuBarItemOverflow = false
             settings.searchSectionOrder = [.alwaysHidden, .visible, .hidden]
             settings.searchIncludeVisible = false
             settings.searchIncludeHidden = false
@@ -269,10 +267,8 @@ struct ProfileSnapshotLiveSettingsTests {
             #expect(snapshot.showOnHoverDelay == 0.75)
             #expect(snapshot.tooltipDelay == 1.25)
             #expect(snapshot.showMenuBarTooltips)
-            #expect(snapshot.iconRefreshInterval == 1.0)
             #expect(snapshot.useDoubleClickToShowAlwaysHiddenSection)
             #expect(snapshot.useOptionClickToShowAlwaysHiddenSection)
-            #expect(snapshot.enableMenuBarItemOverflow == false)
             // The snapshot stores raw strings so a section name this build does
             // not know still survives the profile.
             #expect(snapshot.searchSectionOrder == ["alwaysHidden", "visible", "hidden"])
@@ -297,10 +293,8 @@ struct ProfileSnapshotLiveSettingsTests {
                 showOnHoverDelay: 0.75,
                 tooltipDelay: 1.25,
                 showMenuBarTooltips: true,
-                iconRefreshInterval: 2.5,
                 useDoubleClickToShowAlwaysHiddenSection: true,
                 useOptionClickToShowAlwaysHiddenSection: true,
-                enableMenuBarItemOverflow: false,
                 searchSectionOrder: ["alwaysHidden", "hidden", "visible"],
                 searchIncludeVisible: false,
                 searchIncludeHidden: false,
@@ -318,11 +312,8 @@ struct ProfileSnapshotLiveSettingsTests {
             #expect(settings.showOnHoverDelay == 0.75)
             #expect(settings.tooltipDelay == 1.25)
             #expect(settings.showMenuBarTooltips)
-            #expect(settings.iconRefreshInterval == 1.0)
-            #expect(Defaults.double(forKey: .iconRefreshInterval) == 1.0)
             #expect(settings.useDoubleClickToShowAlwaysHiddenSection)
             #expect(settings.useOptionClickToShowAlwaysHiddenSection)
-            #expect(settings.enableMenuBarItemOverflow == false)
             #expect(settings.searchSectionOrder == [.alwaysHidden, .hidden, .visible])
             #expect(settings.searchIncludeVisible == false)
             #expect(settings.searchIncludeHidden == false)
@@ -445,10 +436,8 @@ struct ProfileSnapshotLiveSettingsTests {
             source.showOnHoverDelay = 0.6
             source.tooltipDelay = 0.9
             source.showMenuBarTooltips = true
-            source.iconRefreshInterval = 1.5
             source.useDoubleClickToShowAlwaysHiddenSection = true
             source.useOptionClickToShowAlwaysHiddenSection = true
-            source.enableMenuBarItemOverflow = false
             source.searchSectionOrder = [.hidden, .alwaysHidden, .visible]
             source.searchIncludeVisible = false
             source.searchIncludeHidden = false
@@ -467,7 +456,6 @@ struct ProfileSnapshotLiveSettingsTests {
             #expect(destination.showOnHoverDelay == source.showOnHoverDelay)
             #expect(destination.tooltipDelay == source.tooltipDelay)
             #expect(destination.showMenuBarTooltips == source.showMenuBarTooltips)
-            #expect(destination.iconRefreshInterval == source.iconRefreshInterval)
             #expect(
                 destination.useDoubleClickToShowAlwaysHiddenSection
                     == source.useDoubleClickToShowAlwaysHiddenSection
@@ -476,7 +464,6 @@ struct ProfileSnapshotLiveSettingsTests {
                 destination.useOptionClickToShowAlwaysHiddenSection
                     == source.useOptionClickToShowAlwaysHiddenSection
             )
-            #expect(destination.enableMenuBarItemOverflow == source.enableMenuBarItemOverflow)
             #expect(destination.searchSectionOrder == source.searchSectionOrder)
             #expect(destination.searchIncludeVisible == source.searchIncludeVisible)
             #expect(destination.searchIncludeHidden == source.searchIncludeHidden)

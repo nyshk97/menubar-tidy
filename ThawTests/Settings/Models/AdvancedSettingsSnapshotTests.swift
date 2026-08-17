@@ -38,10 +38,8 @@ struct AdvancedSettingsSnapshotTests {
             showOnHoverDelay: 0.2,
             tooltipDelay: 1.0,
             showMenuBarTooltips: true,
-            iconRefreshInterval: 3.0,
             useDoubleClickToShowAlwaysHiddenSection: false,
             useOptionClickToShowAlwaysHiddenSection: false,
-            enableMenuBarItemOverflow: false,
             searchSectionOrder: ["visible", "hidden", "alwaysHidden"],
             searchIncludeVisible: true,
             searchIncludeHidden: true,
@@ -59,10 +57,8 @@ struct AdvancedSettingsSnapshotTests {
             showOnHoverDelay: 0.5,
             tooltipDelay: 2.0,
             showMenuBarTooltips: false,
-            iconRefreshInterval: 5.0,
             useDoubleClickToShowAlwaysHiddenSection: true,
             useOptionClickToShowAlwaysHiddenSection: true,
-            enableMenuBarItemOverflow: true,
             searchSectionOrder: ["alwaysHidden", "hidden", "visible"],
             searchIncludeVisible: false,
             searchIncludeHidden: true,
@@ -83,7 +79,6 @@ struct AdvancedSettingsSnapshotTests {
         #expect(snapshot.showOnHoverDelay == 0.2)
         #expect(snapshot.tooltipDelay == 1.0)
         #expect(snapshot.showMenuBarTooltips)
-        #expect(snapshot.iconRefreshInterval == 3.0)
         #expect(!snapshot.useDoubleClickToShowAlwaysHiddenSection)
     }
 
@@ -98,7 +93,6 @@ struct AdvancedSettingsSnapshotTests {
         #expect(snapshot.showOnHoverDelay == 0.5)
         #expect(snapshot.tooltipDelay == 2.0)
         #expect(!snapshot.showMenuBarTooltips)
-        #expect(snapshot.iconRefreshInterval == 5.0)
         #expect(snapshot.useDoubleClickToShowAlwaysHiddenSection)
     }
 
@@ -118,7 +112,6 @@ struct AdvancedSettingsSnapshotTests {
         #expect(decoded.showOnHoverDelay == original.showOnHoverDelay)
         #expect(decoded.tooltipDelay == original.tooltipDelay)
         #expect(decoded.showMenuBarTooltips == original.showMenuBarTooltips)
-        #expect(decoded.iconRefreshInterval == original.iconRefreshInterval)
         #expect(decoded.useDoubleClickToShowAlwaysHiddenSection == original.useDoubleClickToShowAlwaysHiddenSection)
     }
 
@@ -136,7 +129,6 @@ struct AdvancedSettingsSnapshotTests {
         #expect(decoded.showOnHoverDelay == 0.5)
         #expect(decoded.tooltipDelay == 2.0)
         #expect(decoded.showMenuBarTooltips == false)
-        #expect(decoded.iconRefreshInterval == 5.0)
         #expect(decoded.useDoubleClickToShowAlwaysHiddenSection == true)
     }
 
@@ -156,7 +148,6 @@ struct AdvancedSettingsSnapshotTests {
             "showOnHoverDelay": 0.2,
             "tooltipDelay": 1.0,
             "showMenuBarTooltips": false,
-            "iconRefreshInterval": 3.0,
             "enableDiagnosticLogging": false
         }
         """.data(using: .utf8)!
@@ -240,23 +231,19 @@ struct AdvancedSettingsSnapshotTests {
     @Test("A zero icon refresh interval round-trips")
     func zeroIconRefreshInterval() throws {
         var snapshot = makeDefaultSnapshot()
-        snapshot.iconRefreshInterval = 0
 
         let data = try encoder.encode(snapshot)
         let decoded = try decoder.decode(AdvancedSettingsSnapshot.self, from: data)
 
-        #expect(decoded.iconRefreshInterval == 0)
     }
 
     @Test("A large icon refresh interval round-trips")
     func largeIconRefreshInterval() throws {
         var snapshot = makeDefaultSnapshot()
-        snapshot.iconRefreshInterval = 60.0
 
         let data = try encoder.encode(snapshot)
         let decoded = try decoder.decode(AdvancedSettingsSnapshot.self, from: data)
 
-        #expect(decoded.iconRefreshInterval == 60.0)
     }
 
     @Test("Fractional delays round-trip within tolerance")
@@ -264,14 +251,12 @@ struct AdvancedSettingsSnapshotTests {
         var snapshot = makeDefaultSnapshot()
         snapshot.showOnHoverDelay = 0.15
         snapshot.tooltipDelay = 0.75
-        snapshot.iconRefreshInterval = 2.5
 
         let data = try encoder.encode(snapshot)
         let decoded = try decoder.decode(AdvancedSettingsSnapshot.self, from: data)
 
         #expect(abs(decoded.showOnHoverDelay - 0.15) < 0.001)
         #expect(abs(decoded.tooltipDelay - 0.75) < 0.001)
-        #expect(abs(decoded.iconRefreshInterval - 2.5) < 0.001)
     }
 
     // MARK: - Boolean Combinations
@@ -287,10 +272,8 @@ struct AdvancedSettingsSnapshotTests {
             showOnHoverDelay: 0,
             tooltipDelay: 0,
             showMenuBarTooltips: false,
-            iconRefreshInterval: 0,
             useDoubleClickToShowAlwaysHiddenSection: false,
             useOptionClickToShowAlwaysHiddenSection: false,
-            enableMenuBarItemOverflow: false,
             searchSectionOrder: ["visible", "hidden", "alwaysHidden"],
             searchIncludeVisible: false,
             searchIncludeHidden: false,
@@ -323,10 +306,8 @@ struct AdvancedSettingsSnapshotTests {
             showOnHoverDelay: 0,
             tooltipDelay: 0,
             showMenuBarTooltips: true,
-            iconRefreshInterval: 0,
             useDoubleClickToShowAlwaysHiddenSection: true,
             useOptionClickToShowAlwaysHiddenSection: true,
-            enableMenuBarItemOverflow: true,
             searchSectionOrder: ["visible", "hidden", "alwaysHidden"],
             searchIncludeVisible: true,
             searchIncludeHidden: true,
@@ -377,7 +358,6 @@ struct AdvancedSettingsSnapshotTests {
             "showOnHoverDelay": 0.2,
             "tooltipDelay": 1.0,
             "showMenuBarTooltips": false,
-            "iconRefreshInterval": 3.0,
             "enableDiagnosticLogging": false
         }
         """.data(using: .utf8)!
@@ -423,7 +403,6 @@ struct AdvancedSettingsSnapshotTests {
             "showOnHoverDelay": 0.2,
             "tooltipDelay": 1.0,
             "showMenuBarTooltips": false,
-            "iconRefreshInterval": 3.0,
             "enableDiagnosticLogging": true
         }
         """.data(using: .utf8)!
@@ -434,7 +413,6 @@ struct AdvancedSettingsSnapshotTests {
 
         #expect(decoded.enableAlwaysHiddenSection)
         #expect(decoded.hideApplicationMenus)
-        #expect(decoded.iconRefreshInterval == 3.0)
     }
 
     /// The key must not come back on the way out either: a profile saved by

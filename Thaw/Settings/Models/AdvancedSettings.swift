@@ -100,23 +100,6 @@ final class AdvancedSettings {
         }
     }
 
-    /// The interval between icon image refreshes in panels (Thaw Bar, search, layout).
-    ///
-    /// Always held on the discrete grid the "Icon refresh rate" slider can
-    /// express: `0` (Off) or `1/n` for `n` in `1...maxIconRefreshRate`. Writes
-    /// from the slider, URI, profiles, and Defaults load are all snapped here
-    /// so the UI and the live-refresh loop never disagree.
-    var iconRefreshInterval = Defaults.DefaultValue.iconRefreshInterval {
-        didSet {
-            let normalized = Self.normalizedIconRefreshInterval(iconRefreshInterval)
-            let didNormalize = iconRefreshInterval != normalized
-            if didNormalize {
-                iconRefreshInterval = normalized
-            }
-            guard didNormalize || oldValue != iconRefreshInterval else { return }
-            Defaults.set(iconRefreshInterval, forKey: .iconRefreshInterval)
-        }
-    }
 
     /// Snaps an icon-refresh interval onto the values the slider can express.
     ///
@@ -146,15 +129,6 @@ final class AdvancedSettings {
         }
     }
 
-    /// A Boolean value that controls whether profile-apply overflows menu bar
-    /// items from visible to hidden when they don't fit on a notched display.
-    /// Only affects notched displays; non-notched displays never use this path.
-    var enableMenuBarItemOverflow = Defaults.DefaultValue.enableMenuBarItemOverflow {
-        didSet {
-            guard oldValue != enableMenuBarItemOverflow else { return }
-            Defaults.set(enableMenuBarItemOverflow, forKey: .enableMenuBarItemOverflow)
-        }
-    }
 
     /// A Boolean value that controls whether left-clicks on menu bar items
     /// from the IceBar are delivered via an accessibility action (AXShowMenu,
@@ -246,9 +220,7 @@ final class AdvancedSettings {
         Defaults.ifPresent(key: .showOnHoverDelay, assign: &showOnHoverDelay)
         Defaults.ifPresent(key: .tooltipDelay, assign: &tooltipDelay)
         Defaults.ifPresent(key: .showMenuBarTooltips, assign: &showMenuBarTooltips)
-        Defaults.ifPresent(key: .iconRefreshInterval, assign: &iconRefreshInterval)
         Defaults.ifPresent(key: .enableDiagnosticLogging, assign: &enableDiagnosticLogging)
-        Defaults.ifPresent(key: .enableMenuBarItemOverflow, assign: &enableMenuBarItemOverflow)
         Defaults.ifPresent(key: .useAXClickDelivery, assign: &useAXClickDelivery)
         Defaults.ifPresent(key: .searchIncludeVisible, assign: &searchIncludeVisible)
         Defaults.ifPresent(key: .searchIncludeHidden, assign: &searchIncludeHidden)

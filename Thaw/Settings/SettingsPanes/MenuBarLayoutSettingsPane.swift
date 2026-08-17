@@ -17,8 +17,6 @@ struct MenuBarLayoutSettingsPane: View {
     @State private var isResettingLayout = false
     @State private var resetStatus: ResetStatus?
     @State private var isConfirmingReset = false
-    @State private var maxSliderLabelWidth: CGFloat = 0
-    @State private var isAdvancedExpanded = false
 
     /// Bumped whenever the screen the editor reflects may have changed, so
     /// the display title above the bars re-evaluates. Screen parameters cover
@@ -44,8 +42,6 @@ struct MenuBarLayoutSettingsPane: View {
         } else {
             IceForm {
                 layoutBarsSection
-                iconPreviewsCard
-                advancedLayoutControlsCard
                 resetControls
             }
             .onAppear {
@@ -75,67 +71,7 @@ struct MenuBarLayoutSettingsPane: View {
         }
     }
 
-    private var iconPreviewsCard: some View {
-        IceSection("Icon previews") {
-            iconRefreshInterval
-        }
-    }
 
-    private var advancedLayoutControlsCard: some View {
-        IceSection {
-            DisclosureGroup("Advanced layout controls", isExpanded: $isAdvancedExpanded) {
-                enableMenuBarItemOverflow
-            }
-        }
-    }
-
-    private var enableMenuBarItemOverflow: some View {
-        Toggle(
-            "Enable menu bar item overflow",
-            isOn: $advancedSettings.enableMenuBarItemOverflow
-        )
-        .annotation {
-            Text(
-                """
-                Move menu bar items from the visible section into the hidden \
-                section when they don't fit beside the notch on a notched \
-                display. Disable to keep the saved profile layout exactly as \
-                authored even when items would otherwise be pushed under the \
-                notch.
-                """
-            )
-            .padding(.trailing, 75)
-        }
-    }
-
-    private var iconRefreshInterval: some View {
-        let maxFPS = MenuBarItemImageCache.maxIconRefreshRate
-        let fpsBinding = Binding<Double>(
-            get: {
-                let interval = advancedSettings.iconRefreshInterval
-                return interval > 0 ? 1.0 / interval : 0
-            },
-            set: { advancedSettings.iconRefreshInterval = $0 > 0 ? 1.0 / $0 : 0 }
-        )
-        return LabeledContent {
-            IceSlider(
-                value: fpsBinding,
-                in: 0 ... maxFPS,
-                step: 1
-            ) {
-                Text(fpsBinding.wrappedValue > 0
-                    ? "\(Int(fpsBinding.wrappedValue)) fps"
-                    : "Off")
-            }
-        } label: {
-            Text("Icon refresh rate")
-                .frame(minWidth: maxSliderLabelWidth, alignment: .leading)
-                .onFrameChange { frame in
-                    maxSliderLabelWidth = max(maxSliderLabelWidth, frame.width)
-                }
-        }
-        .annotation("How often animated menu bar icons are refreshed in panels. Higher values are smoother but use more CPU.")
-    }
 
     /// The name of the display whose layout the bars below are showing.
     ///

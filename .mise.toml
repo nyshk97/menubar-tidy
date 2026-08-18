@@ -88,10 +88,12 @@ run = 'open "$APP"'
 
 [tasks.kill]
 description = "ビルド済みアプリとテストホストの常駐を止める"
-# パターンは作業ツリーの絶対パスから組む。チェックアウト名を決め打ちすると、
-# 別のパスに clone した開発機で何も止まらず、しかも成功したように見える。
+# パターンは作業ツリーの絶対パスと $APP から組む。チェックアウト名やアプリ名を
+# 決め打ちすると、別のパスに clone した開発機や PRODUCT_NAME を変えた後に何も
+# 止まらず、しかも成功したように見える（実際 dev 版へのリネーム後、"MenuBar Tidy"
+# 決め打ちのままで dev 版が止まらず常用版と同時起動になった）。
 # インストール済みの /Applications 版を巻き込まないためにパスで絞るのは維持する。
-run = 'pkill -f "${MISE_PROJECT_ROOT:-$PWD}/$DERIVED_DATA/.*MenuBar Tidy" || true'
+run = 'pkill -f "${MISE_PROJECT_ROOT:-$PWD}/$APP/" || true'
 
 [tasks.clean]
 description = "ビルド成果物を捨てる"
@@ -133,7 +135,7 @@ description = "テストが残す常駐プロセスと UserDefaults の汚染を
 run = '''
 set -uo pipefail
 
-pkill -f "${MISE_PROJECT_ROOT:-$PWD}/$DERIVED_DATA/.*MenuBar Tidy" || true
+pkill -f "${MISE_PROJECT_ROOT:-$PWD}/$APP/" || true
 
 # ShowOnHover の既定は false。1 が読めたらテストの書き込みが実ドメインに
 # 落ちている（アイコンが潰れる・空欄クリックが効かない等の原因になる）。

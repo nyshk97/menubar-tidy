@@ -200,9 +200,18 @@ Wi-Fi 17x12.5pt / バッテリー 16x12pt に対して TidyBar は 14.7x11pt）�
 自動化できない。**権限付与は System Settings の手動操作が必須**で、合成クリックでの検証は
 ユーザーの実メニューバーを壊すリスクがある。
 
+起動と片付けは mise タスクで済む。**常用版と同時に動かさない**ので、先に常用版を止める:
+
 ```sh
-open "Build/Build/Products/Debug/MenuBarTidy-dev.app"
+osascript -e 'tell application "MenuBar Tidy" to quit'  # 常用版（/Applications）を止める
+mise run run                                            # kill → build → open（dev 版）
+mise run kill && open -a "MenuBar Tidy"                 # dev 版を止めて常用版に戻す
 ```
+
+`mise run kill` は `$APP` の**絶対パス**で pkill する。アプリ名を決め打ちすると
+`PRODUCT_NAME` を変えた後に何も止まらないのに成功して見える（dev 版へのリネーム後に
+実際に起き、dev と常用版の同時起動になった）。止まったかは `pgrep -lf MenuBarTidy-dev`
+で確かめる（何も出ないのが正）。
 
 初回は アクセシビリティ と 画面収録 の両方を許可する。**どちらも必須**で、片方でも欠けると
 権限画面が出て「続ける」が押せない（§7 の検証手順を参照）。

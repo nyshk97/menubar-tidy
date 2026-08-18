@@ -23,9 +23,13 @@ struct SettingsView: View {
             itemManager: appState.itemManager,
             advancedSettings: appState.settings.advanced
         )
-        .navigationTitle("メニューバーのレイアウト")
+        // No `navigationTitle`: with a single pane, naming the pane says nothing
+        // the content does not, and the window falls back to the scene title
+        // (`IceWindowIdentifier.title` = the app's display name), which is what
+        // identifies the window in Mission Control and the Window menu.
+        //
         // The window is the only place the app surfaces itself, so the running
         // version belongs where it is visible without hunting for it.
-        .navigationSubtitle("バージョン \(Constants.versionString)")
+        .navigationSubtitle("ver \(Constants.versionString)")
     }
 }

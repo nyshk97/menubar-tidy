@@ -44,6 +44,8 @@ MenuBar Tidy の更新履歴。形式は [Keep a Changelog](https://keepachangel
 
 ## [Unreleased]
 
+## [1.0.7] - 2026-08-21
+
 ### ✨ Added
 - アップデートの確認ダイアログに、そのバージョンの変更内容を表示
 

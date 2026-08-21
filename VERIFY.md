@@ -145,6 +145,27 @@ swift scripts/list-menu-bar-items.swift
 | `Thaw.ControlItem.Visible` が幅 **1** | `hideIceIconCompletely()` が走った ＝ `ShowIceIcon` が false |
 | 同名の control item が2つ | `recreateStatusItem` の過渡状態。数秒待って撮り直す |
 
+### ログイン項目の登録状態
+
+常用版だけが登録され、dev 版は登録されていない（または解除済み）ことの確認。
+`sfltool dumpbtm` は管理者パスワードのプロンプトで止まるので、BTM の DB を直接読む:
+
+```sh
+python3 - <<'PY'
+import plistlib
+d=plistlib.load(open('/private/var/db/com.apple.backgroundtaskmanagement/BackgroundItems-v16.btm','rb'))
+o=d['$objects']
+for x in o:
+    if isinstance(x,dict) and 'MenuBarTidy' in str(x.get('bundleIdentifier','')):
+        print(x['bundleIdentifier'], 'disposition=', x['disposition'])
+PY
+```
+
+`disposition` は bit0 が enabled。常用版 `11`（有効）、dev 版 `10` or 記録なし が正。
+dev 版が `11` なら古いビルドが登録している ＝ 再起動で二重起動してメニューバーが消える。
+現在の dev 版は起動時に自分の登録を解除するので、`mise run run` で直る。
+
+
 ---
 
 ## 4. アイコンと表示名

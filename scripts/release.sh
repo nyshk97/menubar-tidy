@@ -2,12 +2,15 @@
 # MenuBar Tidy リリーススクリプト
 # 使い方: ./scripts/release.sh [patch|minor|major|<x.y.z>]   （省略時は patch）
 #
+# 0. docs/CHANGELOG.md の [Unreleased] に内容があることを確認（空なら止める）
 # 1. project.pbxproj の MARKETING_VERSION を bump（CURRENT_PROJECT_VERSION はタイムスタンプ）
+#    CHANGELOG の [Unreleased] を [<version>] - <date> に切り出し、同じ commit に含める
 # 2. make-release-zip.sh で Release ビルド + 配布要件の検証 + zip 化
 # 3. notarize.sh で notarize + staple
 # 4. zip に Sparkle の EdDSA 署名を付けて dist/appcast.xml を生成
 # 5. バージョン更新を commit して main に push
 # 6. GitHub Release（v<version>）を作成し zip と appcast.xml を添付
+#    （ノートは CHANGELOG の [<version>] セクション。appcast の <description> にも同じ内容）
 #    （SUFeedURL は releases/latest/download/appcast.xml。asset の実ファイル名で URL が決まる）
 # 7. nyshk97/homebrew-tap の Casks/menubar-tidy.rb を作成/更新
 # 8. ローカルの tap を同期
@@ -17,8 +20,9 @@
 # push までに失敗したら trap がその commit を巻き戻すので、remote には何も反映されず
 # 作業ツリーも実行前の状態に戻る。
 #
-# notarytool と Sparkle の署名鍵は keychain にある。`No Keychain password item found` で
-# 落ちるときは画面ロック中が典型（data-protection keychain はロック中に読めない）。
+# notarytool と Sparkle の署名鍵は keychain にある。data-protection keychain は画面ロック中に
+# 読めないので、preflight でロック状態を見て着手前に止める（Claude Code のセッションから
+# 叩いてよい。submit の数分間にロックされないことだけが条件）。
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -38,6 +42,7 @@ PBXPROJ="Thaw.xcodeproj/project.pbxproj"
 SPARKLE_ACCOUNT="menubar-tidy"
 SIGN_UPDATE="$REPO_ROOT/Build/SourcePackages/artifacts/sparkle/Sparkle/bin/sign_update"
 APPCAST="$REPO_ROOT/dist/appcast.xml"
+CHANGELOG_PY="$REPO_ROOT/scripts/changelog.py"
 
 # ===== バージョン計算 =====
 CURRENT_VERSION="$(grep -m1 'MARKETING_VERSION = ' "$PBXPROJ" | sed 's/.*MARKETING_VERSION = //' | tr -d '";' | tr -d ' ')"
@@ -66,6 +71,15 @@ if [ -n "$(git status --porcelain)" ]; then
 fi
 if gh release view "$TAG" --repo "$GITHUB_REPO" >/dev/null 2>&1; then
   echo "❌ リリース $TAG は既に存在します。"
+  exit 1
+fi
+# [Unreleased] が空なら止める。リリースノートはここからしか作らない。
+python3 "$CHANGELOG_PY" check
+# 画面ロック中は notarytool の資格情報（data-protection keychain）が読めない。
+# submit に数分かかるので、始める前に止める。
+CONSOLE_LOCKED="$(ioreg -n Root -d1 -a 2>/dev/null | plutil -extract IOConsoleLocked raw -o - - 2>/dev/null || true)"
+if [ "$CONSOLE_LOCKED" = "true" ]; then
+  echo "❌ 画面がロックされています。notarize の資格情報が読めないので、解除してから実行してください。"
   exit 1
 fi
 
@@ -106,7 +120,8 @@ fi
 # ===== バージョン更新（ローカル commit。push は notarize 後）=====
 sed -i '' "s/MARKETING_VERSION = .*/MARKETING_VERSION = $NEW_VERSION;/" "$PBXPROJ"
 sed -i '' "s/CURRENT_PROJECT_VERSION = .*/CURRENT_PROJECT_VERSION = $BUILD_NUMBER;/" "$PBXPROJ"
-git add "$PBXPROJ"
+python3 "$CHANGELOG_PY" release "$NEW_VERSION" "$(date +%Y-%m-%d)"
+git add "$PBXPROJ" docs/CHANGELOG.md
 git commit -q -m "chore: bump version to $TAG"
 BUMP_PUSHED=0
 # 事前チェックで作業ツリーがクリーンなことは確認済みなので、--hard で戻しても
@@ -134,6 +149,9 @@ case "$ED_ATTRS" in
   *sparkle:edSignature=*) ;;
   *) echo "❌ sign_update の出力が想定外です: $ED_ATTRS"; exit 1 ;;
 esac
+RELEASE_NOTES_MD="$REPO_ROOT/dist/release-notes-$NEW_VERSION.md"
+SPARKLE_DESC_HTML="$REPO_ROOT/dist/sparkle-description-$NEW_VERSION.html"
+python3 "$CHANGELOG_PY" notes "$NEW_VERSION" "$RELEASE_NOTES_MD" "$SPARKLE_DESC_HTML"
 PUBDATE="$(LC_ALL=C date -u "+%a, %d %b %Y %H:%M:%S +0000")"
 DOWNLOAD_URL="https://github.com/$GITHUB_REPO/releases/download/$TAG/MenuBarTidy-$NEW_VERSION.zip"
 RELEASE_URL="https://github.com/$GITHUB_REPO/releases/tag/$TAG"
@@ -151,6 +169,9 @@ cat > "$APPCAST" <<APPCAST_EOF
       <sparkle:shortVersionString>$NEW_VERSION</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
       <sparkle:fullReleaseNotesLink>$RELEASE_URL</sparkle:fullReleaseNotesLink>
+      <description><![CDATA[
+$(cat "$SPARKLE_DESC_HTML")
+]]></description>
       <enclosure url="$DOWNLOAD_URL" $ED_ATTRS type="application/octet-stream"/>
     </item>
   </channel>
@@ -168,7 +189,7 @@ echo "🚀 GitHub Release を作成中..."
 gh release create "$TAG" "$DIST_ZIP" "$APPCAST" \
   --repo "$GITHUB_REPO" \
   --title "$TAG" \
-  --generate-notes
+  --notes-file "$RELEASE_NOTES_MD"
 
 # ===== Cask 更新（nyshk97/homebrew-tap）=====
 echo "🍺 Cask $CASK_PATH を更新中..."

@@ -398,9 +398,18 @@ macOS 側の制約がある。ミラーリングを止めてから確認する�
 mise run release            # patch bump。minor / major / x.y.z も指定できる
 ```
 
+**リリースノートは `docs/CHANGELOG.md` の `[Unreleased]` から作る**（GitHub Release の本文と Sparkle の
+更新ダイアログの両方）。叩く前にセッションが `git log <前回タグ>..HEAD` を読んで `[Unreleased]` を埋めて
+commit する（書き方は CHANGELOG 冒頭）。空のまま叩くと事前チェックで止まる。`release.sh` が
+`[Unreleased]` → `[x.y.z] - 日付` に切り出し、bump と同じ commit に含める。
+
+事前チェックの回帰確認（本物を叩かずに）: `python3 scripts/changelog.py check` が `[Unreleased]` 空で
+exit 1、`release` / `notes` はスクラッチにコピーした CHANGELOG で試せる（書き方セクションのコード例にある
+`## [Unreleased]` を拾わないこと＝フェンス内を無視していることまで見る）。
+
 **Claude Code のセッションから直接叩ける**（v1.0.6 で実証。notarytool も Sparkle の署名鍵も keychain から
 読めた）。途中で失敗すると bump commit は trap で巻き戻るので、失敗しても remote は汚れない。
-`No Keychain password item found` で落ちたら画面ロック中を疑う。
+画面ロック中は事前チェック（`IOConsoleLocked`）で止まる。
 
 内訳（個別にも回せる）:
 

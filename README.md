@@ -46,8 +46,9 @@ tree.
 brew install nyshk97/tap/menubar-tidy
 ```
 
-Releases are notarized `.zip`s built from this tree; there is no auto-update, so
-a new version arrives when the cask does.
+Releases are notarized `.zip`s built from this tree. The app checks for updates
+itself (Sparkle) and the cask follows; what changed in each version is in
+[docs/CHANGELOG.md](docs/CHANGELOG.md).
 
 ## Build
 

@@ -74,7 +74,24 @@ esac
 codesign --verify --deep --strict "$APP" || fail=1
 [ "$fail" -eq 0 ] || exit 1
 
-VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP/Contents/Info.plist")
+# Sparkle の配信先は Info-Release.plist（アプリが見に行く先）と release.sh（appcast を
+# 置く先）の 2 箇所にある。ここで成果物の plist を読んで突き合わせ、乖離したビルドを
+# 配布しない。FEED_URL は release.sh と同じ既定値で、環境変数で上書きできる。
+FEED_URL="${FEED_URL:-https://github.com/nyshk97/menubar-tidy/releases/latest/download/appcast.xml}"
+PLIST="$APP/Contents/Info.plist"
+built_feed=$(/usr/libexec/PlistBuddy -c "Print :SUFeedURL" "$PLIST" 2>/dev/null || true)
+if [ "$built_feed" != "$FEED_URL" ]; then
+    echo "NG: SUFeedURL が配信先と一致しない"
+    echo "    plist : ${built_feed:-（無し）}"
+    echo "    期待値: $FEED_URL"
+    exit 1
+fi
+built_key=$(/usr/libexec/PlistBuddy -c "Print :SUPublicEDKey" "$PLIST" 2>/dev/null || true)
+case "$built_key" in
+    ""|*PLACEHOLDER*) echo "NG: SUPublicEDKey が未設定: '${built_key}'"; exit 1 ;;
+esac
+
+VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$PLIST")
 mkdir -p dist
 ZIP="dist/MenuBarTidy-$VERSION.zip"
 /bin/rm -f "$ZIP" 2>/dev/null || true

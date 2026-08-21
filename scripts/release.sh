@@ -17,8 +17,8 @@
 # push までに失敗したら trap がその commit を巻き戻すので、remote には何も反映されず
 # 作業ツリーも実行前の状態に戻る。
 #
-# 実行は自分の Terminal から。Claude Code の Bash からだと notarytool が keychain に
-# 届かず、資格情報があるのに「プロファイルが無い」で落ちる。
+# notarytool と Sparkle の署名鍵は keychain にある。`No Keychain password item found` で
+# 落ちるときは画面ロック中が典型（data-protection keychain はロック中に読めない）。
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -29,6 +29,8 @@ BUNDLE_ID="com.nyshk97.MenuBarTidy"
 TEAM_ID="VYDUR99LAM"
 NOTARY_PROFILE="${NOTARY_PROFILE:-nyshk97-notary}"
 GITHUB_REPO="nyshk97/menubar-tidy"
+# アプリが見に行く feed。make-release-zip.sh が成果物の SUFeedURL と突き合わせる。
+export FEED_URL="https://github.com/$GITHUB_REPO/releases/latest/download/appcast.xml"
 TAP_REPO="nyshk97/homebrew-tap"
 CASK_TOKEN="menubar-tidy"
 CASK_PATH="Casks/${CASK_TOKEN}.rb"
@@ -234,5 +236,5 @@ echo ""
 echo "✅ リリース完了: $TAG"
 echo "   asset : https://github.com/$GITHUB_REPO/releases/download/$TAG/MenuBarTidy-$NEW_VERSION.zip"
 echo "   sha256: $SHA256"
-echo "   feed  : https://github.com/$GITHUB_REPO/releases/latest/download/appcast.xml"
+echo "   feed  : $FEED_URL"
 echo "   cask  : $TAP_REPO $CASK_PATH"

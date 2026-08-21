@@ -69,6 +69,15 @@ if [ -n "$(git status --porcelain)" ]; then
   git status --short
   exit 1
 fi
+# 複数マシンで開発しているので、ローカルの main は別クローンからのリリースで平気で遅れる。
+# 遅れたまま bump すると同じバージョンを二重に切る（translate で実際に踏んだ）。
+git fetch -q origin --tags
+if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then
+  echo "❌ HEAD が origin/main と一致しません（pull 忘れ / push 忘れ）。"
+  echo "   local : $(git rev-parse --short HEAD)"
+  echo "   origin: $(git rev-parse --short origin/main)"
+  exit 1
+fi
 if gh release view "$TAG" --repo "$GITHUB_REPO" >/dev/null 2>&1; then
   echo "❌ リリース $TAG は既に存在します。"
   exit 1

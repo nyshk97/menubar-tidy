@@ -132,7 +132,7 @@ Sparkle 2 を使う。配信形態は keyrc 型（ソース repo の GitHub Rele
 ### リリース v1.0.5 で本番検証 [人間👨‍💻 + AI🤖]
 - [x] 小さな変更（VERIFY.md の追記など）で `mise run release`
 - [x] 1.0.4 を起動したまま「アップデートを確認」→ 1.0.5 のダイアログ → インストール → 再起動後に `ver 1.0.5`
-- [ ] 起動時の自動確認でもダイアログが出る（未確認。次のリリース時に、旧版を起動し直して自然に出るかを見る）
+- [x] 起動時の自動確認でもダイアログが出る（v1.0.6 で確認。`SULastCheckTime` を戻して 1.0.5 を再起動 → 「ソフトウェア・アップデート」ウィンドウ）
 - [x] 結果を VERIFY.md §8 に反映
 
 ## ログ
@@ -143,6 +143,9 @@ Sparkle 2 を使う。配信形態は keyrc 型（ソース repo の GitHub Rele
   bump をビルド前にローカル commit し、失敗時は trap で巻き戻す形に変更（1.0.5 の変更内容）
 - 2026-08-21: v1.0.5 で本番検証 pass。1.0.4 からメニュー・設定画面の両方で「1.0.5 が入手できます」→ DL →
   署名検証「インストールできます」→ インストールして再起動 → /Applications が 1.0.5、新プロセス 22:15:31 起動、spctl accepted
+- 2026-08-21: v1.0.6 を **Claude Code のセッションから `mise run release` で無人リリース**できた。「Claude Code の Bash からは
+  keychain に届かない」は今は当てはまらない（典型原因は画面ロック中）。起動時の自動チェックは前回確認から 24h 以上
+  経っていないと走らないので、`SULastCheckTime` を戻して検証した
 - 2026-08-21: `INFOPLIST_KEY_SUFeedURL` 等は **生成 plist に入らない**（Xcode は既知のキーしか `INFOPLIST_KEY_*` で受けない。
   Release ビルドして PlistBuddy で確認して判明）。Release 構成だけ `INFOPLIST_FILE = Thaw/Resources/Info-Release.plist` に
   切り替える方式に変更。dev 版に無い・Release に有るを両方 PlistBuddy で確認

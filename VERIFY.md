@@ -398,6 +398,10 @@ macOS 側の制約がある。ミラーリングを止めてから確認する�
 mise run release            # patch bump。minor / major / x.y.z も指定できる
 ```
 
+**Claude Code のセッションから直接叩ける**（v1.0.6 で実証。notarytool も Sparkle の署名鍵も keychain から
+読めた）。途中で失敗すると bump commit は trap で巻き戻るので、失敗しても remote は汚れない。
+`No Keychain password item found` で落ちたら画面ロック中を疑う。
+
 内訳（個別にも回せる）:
 
 | 手順 | コマンド | 何を確かめるか |
@@ -449,6 +453,15 @@ spctl --assess --type execute -vv "/tmp/mbt-check/MenuBar Tidy.app"   # → Nota
 - `release.sh` は bump を**ビルド前にローカル commit** し、push は notarize 後。途中で失敗すると trap が
   その commit を `git reset --hard HEAD~1` で巻き戻す（remote 未変更・作業ツリーは実行前に戻る）。
   commit 前にビルドしていた頃は、設定画面のフッターの commit が `xxxx-dirty` になっていた（1.0.4 で確認）
+- **起動時の自動確認は「前回確認から 24h 以上」のときだけ走る**（Sparkle の仕様）。リリース直後に
+  旧版を再起動しても出ないのは正常。検証したいときは前回確認日時を戻してから起動する:
+
+  ```sh
+  defaults write com.nyshk97.MenuBarTidy SULastCheckTime -date "2026-01-01 00:00:00 +0000"
+  open -g "/Applications/MenuBar Tidy.app"     # 数秒で「ソフトウェア・アップデート」ウィンドウが出る
+  ```
+
+  `SULastCheckTime` が現在時刻に更新されれば確認は走っている（ダイアログは別ディスプレイに出ることがある）
 - **アプリ内更新の本番確認は「次のリリース」でしかできない**: 新版を出したら、旧版を起動したまま
   設定画面の「アップデートを確認」→ 新版のダイアログ → インストール → 再起動後にタイトルの `ver` が
   上がっていること。Sparkle が入る前の版（≤ 1.0.3）からは `brew upgrade --cask nyshk97/tap/menubar-tidy` でしか上がれない

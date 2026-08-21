@@ -253,6 +253,6 @@ description = "dist/ の zip を notarize して staple 済みに差し替える
 run = "scripts/notarize.sh"
 
 [tasks.release]
-description = "バージョンを上げてビルド・notarize・GitHub Release・cask 更新まで通す（自分の Terminal で実行）"
+description = "バージョンを上げてビルド・notarize・GitHub Release・cask 更新まで通す（Claude Code からも実行できる）"
 usage = 'arg "<bump>" help="patch|minor|major|x.y.z" default="patch"'
 run = 'scripts/release.sh "$usage_bump"'

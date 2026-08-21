@@ -260,6 +260,23 @@ grep -iE "controlitem|occlu|temporarilyShow|AX activation" ~/Library/Logs/MenuBa
 `is occluded — the menu bar accepted the status item but is not rendering it` は
 `ControlItemOcclusion` による警告。ノッチ付きディスプレイでバーが溢れているときに出る。
 
+**常用版（Release）はログが既定で無効**。常用版でしか再現しない・再現が稀な現象
+（レイアウト画面の表示だけがメニューバーとずれる等）は、先に有効化して再起動し、
+次の再現を待つ:
+
+```sh
+defaults write com.nyshk97.MenuBarTidy EnableDiagnosticLogging -bool true
+osascript -e 'tell application "MenuBar Tidy" to quit'; sleep 3; open -g "/Applications/MenuBar Tidy.app"
+ls -t "$HOME/Library/Logs/MenuBar Tidy/" | head -1
+```
+
+レイアウト画面とメニューバーの食い違いを調べるときは `Updated menu bar item cache: visible=N, hidden=M` の
+件数と `swift scripts/list-menu-bar-items.swift` の仕切り位置を突き合わせる。
+`Not updating menu bar item cache:`（mid expand/collapse）や `serial cache operation already in progress`
+の直後に `Updated` が来ていなければ、その回の再キャッシュは捨てられている
+（`cacheItemsIfNeeded: window N moved since the last cache` が次の周期で拾う）。
+戻すときは `-bool false`。
+
 ---
 
 ## 6. 文字列

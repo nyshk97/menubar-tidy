@@ -2101,6 +2101,14 @@ extension MenuBarItemManager {
         /// disappearance instead of dispatching a full bulk apply (#736).
         private(set) var cachedControlCenterGenericWindowIDs = Set<CGWindowID>()
 
+        /// The x origin of every managed item window at the time the cache
+        /// was last committed, keyed by windowID. cacheItemsIfNeeded compares
+        /// this against the live positions so a layout the cache never got to
+        /// record (a drag whose follow-up recache was discarded as mid
+        /// expand/collapse, or skipped behind another cache pass) is picked
+        /// up on the next poll instead of waiting for a windowID to change.
+        private(set) var cachedItemPositions = [CGWindowID: Int]()
+
         /// Runs the given async closure as a task and waits for it to
         /// complete before returning.
         ///
@@ -2116,6 +2124,11 @@ extension MenuBarItemManager {
         /// Updates the list of cached menu bar item window identifiers.
         func updateCachedItemWindowIDs(_ itemWindowIDs: [CGWindowID]) {
             cachedItemWindowIDs = itemWindowIDs
+        }
+
+        /// Updates the recorded x origins of the managed item windows.
+        func updateCachedItemPositions(_ positions: [CGWindowID: Int]) {
+            cachedItemPositions = positions
         }
 
         /// Updates the set of cached system clone window identifiers.
@@ -2143,6 +2156,7 @@ extension MenuBarItemManager {
             // that follows this reset repopulates the set.
             cachedCloneWindowIDs.removeAll()
             cachedControlCenterGenericWindowIDs.removeAll()
+            cachedItemPositions.removeAll()
         }
     }
 
@@ -2848,6 +2862,17 @@ extension MenuBarItemManager {
         ) {
             return
         }
+
+        // This pass's reading is now accepted, whether or not it differs from
+        // the cache. Recorded here and not where the windowIDs are committed:
+        // that happens before the guards above, and a pass they discard must
+        // keep reading as "positions unrecorded" so the next poll retries it.
+        // Recording on the unchanged path too is what stops a width change
+        // that moved windows without changing sections (the clock growing a
+        // digit) from re-triggering the drift check on every poll.
+        cacheActor.updateCachedItemPositions(
+            Self.itemPositions(for: context.cache.managedItems.map(\.windowID))
+        )
 
         guard cacheChanged else {
             MenuBarItemManager.diagLog.debug("Not updating menu bar item cache, as items haven't changed")
@@ -3853,7 +3878,54 @@ extension MenuBarItemManager {
             return
         }
 
+        // Same windows, different places. A move never changes a windowID,
+        // so a layout-editor drag whose follow-up recache was thrown away
+        // (discarded as mid expand/collapse, or skipped behind a cache pass
+        // already in flight) left the editor showing the pre-drag layout
+        // until something unrelated churned a window. Compare positions too.
+        // Transient motion is already filtered downstream: cacheItemsRegardless
+        // bails during cmd-drags and within a second of a move, and keeps the
+        // last-known-good cache while a divider is mid-transition.
+        if let drifted = Self.firstDriftedWindowID(
+            previous: cacheActor.cachedItemPositions,
+            current: Self.itemPositions(for: itemWindowIDs)
+        ) {
+            MenuBarItemManager.diagLog.debug(
+                "cacheItemsIfNeeded: window \(drifted) moved since the last cache, triggering recache"
+            )
+            await cacheItemsRegardless(itemWindowIDs)
+            return
+        }
+
         await recacheIfSourceProcessesResolved(itemWindowIDs)
+    }
+
+    /// The live x origin of each given window, rounded to whole points.
+    ///
+    /// Windows whose bounds cannot be read are left out rather than recorded
+    /// at a sentinel, so a read failure is never mistaken for a move.
+    private static func itemPositions(for windowIDs: [CGWindowID]) -> [CGWindowID: Int] {
+        windowIDs.reduce(into: [:]) { result, windowID in
+            guard let bounds = Bridging.getWindowBounds(for: windowID) else { return }
+            result[windowID] = Int(bounds.origin.x.rounded())
+        }
+    }
+
+    /// Returns a window that sits somewhere other than where the cache last
+    /// recorded it, or `nil` when nothing moved.
+    ///
+    /// Only windows present in both readings are compared: added and removed
+    /// windows belong to the windowID gate that runs before this one, and a
+    /// window missing from one side because its bounds failed to read must
+    /// not count as motion.
+    static nonisolated func firstDriftedWindowID(
+        previous: [CGWindowID: Int],
+        current: [CGWindowID: Int]
+    ) -> CGWindowID? {
+        current.keys.sorted().first { windowID in
+            guard let before = previous[windowID] else { return false }
+            return before != current[windowID]
+        }
     }
 
     /// Recaches when an item that had no source process last cycle has one now.

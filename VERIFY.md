@@ -446,6 +446,9 @@ spctl --assess --type execute -vv "/tmp/mbt-check/MenuBar Tidy.app"   # → Nota
   ```
 
   `shortVersionString` が出したバージョン、`enclosure` に `sparkle:edSignature` があること
+- `release.sh` は bump を**ビルド前にローカル commit** し、push は notarize 後。途中で失敗すると trap が
+  その commit を `git reset --hard HEAD~1` で巻き戻す（remote 未変更・作業ツリーは実行前に戻る）。
+  commit 前にビルドしていた頃は、設定画面のフッターの commit が `xxxx-dirty` になっていた（1.0.4 で確認）
 - **アプリ内更新の本番確認は「次のリリース」でしかできない**: 新版を出したら、旧版を起動したまま
   設定画面の「アップデートを確認」→ 新版のダイアログ → インストール → 再起動後にタイトルの `ver` が
   上がっていること。Sparkle が入る前の版（≤ 1.0.3）からは `brew upgrade --cask nyshk97/tap/menubar-tidy` でしか上がれない

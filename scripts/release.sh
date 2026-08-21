@@ -12,8 +12,10 @@
 # 7. nyshk97/homebrew-tap の Casks/menubar-tidy.rb を作成/更新
 # 8. ローカルの tap を同期
 #
-# notarize（失敗しやすい工程）を push より前に置く。失敗時は pbxproj の変更が
-# ローカルに残るだけで remote には何も反映されない（`git checkout` で戻せる）。
+# notarize（失敗しやすい工程）を push より前に置く。bump はビルド前にローカルで
+# commit する（アプリに焼き込む git SHA がその commit を指し、`-dirty` が付かない）。
+# push までに失敗したら trap がその commit を巻き戻すので、remote には何も反映されず
+# 作業ツリーも実行前の状態に戻る。
 #
 # 実行は自分の Terminal から。Claude Code の Bash からだと notarytool が keychain に
 # 届かず、資格情報があるのに「プロファイルが無い」で落ちる。
@@ -99,9 +101,21 @@ if ! security find-generic-password -s "https://sparkle-project.org" -a "$SPARKL
   exit 1
 fi
 
-# ===== バージョン更新 =====
+# ===== バージョン更新（ローカル commit。push は notarize 後）=====
 sed -i '' "s/MARKETING_VERSION = .*/MARKETING_VERSION = $NEW_VERSION;/" "$PBXPROJ"
 sed -i '' "s/CURRENT_PROJECT_VERSION = .*/CURRENT_PROJECT_VERSION = $BUILD_NUMBER;/" "$PBXPROJ"
+git add "$PBXPROJ"
+git commit -q -m "chore: bump version to $TAG"
+BUMP_PUSHED=0
+# 事前チェックで作業ツリーがクリーンなことは確認済みなので、--hard で戻しても
+# 消えるのは今作った bump commit だけ。
+rollback_bump() {
+  if [ "$BUMP_PUSHED" -eq 0 ]; then
+    echo "↩️  失敗したので bump commit を巻き戻します（remote は未変更）"
+    git reset -q --hard HEAD~1
+  fi
+}
+trap 'rollback_bump' ERR
 
 # ===== ビルド + 署名検証 + notarize（remote 反映前に実施）=====
 bash "$REPO_ROOT/scripts/make-release-zip.sh"
@@ -142,10 +156,10 @@ cat > "$APPCAST" <<APPCAST_EOF
 APPCAST_EOF
 xmllint --noout "$APPCAST"
 
-# ===== commit + push =====
-git add "$PBXPROJ"
-git commit -m "chore: bump version to $TAG"
+# ===== push =====
 git push origin main
+BUMP_PUSHED=1
+trap - ERR
 
 # ===== GitHub Release =====
 echo "🚀 GitHub Release を作成中..."

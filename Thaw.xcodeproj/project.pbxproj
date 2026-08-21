@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		170423D92B56DE78004A2549 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 170423D82B56DE78004A2549 /* Sparkle */; };
 		175061912B1543DD003144CD /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = 175061902B1543DD003144CD /* LaunchAtLogin */; };
 		1787C4272B16890B002F50DF /* AXSwift6 in Frameworks */ = {isa = PBXBuildFile; productRef = 1787C4262B16890B002F50DF /* AXSwift6 */; };
 		17F71BB52B880B4500905CBA /* CompactSlider in Frameworks */ = {isa = PBXBuildFile; productRef = 17F71BB42B880B4500905CBA /* CompactSlider */; };
@@ -104,6 +105,7 @@
 		716683272A767E6A006ABF84 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
+				170423D92B56DE78004A2549 /* Sparkle in Frameworks */,
 				9570E4A96CDEC0BEBAA5573F /* AsyncAlgorithms in Frameworks */,
 				A6DC49597D7F903C5E1B425F /* Algorithms in Frameworks */,
 				765B9E4A97DD40A18EE1F15D /* Collections in Frameworks */,
@@ -176,6 +178,7 @@
 			packageProductDependencies = (
 				175061902B1543DD003144CD /* LaunchAtLogin */,
 				1787C4262B16890B002F50DF /* AXSwift6 */,
+				170423D82B56DE78004A2549 /* Sparkle */,
 				17F71BB42B880B4500905CBA /* CompactSlider */,
 				43C5F05D006747974015EBD9 /* AsyncAlgorithms */,
 				84489DC7DD2441B27C7B8E6C /* Algorithms */,
@@ -263,6 +266,7 @@
 			packageReferences = (
 				1750618F2B1543DD003144CD /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */,
 				1787C4252B16890B002F50DF /* XCRemoteSwiftPackageReference "AXSwift6" */,
+				170423D72B56DE78004A2549 /* XCRemoteSwiftPackageReference "Sparkle" */,
 				17F71BB32B880B4500905CBA /* XCRemoteSwiftPackageReference "CompactSlider" */,
 				1ADDA61D49BE1BA7CA5EA059 /* XCRemoteSwiftPackageReference "swift-async-algorithms" */,
 				9DDA1A418DCA43C89DE5A80F /* XCRemoteSwiftPackageReference "swift-collections" */,
@@ -618,7 +622,7 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Thaw/Resources/Info.plist;
+				INFOPLIST_FILE = "Thaw/Resources/Info-Release.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "MenuBar Tidy";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
@@ -786,6 +790,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		170423D72B56DE78004A2549 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.9.5;
+			};
+		};
 		1750618F2B1543DD003144CD /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/sindresorhus/LaunchAtLogin-Modern";
@@ -845,6 +857,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		170423D82B56DE78004A2549 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 170423D72B56DE78004A2549 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
 		168E1527A0B9100E8E1DA1E2 /* Algorithms */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 1FE809086FD6E22D3C218F67 /* XCRemoteSwiftPackageReference "swift-algorithms" */;

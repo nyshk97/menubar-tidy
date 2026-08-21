@@ -67,6 +67,12 @@ if gh auth status > /dev/null 2>&1; then
 else
     ng "gh が未認証" "gh auth login"
 fi
+if security find-generic-password -s "https://sparkle-project.org" -a menubar-tidy > /dev/null 2>&1; then
+    ok "Sparkle の EdDSA 秘密鍵（keychain account 'menubar-tidy'）"
+else
+    ng "Sparkle の EdDSA 秘密鍵（keychain account 'menubar-tidy'）が無い" \
+       "自分の Terminal で Build/SourcePackages/artifacts/sparkle/Sparkle/bin/generate_keys --account menubar-tidy -f ~/Library/CloudStorage/Dropbox/secrets/sparkle-ed25519-menubar-tidy-private.key（バックアップから復元。sign_update は xcodebuild -resolvePackageDependencies で落ちる）"
+fi
 
 exit "$status"
 '''

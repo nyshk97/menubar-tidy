@@ -5,10 +5,12 @@
 # 1. project.pbxproj の MARKETING_VERSION を bump（CURRENT_PROJECT_VERSION はタイムスタンプ）
 # 2. make-release-zip.sh で Release ビルド + 配布要件の検証 + zip 化
 # 3. notarize.sh で notarize + staple
-# 4. バージョン更新を commit して main に push
-# 5. GitHub Release（v<version>）を作成し zip を添付
-# 6. nyshk97/homebrew-tap の Casks/menubar-tidy.rb を作成/更新
-# 7. ローカルの tap を同期
+# 4. zip に Sparkle の EdDSA 署名を付けて dist/appcast.xml を生成
+# 5. バージョン更新を commit して main に push
+# 6. GitHub Release（v<version>）を作成し zip と appcast.xml を添付
+#    （SUFeedURL は releases/latest/download/appcast.xml。asset の実ファイル名で URL が決まる）
+# 7. nyshk97/homebrew-tap の Casks/menubar-tidy.rb を作成/更新
+# 8. ローカルの tap を同期
 #
 # notarize（失敗しやすい工程）を push より前に置く。失敗時は pbxproj の変更が
 # ローカルに残るだけで remote には何も反映されない（`git checkout` で戻せる）。
@@ -29,6 +31,9 @@ TAP_REPO="nyshk97/homebrew-tap"
 CASK_TOKEN="menubar-tidy"
 CASK_PATH="Casks/${CASK_TOKEN}.rb"
 PBXPROJ="Thaw.xcodeproj/project.pbxproj"
+SPARKLE_ACCOUNT="menubar-tidy"
+SIGN_UPDATE="$REPO_ROOT/Build/SourcePackages/artifacts/sparkle/Sparkle/bin/sign_update"
+APPCAST="$REPO_ROOT/dist/appcast.xml"
 
 # ===== バージョン計算 =====
 CURRENT_VERSION="$(grep -m1 'MARKETING_VERSION = ' "$PBXPROJ" | sed 's/.*MARKETING_VERSION = //' | tr -d '";' | tr -d ' ')"
@@ -84,6 +89,15 @@ if ! gh auth status >/dev/null 2>&1; then
   echo "❌ gh が未認証です。gh auth login を先に済ませてください。"
   exit 1
 fi
+# Sparkle の署名鍵。sign_update 自体は Build/ にパッケージ解決で落ちてくるので
+# ここでは見ない（clean 直後や新しい Mac で「資格は揃っているのに無い」で止まる）。
+# 鍵が無いまま進むと appcast の署名で落ち、notarize 済みの zip だけが残る。
+if ! security find-generic-password -s "https://sparkle-project.org" -a "$SPARKLE_ACCOUNT" >/dev/null 2>&1; then
+  echo "❌ Sparkle の EdDSA 秘密鍵（keychain account '$SPARKLE_ACCOUNT'）がありません。"
+  echo "   新規: Build/SourcePackages/artifacts/sparkle/Sparkle/bin/generate_keys --account $SPARKLE_ACCOUNT"
+  echo "   復元: 同 generate_keys --account $SPARKLE_ACCOUNT -f ~/Library/CloudStorage/Dropbox/secrets/sparkle-ed25519-menubar-tidy-private.key"
+  exit 1
+fi
 
 # ===== バージョン更新 =====
 sed -i '' "s/MARKETING_VERSION = .*/MARKETING_VERSION = $NEW_VERSION;/" "$PBXPROJ"
@@ -96,6 +110,38 @@ bash "$REPO_ROOT/scripts/notarize.sh"
 [ -f "$DIST_ZIP" ] || { echo "❌ 配布 zip が見つかりません: $DIST_ZIP"; exit 1; }
 SHA256="$(shasum -a 256 "$DIST_ZIP" | awk '{print $1}')"
 
+# ===== Sparkle: EdDSA 署名 + appcast =====
+[ -x "$SIGN_UPDATE" ] || { echo "❌ sign_update が見つかりません: $SIGN_UPDATE（Release ビルドでパッケージが解決されていない）"; exit 1; }
+echo "🔏 Sparkle の EdDSA 署名を付けています..."
+ED_ATTRS="$("$SIGN_UPDATE" --account "$SPARKLE_ACCOUNT" "$DIST_ZIP")"   # sparkle:edSignature="..." length="..."
+case "$ED_ATTRS" in
+  *sparkle:edSignature=*) ;;
+  *) echo "❌ sign_update の出力が想定外です: $ED_ATTRS"; exit 1 ;;
+esac
+PUBDATE="$(LC_ALL=C date -u "+%a, %d %b %Y %H:%M:%S +0000")"
+DOWNLOAD_URL="https://github.com/$GITHUB_REPO/releases/download/$TAG/MenuBarTidy-$NEW_VERSION.zip"
+RELEASE_URL="https://github.com/$GITHUB_REPO/releases/tag/$TAG"
+# 1 item だけでよい: feed は releases/latest/download/appcast.xml で常に最新 Release の物を指す。
+# sparkle:version は CFBundleVersion（タイムスタンプ）。Sparkle の新旧比較はこちらで行われる。
+cat > "$APPCAST" <<APPCAST_EOF
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+  <channel>
+    <title>$APP_NAME</title>
+    <item>
+      <title>$TAG</title>
+      <pubDate>$PUBDATE</pubDate>
+      <sparkle:version>$BUILD_NUMBER</sparkle:version>
+      <sparkle:shortVersionString>$NEW_VERSION</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+      <sparkle:fullReleaseNotesLink>$RELEASE_URL</sparkle:fullReleaseNotesLink>
+      <enclosure url="$DOWNLOAD_URL" $ED_ATTRS type="application/octet-stream"/>
+    </item>
+  </channel>
+</rss>
+APPCAST_EOF
+xmllint --noout "$APPCAST"
+
 # ===== commit + push =====
 git add "$PBXPROJ"
 git commit -m "chore: bump version to $TAG"
@@ -103,7 +149,7 @@ git push origin main
 
 # ===== GitHub Release =====
 echo "🚀 GitHub Release を作成中..."
-gh release create "$TAG" "$DIST_ZIP" \
+gh release create "$TAG" "$DIST_ZIP" "$APPCAST" \
   --repo "$GITHUB_REPO" \
   --title "$TAG" \
   --generate-notes
@@ -174,4 +220,5 @@ echo ""
 echo "✅ リリース完了: $TAG"
 echo "   asset : https://github.com/$GITHUB_REPO/releases/download/$TAG/MenuBarTidy-$NEW_VERSION.zip"
 echo "   sha256: $SHA256"
+echo "   feed  : https://github.com/$GITHUB_REPO/releases/latest/download/appcast.xml"
 echo "   cask  : $TAP_REPO $CASK_PATH"

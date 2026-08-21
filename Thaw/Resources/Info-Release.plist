@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+	  Release 構成専用の Info.plist（Debug は Info.plist）。違いは Sparkle の 3 キーだけ。
+	  dev 版に SUFeedURL を持たせると、更新チェックした瞬間に dev が常用版のダウンロードで
+	  置き換わるので、dev 版は構造的に更新先を持たないようファイルごと分けてある。
+	  両ファイルに共通の Thaw* キーは同じ値を保つこと。
+	-->
+	<key>ThawMenuBarItemSpacingExecutableURI</key>
+	<string>file:///usr/bin/defaults</string>
+	<key>ThawSkyLightFrameworkPath</key>
+	<string>/System/Library/PrivateFrameworks/SkyLight.framework/SkyLight</string>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<key>SUFeedURL</key>
+	<string>https://github.com/nyshk97/menubar-tidy/releases/latest/download/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>OVgigUTyXOmiVE3MnFU9KEId4r8rE0Xn39gGTCd2QVY=</string>
+</dict>
+</plist>

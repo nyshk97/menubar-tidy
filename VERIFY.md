@@ -389,8 +389,10 @@ macOS 側の制約がある。ミラーリングを止めてから確認する�
 ## 8. リリース
 
 配布は notarize 済み zip を GitHub Release に上げ、`nyshk97/homebrew-tap` の
-`Casks/menubar-tidy.rb` を更新して `brew` から入れる形。Sparkle は入っていないので
-自動更新はない。
+`Casks/menubar-tidy.rb` を更新して `brew` から入れる形（新規インストール用）。
+日々の更新は Sparkle: 同じ Release に EdDSA 署名付きの `appcast.xml` を添付し、アプリは
+`https://github.com/nyshk97/menubar-tidy/releases/latest/download/appcast.xml` を見に行く
+（自動確認 ON・ダウンロードは Sparkle のダイアログで確認してから）。
 
 ```sh
 mise run release            # patch bump。minor / major / x.y.z も指定できる
@@ -402,6 +404,7 @@ mise run release            # patch bump。minor / major / x.y.z も指定でき
 | --- | --- | --- |
 | ビルド + 署名検証 + zip | `mise run release:zip` | Developer ID 署名・secure timestamp・Hardened Runtime・`get-task-allow` 不在 |
 | notarize + staple | `mise run release:notarize` | `spctl --assess` が `Notarized Developer ID` を返すこと |
+| EdDSA 署名 + appcast | （`release.sh` 内） | `sign_update --account menubar-tidy` の出力が `sparkle:edSignature=` を含み、`dist/appcast.xml` が `xmllint` を通ること |
 
 - **Release 構成だけ Developer ID 署名**（Debug は Apple Development のまま）。
   `CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO` で `get-task-allow` の注入を止めてある
@@ -409,6 +412,25 @@ mise run release            # patch bump。minor / major / x.y.z も指定でき
   dev 版の名前が混ざっていないかは `mise run release:zip` の後に `codesign -dvv` で確認できる
 - notarize の資格情報は keychain プロファイル `nyshk97-notary`（`NOTARY_PROFILE` で変えられる）。
   無いときの作り方は §0「開発機を移したとき」を参照（App Store Connect の API キーで登録する）
+- **Sparkle.framework の中身は `make-release-zip.sh` が inside-out に再署名する**（`Downloader.xpc` →
+  `Installer.xpc` → `Updater.app` → `Autoupdate` → framework → 最後に `.app` 本体）。xcodebuild は
+  framework の外側しか署名し直さず、中の XPC が adhoc のまま残って notarize が Invalid になる。
+  本体の再署名を忘れると Frameworks/ の変更で外側の seal が壊れ `codesign --verify --deep --strict` で落ちる
+- **Sparkle の鍵は dev 版と Release で扱いが違う**: `SUFeedURL` / `SUPublicEDKey` / `SUEnableAutomaticChecks` は
+  Release 構成専用の `Thaw/Resources/Info-Release.plist` にだけある（Debug は `Info.plist`。pbxproj の
+  `INFOPLIST_FILE` で切り替え。`INFOPLIST_KEY_SU*` は Xcode が任意キーを受けないので使えない）。
+  dev 版に入れると dev が常用版のダウンロードで置き換わるので、ビルド後に無いことを確認する:
+
+  ```sh
+  /usr/libexec/PlistBuddy -c "Print :SUFeedURL" Build/Build/Products/Debug/MenuBarTidy-dev.app/Contents/Info.plist   # → Does Not Exist
+  /usr/libexec/PlistBuddy -c "Print :SUFeedURL" "Build/Build/Products/Release/MenuBar Tidy.app/Contents/Info.plist"  # → feed URL
+  ```
+
+  加えて `UpdatesManager.isSupported` が `#if DEBUG` で false になり、dev 版ではアップデータを起動しない（二重防御）
+- EdDSA の秘密鍵は keychain の account `menubar-tidy`（`mise run doctor` が見る）。バックアップは
+  `~/Library/CloudStorage/Dropbox/secrets/sparkle-ed25519-menubar-tidy-private.key`、
+  新しい Mac では `generate_keys --account menubar-tidy -f <そのファイル>` で import する。
+  公開鍵は `Info-Release.plist` の `SUPublicEDKey`（鍵を作り直したら必ず対で更新）
 - zip 化は `ditto -c -k --sequesterRsrc --keepParent`。`zip -r` は symlink を潰して署名を壊す
 - 配布物の最終確認:
 
@@ -416,6 +438,17 @@ mise run release            # patch bump。minor / major / x.y.z も指定でき
 ditto -x -k dist/MenuBarTidy-<version>.zip /tmp/mbt-check
 spctl --assess --type execute -vv "/tmp/mbt-check/MenuBar Tidy.app"   # → Notarized Developer ID
 ```
+
+- リリース後の feed 確認:
+
+  ```sh
+  curl -sL https://github.com/nyshk97/menubar-tidy/releases/latest/download/appcast.xml | grep -E "shortVersionString|edSignature"
+  ```
+
+  `shortVersionString` が出したバージョン、`enclosure` に `sparkle:edSignature` があること
+- **アプリ内更新の本番確認は「次のリリース」でしかできない**: 新版を出したら、旧版を起動したまま
+  設定画面の「アップデートを確認」→ 新版のダイアログ → インストール → 再起動後にタイトルの `ver` が
+  上がっていること。Sparkle が入る前の版（≤ 1.0.3）からは `brew upgrade --cask nyshk97/tap/menubar-tidy` でしか上がれない
 
 ---
 

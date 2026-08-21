@@ -229,12 +229,31 @@ struct MenuBarLayoutSettingsPane: View {
     /// section of its own: a footer draws outside the grouped card, which is
     /// what a version line should look like.
     private var versionFooter: some View {
-        Text(versionFooterText)
-            .font(.footnote)
-            .foregroundStyle(.secondary)
-            .textSelection(.enabled)
-            .frame(maxWidth: .infinity, alignment: .center)
-            .padding(.top, 8)
+        HStack(spacing: 12) {
+            Text(versionFooterText)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .textSelection(.enabled)
+            checkForUpdatesButton
+        }
+        .frame(maxWidth: .infinity, alignment: .center)
+        .padding(.top, 8)
+    }
+
+    /// Sits next to the version line: "this is what you have" and "is there
+    /// a newer one" belong side by side. Sparkle drives the rest (progress,
+    /// "up to date", the install prompt) in its own windows.
+    private var checkForUpdatesButton: some View {
+        Button("アップデートを確認") {
+            appState.updatesManager.checkForUpdates()
+        }
+        .controlSize(.small)
+        .disabled(!UpdatesManager.isSupported || !appState.updatesManager.canCheckForUpdates)
+        .help(
+            UpdatesManager.isSupported
+                ? "最新バージョンがあるか確認します"
+                : "dev 版ではアップデートを確認できません"
+        )
     }
 
     private var versionFooterText: String {

@@ -40,6 +40,9 @@ final class AppState {
     /// Manager for menu bar items.
     let itemManager = MenuBarItemManager()
 
+    /// Manager for app updates (Sparkle). Inert in the dev build.
+    let updatesManager = UpdatesManager()
+
     /// Global cache for menu bar item images.
     let imageCache = MenuBarItemImageCache()
 
@@ -116,6 +119,7 @@ final class AppState {
         imageCache.performSetup(with: self)
         diagLog.debug("setupTask: imageCache setup complete")
         profileManager.performSetup(with: self)
+        updatesManager.performSetup(with: self)
 
         configureCancellables()
         diagLog.debug("setupTask: AppState setup sequence complete")

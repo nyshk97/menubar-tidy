@@ -837,6 +837,11 @@ final class ControlItem {
         }
     }
 
+    /// Checks for app updates through Sparkle.
+    @objc private func checkForUpdates() {
+        appState?.updatesManager.checkForUpdates()
+    }
+
     /// Creates a menu to show under the control item.
     private func createMenu(with appState: AppState) -> NSMenu {
         let menu = NSMenu(title: Bundle.main.displayName)
@@ -849,6 +854,18 @@ final class ControlItem {
         settingsItem.keyEquivalentModifierMask = .command
         settingsItem.image = NSImage(systemSymbolName: "gear", accessibilityDescription: "Settings")
         menu.addItem(settingsItem)
+
+        let checkForUpdatesItem = NSMenuItem(
+            title: "アップデートを確認…",
+            action: #selector(checkForUpdates),
+            keyEquivalent: ""
+        )
+        checkForUpdatesItem.image = NSImage(systemSymbolName: "arrow.triangle.2.circlepath", accessibilityDescription: "Check for Updates")
+        // The menu auto-enables its items, so `isEnabled` would be reset on
+        // open; leaving the target nil in the dev build (nothing in the
+        // responder chain answers the selector) is what greys it out.
+        checkForUpdatesItem.target = UpdatesManager.isSupported ? self : nil
+        menu.addItem(checkForUpdatesItem)
 
         menu.addItem(.separator())
 

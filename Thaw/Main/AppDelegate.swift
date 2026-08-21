@@ -123,10 +123,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     ///   from System Settings' login items does not stick. There is no UI to
     ///   turn it off — stop launching the app, or delete this call.
     ///
-    /// `SMAppService` registers whatever bundle is running, so a debug build
-    /// registers its path inside `Build/`. Wiping that directory leaves a
-    /// login item pointing at nothing; re-register by launching a fresh build.
+    /// The dev build is excluded. `SMAppService` registers whatever bundle is
+    /// running, so a debug build used to register its path inside `Build/`
+    /// and come back at every login alongside the release install. The two
+    /// have different bundle identifiers, so ``terminateOtherInstances()``
+    /// never saw each other, and both fought over the menu bar until nothing
+    /// was shown. A dev build that finds itself registered (from before this
+    /// guard) unregisters, so a machine heals itself on the next `mise run`.
     private func registerForLaunchAtLogin() {
+        if AppIdentity.isDevBuild {
+            if LaunchAtLogin.isEnabled {
+                LaunchAtLogin.isEnabled = false
+                appState.diagLog.info("Dev build: removed stale launch-at-login registration")
+            }
+            return
+        }
         guard !LaunchAtLogin.isEnabled else { return }
         LaunchAtLogin.isEnabled = true
         appState.diagLog.debug("Registered for launch at login")

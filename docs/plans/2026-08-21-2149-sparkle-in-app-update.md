@@ -125,15 +125,15 @@ Sparkle 2 を使う。配信形態は keyrc 型（ソース repo の GitHub Rele
 - [x] `mise run release`（自分の Terminal）
 - [x] `brew upgrade --cask nyshk97/tap/menubar-tidy` で入れ替え（Sparkle 無しの 1.0.3 からは brew でしか上がれない）
 - [x] 設定画面の「アップデートを確認」→「最新バージョンです」が出る
-- [ ] メニューの「アップデートを確認…」でも同じ（未確認。1.0.5 で併せて見る）
+- [x] メニューの「アップデートを確認…」でも同じ（未確認。1.0.5 で併せて見る）
 - [x] `curl -sL https://github.com/nyshk97/menubar-tidy/releases/latest/download/appcast.xml` で item が 1.0.4 を指している
 - [x] ログ（`~/Library/Logs/MenuBar Tidy/`）に Sparkle 起動のエラーが無い
 
 ### リリース v1.0.5 で本番検証 [人間👨‍💻 + AI🤖]
-- [ ] 小さな変更（VERIFY.md の追記など）で `mise run release`
-- [ ] 1.0.4 を起動したまま「アップデートを確認」→ 1.0.5 のダイアログ → インストール → 再起動後に `ver 1.0.5`
-- [ ] 起動時の自動確認でもダイアログが出る（1.0.4 を入れ直して起動すれば再現できる）
-- [ ] 結果を VERIFY.md §8 に反映
+- [x] 小さな変更（VERIFY.md の追記など）で `mise run release`
+- [x] 1.0.4 を起動したまま「アップデートを確認」→ 1.0.5 のダイアログ → インストール → 再起動後に `ver 1.0.5`
+- [ ] 起動時の自動確認でもダイアログが出る（未確認。次のリリース時に、旧版を起動し直して自然に出るかを見る）
+- [x] 結果を VERIFY.md §8 に反映
 
 ## ログ
 ### 試したこと・わかったこと
@@ -141,6 +141,8 @@ Sparkle 2 を使う。配信形態は keyrc 型（ソース repo の GitHub Rele
 - 2026-08-21: v1.0.4 リリース。Sparkle 起動（`SUHasLaunchedBefore` / `SULastCheckTime` が書かれる）、手動確認で
   「最新版を使用しています！」。フッターの commit が `33ef29b4-dirty` だった → release.sh が commit 前にビルドしていたため。
   bump をビルド前にローカル commit し、失敗時は trap で巻き戻す形に変更（1.0.5 の変更内容）
+- 2026-08-21: v1.0.5 で本番検証 pass。1.0.4 からメニュー・設定画面の両方で「1.0.5 が入手できます」→ DL →
+  署名検証「インストールできます」→ インストールして再起動 → /Applications が 1.0.5、新プロセス 22:15:31 起動、spctl accepted
 - 2026-08-21: `INFOPLIST_KEY_SUFeedURL` 等は **生成 plist に入らない**（Xcode は既知のキーしか `INFOPLIST_KEY_*` で受けない。
   Release ビルドして PlistBuddy で確認して判明）。Release 構成だけ `INFOPLIST_FILE = Thaw/Resources/Info-Release.plist` に
   切り替える方式に変更。dev 版に無い・Release に有るを両方 PlistBuddy で確認

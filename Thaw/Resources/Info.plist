@@ -2,9 +2,9 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>ThawMenuBarItemSpacingExecutableURI</key>
-	<string>file:///usr/bin/defaults</string>
-	<key>ThawSkyLightFrameworkPath</key>
-	<string>/System/Library/PrivateFrameworks/SkyLight.framework/SkyLight</string>
+	<!--
+	  Debug 構成（dev 版）の Info.plist。残りのキーはビルド設定（INFOPLIST_KEY_*）から生成される。
+	  Release 構成は Info-Release.plist を使う（違いは Sparkle のキーだけ）。
+	-->
 </dict>
 </plist>

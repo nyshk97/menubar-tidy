@@ -14,7 +14,7 @@ BUNDLE_ID = "com.nyshk97.MenuBarTidy.dev"
 SUPPORT_DIR_NAME = "MenuBarTidy-dev"
 # 整形の対象。Build/ 配下には SwiftPM の checkout（他人のコード）が入るので、
 # `swiftformat .` にはしない。
-SOURCES = "MenuBarItemService Shared Thaw ThawTests"
+SOURCES = "Thaw ThawTests"
 
 # --- 開発機のセットアップ -------------------------------------------------
 

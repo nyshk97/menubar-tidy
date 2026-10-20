@@ -1,6 +1,4 @@
 included:
-  - MenuBarItemService
-  - Shared
   - Thaw
 
 disabled_rules:
@@ -26,7 +24,6 @@ opt_in_rules:
   - discouraged_object_literal
   - empty_count
   - fatal_error_message
-  - file_header
   - force_unwrapping
   - implicitly_unwrapped_optional
   - literal_expression_end_indentation
@@ -54,15 +51,6 @@ custom_rules:
     message: "Indentation should use 4 spaces per indentation level instead of tabs"
     regex: ^\t
 
-file_header:
-  required_pattern: |-
-    //
-    //  SWIFTLINT_CURRENT_FILENAME
-    //  Project: Thaw
-    //
-    //  Copyright \(Ice\) © 2023–2025 Jordan Baird
-    //  Copyright \(Thaw\) © 2026 Toni Förster
-    //  Licensed under the GNU GPLv3
 
 modifier_order:
   preferred_modifier_order:

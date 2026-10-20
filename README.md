@@ -11,8 +11,10 @@ will not be answered.
 
 - One status icon. Clicking it lists every menu bar item, split into hidden and
   visible ones, with the owning app's icon and name
-- Choosing an item opens its menu just below where the item sits, via
-  Accessibility (`AXPress`). Nothing is moved
+- Choosing an item opens its menu just below where the item sits — behind the
+  notch, if that is where it is hidden — via Accessibility (`AXPress`). Not under
+  this app's icon: macOS opens a menu at its item, and moving the item there first
+  is exactly what made 1.x fragile. Nothing is moved
 - Only the Accessibility permission. No Screen Recording, no private APIs
 
 What it does not do: hide items, move them, or arrange them. Arrange items with

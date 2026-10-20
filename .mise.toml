@@ -11,7 +11,6 @@ DERIVED_DATA = "Build"
 # タスクはすべて dev 版を相手にする。常用版は brew で入れた MenuBar Tidy.app。
 APP = "Build/Build/Products/Debug/MenuBarTidy-dev.app"
 BUNDLE_ID = "com.nyshk97.MenuBarTidy.dev"
-SUPPORT_DIR_NAME = "MenuBarTidy-dev"
 # 整形の対象。Build/ 配下には SwiftPM の checkout（他人のコード）が入るので、
 # `swiftformat .` にはしない。
 SOURCES = "Thaw ThawTests"
@@ -108,14 +107,14 @@ run = 'rm -rf "$DERIVED_DATA" 2>/dev/null || true'
 # --- テスト ---------------------------------------------------------------
 
 [tasks.test]
-description = "テストを実行する（終了時に UserDefaults の汚染を自動で後始末）"
+description = "テストを実行する（署名なし。終了時に常駐したテストホストを止める）"
 # PIPESTATUS を使うので既定の sh ではなく bash で走らせる。
 shell = "bash -c"
 run = '''
 set -uo pipefail
 
-# 同じ derivedDataPath を指す xcodebuild が2本走ると、テストホストが成果物と
-# UserDefaults を奪い合って途中で打ち切られる。コードの問題と見分けがつかない。
+# 同じ derivedDataPath を指す xcodebuild が2本走ると、テストホストが成果物を
+# 奪い合って途中で打ち切られる。コードの問題と見分けがつかない。
 # macOS の pgrep に -c は無いので、終了コードで判定する。
 if pgrep -x xcodebuild > /dev/null; then
     echo "error: xcodebuild が既に走っている。終わるまで待つこと（VERIFY.md §2）" >&2
@@ -124,10 +123,12 @@ fi
 
 trap 'mise run test:cleanup' EXIT
 
-# -destination は付けない。付けるとテスト対象が一部（557 件）に絞られて
-# TEST FAILED になる。CI が付けているのは runner 側の事情。
+# 署名はしない。テストに署名は要らず、署名するとキーチェーンに触る
+# （会社貸与PCではこのセッションから触らない決まり）。CI と同じ条件になる。
+# -destination は付けない（付けると CI と同じだが、ローカルでは不要）。
 xcodebuild -project "$PROJECT" -scheme "$SCHEME" \
-    -configuration "$CONFIGURATION" -derivedDataPath "$DERIVED_DATA" test 2>&1 \
+    -configuration "$CONFIGURATION" -derivedDataPath "$DERIVED_DATA" \
+    CODE_SIGNING_ALLOWED=NO test 2>&1 \
     | grep -E "✘|error:|Test run with|TEST (SUCCEEDED|FAILED)"
 status=${PIPESTATUS[0]}
 
@@ -137,23 +138,8 @@ exit "$status"
 '''
 
 [tasks."test:cleanup"]
-description = "テストが残す常駐プロセスと UserDefaults の汚染を掃除する"
-run = '''
-set -uo pipefail
-
-pkill -f "${MISE_PROJECT_ROOT:-$PWD}/$APP/" || true
-
-# ShowOnHover の既定は false。1 が読めたらテストの書き込みが実ドメインに
-# 落ちている（アイコンが潰れる・空欄クリックが効かない等の原因になる）。
-if [ "$(defaults read "$BUNDLE_ID" ShowOnHover 2>/dev/null || echo 0)" = "1" ]; then
-    echo "UserDefaults が汚染されている。退避して削除する。"
-    defaults export "$BUNDLE_ID" /tmp/thaw-domain-backup.plist
-    defaults delete "$BUNDLE_ID"
-    echo "退避先: /tmp/thaw-domain-backup.plist"
-else
-    echo "UserDefaults の汚染なし。"
-fi
-'''
+description = "テストホストが常駐していたら止める"
+run = 'pkill -f "${MISE_PROJECT_ROOT:-$PWD}/$APP/" || true'
 
 # --- 静的検査 -------------------------------------------------------------
 
@@ -228,23 +214,8 @@ description = "メニューバーの全項目をアクセシビリティから�
 run = "swift scripts/list-ax-items.swift"
 
 [tasks.logs]
-description = "最新のアプリログを追う。引数を渡すとその正規表現で絞り込む"
-usage = 'arg "<pattern>" help="絞り込む正規表現" default=""'
-run = '''
-set -uo pipefail
-log_dir="$HOME/Library/Logs/$SUPPORT_DIR_NAME"
-latest="$log_dir/$(ls -t "$log_dir" 2>/dev/null | head -1)"
-if [ ! -f "$latest" ]; then
-    echo "error: ログがない（アプリを一度起動すること）: $log_dir" >&2
-    exit 1
-fi
-echo "== $latest ==" >&2
-if [ -z "$usage_pattern" ]; then
-    tail -f "$latest"
-else
-    grep -iE "$usage_pattern" "$latest"
-fi
-'''
+description = "dev 版の統合ログを追う（os.Logger。ファイルには書かない）"
+run = 'log stream --style compact --level debug --predicate "subsystem == \"$BUNDLE_ID\""'
 
 [tasks.info]
 description = "ビルド済みバンドルの表示名と署名を確認する"

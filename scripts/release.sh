@@ -209,7 +209,7 @@ cask "$CASK_TOKEN" do
 
   url "https://github.com/$GITHUB_REPO/releases/download/v#{version}/MenuBarTidy-#{version}.zip"
   name "$APP_NAME"
-  desc "メニューバー項目を隠して整理する常駐アプリ（Thaw の個人用フォーク）"
+  desc "メニューバーに入りきらない項目も、一覧から選んで開ける常駐アプリ"
   homepage "https://github.com/$GITHUB_REPO"
 
   depends_on macos: :tahoe
@@ -226,12 +226,10 @@ cask "$CASK_TOKEN" do
   ]
 
   caveats <<~EOS
-    起動には以下の権限が必要です
-    （システム設定 → プライバシーとセキュリティ）:
-      - アクセシビリティ
-      - 画面収録
+    起動にはアクセシビリティの権限が必要です
+    （システム設定 → プライバシーとセキュリティ → アクセシビリティ）。
 
-    アップグレード後は権限の再付与を求められることがあります。
+    1.x で付与した画面収録の権限は 2.0 から使いません。
   EOS
 end
 CASK

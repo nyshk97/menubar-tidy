@@ -2,7 +2,7 @@
 # Release ビルドを配布適格に仕上げて dist/MenuBarTidy-<version>.zip を作る
 #
 # Release 構成は Developer ID + --timestamp + get-task-allow なしで署名するよう
-# project.pbxproj に設定してあるので、自前のバイナリ（本体と MenuBarItemService.xpc）は
+# project.pbxproj に設定してあるので、自前のバイナリ（本体）は
 # ビルドの署名がそのまま使える。例外が Sparkle.framework: xcodebuild は埋め込んだ
 # framework の外側しか再署名せず、中の XPC サービス・Updater.app・Autoupdate が
 # adhoc 署名のまま残って notarize が Invalid で返る（keyrc で踏んだ）。ここで
@@ -12,7 +12,6 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 APP="Build/Build/Products/Release/MenuBar Tidy.app"
-XPC="$APP/Contents/XPCServices/MenuBarItemService.xpc"
 SPARKLE="$APP/Contents/Frameworks/Sparkle.framework"
 SPARKLE_B="$SPARKLE/Versions/B"
 
@@ -47,7 +46,7 @@ done
 codesign --force --options runtime --timestamp --sign "$IDENTITY" "$APP"
 
 fail=0
-for target in "${SPARKLE_NESTED[@]}" "$XPC" "$APP"; do
+for target in "${SPARKLE_NESTED[@]}" "$APP"; do
     info=$(codesign -dvv "$target" 2>&1)
     case "$info" in
         *"Signature=adhoc"*) echo "NG: adhoc 署名が残存: $target"; fail=1 ;;

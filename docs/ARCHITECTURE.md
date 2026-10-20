@@ -1,124 +1,107 @@
 # Architecture
 
-A map of the major components of **MenuBar Tidy**, a personal fork of
-[thaw-app/Thaw](https://github.com/thaw-app/Thaw) cut down to five features.
-This is not an API reference. For what was removed and why, see
-[INVESTIGATION.md](../INVESTIGATION.md); for how to check the app works, see
-[VERIFY.md](../VERIFY.md).
+A map of **MenuBar Tidy** 2.x. This is not an API reference. For how to check
+the app works, see [VERIFY.md](../VERIFY.md); for why 2.0 replaced the Thaw
+fork, see "Why it does not hide or move items" below and the plan in
+[docs/plans/2026-10-20-1826-item-list-menu.md](plans/2026-10-20-1826-item-list-menu.md).
 
 ## What it does
 
-Native macOS menu bar manager (Swift / AppKit / SwiftUI), local-only, no
-accounts and no network surface at all:
+One status icon. Clicking it opens a menu listing **every** menu bar item —
+including the ones macOS has hidden behind the notch or under the frontmost
+app's menus — split into "隠れている" (hidden) and "見えている" (visible).
+Choosing an item sends it `AXPress`, which opens its menu or panel just below
+where the item sits.
 
-1. Hides menu bar items by pushing them off the bar with an invisible
-   `NSStatusItem` divider
-2. Reveals the hidden items in a separate floating bar when empty menu bar
-   space is clicked
-3. Forwards a click on that bar to the real menu bar item
-4. Keeps one status icon always visible
-5. Persists the divider position
+It does not hide, move or reorder anything. Arranging items is left to macOS
+(⌘-drag). The only permission is Accessibility.
 
 ## Repository layout
 
 | Path | Role |
 | --- | --- |
-| `Thaw/` | Main application target (menu bar logic, layout editor, events, permissions) |
-| `Shared/` | Code shared with the helper process (CGS bridging, `WindowInfo`, diagnostic logging) |
-| `MenuBarItemService/` | XPC helper that resolves the owning process of a menu bar item |
-| `ThawTests/` | swift-testing suite |
-| `docs/` | This file and [HIDDEN_FLAGS.md](HIDDEN_FLAGS.md) |
-| `scripts/` | `list-menu-bar-items.swift` (see VERIFY.md), the dev icon ribbon renderer, the release scripts and the SwiftLint input list generator |
+| `Thaw/Main/` | Entry point, `AppDelegate`, Sparkle (`Updates.swift`), the Accessibility permission |
+| `Thaw/Items/` | Reading items, deciding how to list them, pressing them |
+| `Thaw/Menu/` | The status item's menu |
+| `Thaw/Utilities/` | `AppIdentity` (dev vs. release build), `Constants`, logging |
+| `ThawTests/` | swift-testing suite (rules and geometry) |
+| `scripts/` | `list-ax-items.swift` / `press-ax-item.swift` / `menu-preview/` (see VERIFY.md §3), release scripts, icon renderers |
 
-Debug builds ship as their own app — `MenuBarTidy-dev.app`, identifier
-`com.nyshk97.MenuBarTidy.dev`, DEV-ribboned icon — so the build under development
-never shares approvals, defaults, profiles or logs with the release install. Only
-the Debug build settings differ; `AppIdentity` (`Shared/Utilities/AppIdentity.swift`)
-derives the service name and the support paths from the identifier at runtime.
+The directory, target, scheme and Swift module are still called `Thaw`; the
+release scripts and tests refer to those names.
 
-Dependencies are declared via SwiftPM and locked in
-`Thaw.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved`
-(AXSwift, CompactSlider, LaunchAtLogin-Modern, swift-algorithms,
-swift-async-algorithms, swift-collections, swift-subprocess).
-
-## Runtime components
+## Runtime
 
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│                     MenuBar Tidy.app                        │
-│  AppDelegate / AppState                                     │
-│  ├── MenuBar/ItemManager   status item enumeration + moves  │
-│  ├── MenuBar/ControlItem   the dividers and the app's icon  │
-│  ├── MenuBar/IceBar        the floating "Thaw Bar" panel    │
-│  ├── MenuBar/LayoutBar     the drag-to-arrange editor       │
-│  ├── Events / HID          empty-space click detection      │
-│  └── Permissions           Accessibility / Screen Recording │
-│                         │ XPC                               │
-│                         ▼                                   │
-│              MenuBarItemService.xpc                         │
-│              (source PID cache / listener)                  │
-└─────────────────────────────────────────────────────────────┘
-                          │
-                          ▼
-              macOS WindowServer / Accessibility /
-              private menu-bar APIs (SkyLight)
+AppDelegate
+├── NSStatusItem (autosave name "Thaw.ControlItem.Visible", kept from 1.x)
+├── StatusMenuController — NSMenuDelegate; rebuilds the menu each time it opens
+├── ItemScanner          — which processes have items; reads their AXExtrasMenuBar
+└── UpdatesManager       — Sparkle (release build only)
+
+Thaw/Items (pure rules, unit-tested)
+├── ItemRules.isListed      — in a screen's menu bar strip, enabled, non-empty, not ours
+├── ItemRules.screen(for:)  — the screen the items are on (the active menu bar's)
+├── ItemVisibility.classify — visible / hidden (notch, app menus) / off screen
+├── ItemRules.title         — the name shown in the list
+└── ItemRules.match         — find an item again after its app relaunched
+ItemPresser                 — AXPress off the main thread, 0.15s after the menu closes
 ```
 
-### Main app (`Thaw/`)
+- **Reading.** Every app exposes its items as the children of its
+  `AXExtrasMenuBar`, with the owning process, frame, `AXDescription`,
+  `AXTitle` and (for Control Center) `AXIdentifier`. The window list
+  (`CGWindowList`) is not used: since macOS 26 it shows every third-party item as
+  Control Center's `Item-0`.
+- **Speed.** Asking all ~90 processes takes ~1.6s, so `ItemScanner` remembers
+  the ~18 that have items (full scan in the background at launch, whenever the
+  menu opens, and shortly after an app launches). Reading the remembered ones
+  while the menu opens takes ~30ms.
+- **Which screen.** Accessibility reports only the items of the active menu bar
+  (the screen with keyboard focus). When that screen's menu bar is tucked away
+  (a full-screen app), the items sit ~60pt above the screen; the menu bar strip
+  extends upward to include them.
+- **Pressing.** An item that opens an `NSMenu` does not return from `AXPress`
+  until the menu closes; after the 1s timeout the call reports
+  `kAXErrorCannotComplete` while the menu stays open. That is success.
 
-- **MenuBar:** enumerates and moves status items, maintains the hidden and
-  always-hidden sections, reconciles layout, and drives the Thaw Bar.
-- **Events / HID:** detects clicks on empty menu bar space, which is the only
-  reveal gesture this fork keeps.
-- **Settings:** UserDefaults-backed configuration and profiles. The settings
-  window is the layout editor and nothing else; every other value is a
-  hardcoded default.
-- **Permissions:** walks the user through the Accessibility (required) and
-  Screen Recording (optional) TCC prompts.
+## Why it does not hide or move items
 
-### `MenuBarItemService` (XPC)
+Measured on 2026-10-20 (macOS 26.6.2, MacBook Pro 14", scripts in
+`scripts/`):
 
-A separate process that isolates WindowServer and PID-lookup work from the UI
-process. The shared protocol is a small Codable request/response surface
-(`start`, `configureLogging`, `sourcePID` / `sourcePIDs`). The main app
-configures logging to a shared diagnostic file after launch.
+- An item opens its menu **where the item is**, and that position cannot be
+  changed through accessibility.
+- 1.x (Thaw) hid items by pushing them to x ≈ -4000 with a wide divider. Pressed
+  there, their menus open off screen, so Thaw had to *move* an item onto the
+  bar before clicking it — synthetic ⌘-drags, position inference and private
+  APIs, which is what broke with every macOS update.
+- Items that do not fit are laid out by macOS right to left without gaps and
+  keep on-screen coordinates behind the notch or under the app menus. Pressed
+  there, their menus open just below, visibly. Only items past the screen's left
+  edge (more items than the screen is wide) cannot be opened.
 
-Resolving the *true* owning process matters because most menu bar items are
-owned by Control Center rather than the app whose icon they show; click
-forwarding targets the wrong process without it.
+So 2.0 lets macOS overflow the bar and opens hidden items from a list.
 
-### External interfaces
+## External interfaces
 
 | Interface | Direction | Notes |
 | --- | --- | --- |
-| Accessibility | System | Required. Detecting, moving and clicking menu bar items |
-| Screen Recording | System | Optional. Item image capture and menu bar colour sampling for the Thaw Bar |
-
-There is no URL scheme, no update feed, and no outbound network traffic.
+| Accessibility | System | Required. Reading and pressing menu bar items |
+| Sparkle appcast | Network | Release build only: `releases/latest/download/appcast.xml` |
 
 ## Data and persistence
 
-- Preferences and profiles: `UserDefaults` (`com.nyshk97.MenuBarTidy`) and files under
-  Application Support, on the local Mac only.
-- Diagnostic logs: optional local files under `~/Library/Logs/Thaw/`, never
-  uploaded.
-- Undocumented diagnostic switches: [HIDDEN_FLAGS.md](HIDDEN_FLAGS.md).
+- `UserDefaults` (`com.nyshk97.MenuBarTidy`): the status item's position
+  (written by AppKit) and Sparkle's state. Nothing else.
+- Logs: unified logging (`os.Logger`, subsystem = bundle identifier). No files.
 
 ## Build and release
 
-- **Dev loop:** Xcode 26+ / macOS 26+. `xcodebuild -project Thaw.xcodeproj
-  -scheme Thaw -configuration Debug -derivedDataPath Build build`.
-- **CI:** `.github/workflows/ci.yml` runs `xcodebuild test` on macOS 26 and
-  checks that `scripts/swiftlint-inputs.xcfilelist` still matches the tree.
-- **Release:** none. There is no Sparkle, no notarization pipeline, and no
-  distribution channel — the app is built and run locally, signed with the
-  author's own development team.
-
-## Differences that matter when reading upstream code
-
-- The UI has no localization layer. Strings are Japanese literals in the
-  source; `String(localized:)` and `LocalizedStringKey` do not appear.
-- `MenuBarAppearanceManager` and the overlay panels are gone, so nothing
-  composites over the real menu bar.
-- Hotkeys, the search panel, the `thaw://` URL scheme, Focus filters, the
-  onboarding tour and the Ice importer have all been removed.
+- **Dev loop:** Xcode 26+ / macOS 26+. Debug builds are a separate app
+  (`MenuBarTidy-dev.app`, `com.nyshk97.MenuBarTidy.dev`).
+- **CI:** `.github/workflows/ci.yml` runs the tests unsigned and checks that
+  `scripts/swiftlint-inputs.xcfilelist` still matches the tree.
+- **Release:** `mise run release <bump>` — Developer ID signing, notarization,
+  GitHub Release with an EdDSA-signed appcast, Homebrew cask update. See
+  VERIFY.md §8.

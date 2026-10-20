@@ -6,7 +6,7 @@
 //  Copyright (Thaw) © 2026 Toni Förster
 //  Licensed under the GNU GPLv3
 
-// ビルド済みアプリの Assets.car から状態アイコンを読み、ControlItemImage.catalog
+// ビルド済みアプリの Assets.car から状態アイコンを読み、AppDelegate.makeStatusIcon()
 // と同じリサイズを通してから、メニューバー相当の黒地に白で 2x 描画する。
 //
 // アプリを起動せずに「メニューバーに実際に出る絵」を確認するための道具。
@@ -29,11 +29,11 @@ guard let bundle = Bundle(url: URL(fileURLWithPath: appPath)) else {
     exit(1)
 }
 
-for name in ["TidyBarFill", "TidyBarStroke"] {
+for name in ["TidyBarFill"] {
     guard let original = bundle.image(forResource: name) else {
         print("\(name): アセットが読めない"); exit(1)
     }
-    // ControlItemImage.catalog と同じ計算。
+    // AppDelegate.makeStatusIcon() と同じ計算。
     let ratio = max(original.size.width / 25, original.size.height / 17)
     let newSize = CGSize(width: original.size.width / ratio, height: original.size.height / ratio)
     print("\(name): 元 \(original.size.width)x\(original.size.height)pt → \(newSize.width)x\(newSize.height)pt (ratio \(ratio))")

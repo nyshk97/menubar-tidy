@@ -207,8 +207,8 @@ grep -rn "String(localized\|LocalizedStringKey" --include="*.swift" Thaw || echo
 # --- 実機での確認 ---------------------------------------------------------
 
 [tasks.items]
-description = "メニューバー項目の実際の座標と幅を出す（スクショでは判断できない）"
-run = "swift scripts/list-menu-bar-items.swift"
+description = "メニューバーの全項目をアクセシビリティから一覧する（座標・持ち主・説明）"
+run = "swift scripts/list-ax-items.swift"
 
 [tasks.logs]
 description = "最新のアプリログを追う。引数を渡すとその正規表現で絞り込む"

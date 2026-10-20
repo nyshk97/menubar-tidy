@@ -14,8 +14,10 @@
 # --trailing-commas always: Matches 'trailing_comma: mandatory_comma: true'.
 --trailing-commas always
 
-# --header: Matches 'file_header' rule.
---header "//\n//  {file}\n//  Project: Thaw\n//\n//  Copyright (Ice) © 2023–2025 Jordan Baird\n//  Copyright (Thaw) © 2026 Toni Förster\n//  Licensed under the GNU GPLv3"
+# --header ignore: Files carried over from Thaw keep their upstream copyright
+# header; files written for MenuBar Tidy 2.0 carry a shorter one. Neither is
+# enforced (SwiftLint's file_header rule is off for the same reason).
+--header ignore
 
 # --enable isEmpty: Opt-in rule to match SwiftLint's 'empty_count'.
 --enable isEmpty

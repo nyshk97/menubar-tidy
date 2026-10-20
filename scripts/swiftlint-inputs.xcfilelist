@@ -1,5 +1,14 @@
+$(SRCROOT)/Thaw/Items/ItemIcon.swift
+$(SRCROOT)/Thaw/Items/ItemPresser.swift
+$(SRCROOT)/Thaw/Items/ItemRules.swift
+$(SRCROOT)/Thaw/Items/ItemScanner.swift
+$(SRCROOT)/Thaw/Items/MenuBarItem.swift
+$(SRCROOT)/Thaw/Items/ScreenGeometry.swift
+$(SRCROOT)/Thaw/Main/AccessibilityPermission.swift
 $(SRCROOT)/Thaw/Main/AppDelegate.swift
 $(SRCROOT)/Thaw/Main/MenuBarTidyApp.swift
 $(SRCROOT)/Thaw/Main/Updates.swift
+$(SRCROOT)/Thaw/Menu/StatusMenuController.swift
 $(SRCROOT)/Thaw/Utilities/AppIdentity.swift
 $(SRCROOT)/Thaw/Utilities/Constants.swift
+$(SRCROOT)/Thaw/Utilities/Log.swift

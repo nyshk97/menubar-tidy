@@ -206,6 +206,23 @@ grep -rn "String(localized\|LocalizedStringKey" --include="*.swift" Thaw || echo
 
 # --- 実機での確認 ---------------------------------------------------------
 
+[tasks.preview]
+description = "一覧メニューの中身（区分・表示名）を、アプリを起動せずに出す（本体のソースを署名なしでビルドして動かす）"
+usage = 'arg "[args]" var=#true help="--press <表示名> で、その項目を一覧から選んだときと同じ経路で押す"'
+shell = "bash -c"
+run = '''
+set -euo pipefail
+eval "set -- ${usage_args:-}"
+args=()
+for a in "$@"; do [ -n "$a" ] && args+=("$a"); done
+OUT="${TMPDIR:-/tmp}/menubar-tidy-preview"
+mkdir -p "$OUT"
+swiftc -swift-version 6 -default-isolation MainActor -O \
+    Thaw/Items/*.swift Thaw/Utilities/AppIdentity.swift Thaw/Utilities/Log.swift \
+    scripts/menu-preview/main.swift -o "$OUT/menu-preview"
+"$OUT/menu-preview" ${args[@]+"${args[@]}"}
+'''
+
 [tasks.items]
 description = "メニューバーの全項目をアクセシビリティから一覧する（座標・持ち主・説明）"
 run = "swift scripts/list-ax-items.swift"

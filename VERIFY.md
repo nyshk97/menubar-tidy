@@ -148,8 +148,8 @@ swift scripts/press-ax-item.swift Pecha          # 押して、開いたウィ�
 | メニューバーが引っ込んだStudio Display（y=-1499） | バーが降りてきてy=-1409に開いた |
 
 - 開いたメニューの位置はAXから変えられない（`AXPosition`が`settable=false`、セットしても変わらない）
-- **TodoMacとSpotlightはAXPressに反応しない**（TodoMacは`NSApp.currentEvent`の種類で左右クリックを
-  分けているため。Spotlightは ⌘Spaceで代わりが効く）
+- **SpotlightはAXPressに反応しない**（⌘Spaceで代わりが効く）。TodoMacも1.19.0までは反応しなかった
+  （`NSApp.currentEvent`が`nil`だと何もしない作りだった）が、1.19.1で直り、パネルが開くことを確かめた（2026-10-20）
 - メニュー型の項目にAXPressを送ると、メニューが閉じるまで呼び出しが戻らず、タイムアウトで
   `kAXErrorCannotComplete`（-25204）が返る。メニューは開いたまま。**失敗ではない**
 

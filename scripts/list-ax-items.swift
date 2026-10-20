@@ -13,7 +13,7 @@
 //    - 画面: 各画面の枠を CG 座標（主画面の左上が原点、下向きが +y）で出す。
 //      ノッチがある画面は、ノッチの左右の端も出す
 //    - 前面アプリのメニューの右端: これより左にある項目はアプリのメニューに隠れる
-//    - band=NO の項目: メニューバーの帯の外にいる。システム設定 → メニューバーで
+//    - band=NO の項目: メニューバーの帯（画面の上端の80pt上〜40pt下）の外にいる。システム設定 → メニューバーで
 //      表示を許可していない項目は (-1, 981)、コントロールセンターの空の項目は (0, 982, 0×0)
 //    - x が画面の左端より小さい項目: 画面外。押してもメニューが画面外に開く
 //
@@ -101,7 +101,9 @@ for app in NSWorkspace.shared.runningApplications {
     }
 }
 
-let bands = NSScreen.screens.map { cgRect($0.frame) }.map { CGRect(x: $0.minX, y: $0.minY, width: $0.width, height: 40) }
+// 本体（ScreenGeometry.menuBarBand）と同じ帯。メニューバーが引っ込んだ画面では、項目が
+// 画面の上端より約60pt上にいるので、上にも80pt広げる。
+let bands = NSScreen.screens.map { cgRect($0.frame) }.map { CGRect(x: $0.minX, y: $0.minY - 80, width: $0.width, height: 120) }
 
 // 画面外へ溢れた項目も帯の中として数えたいので、見るのは縦位置だけ。
 func isInBand(_ row: Row) -> Bool {

@@ -44,6 +44,8 @@ MenuBar Tidy の更新履歴。形式は [Keep a Changelog](https://keepachangel
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-10-21
+
 ### 📝 Changed
 - 一覧の見出しを上の「隠れた項目」だけにし、見えている項目は区切り線で分けるように変更
 

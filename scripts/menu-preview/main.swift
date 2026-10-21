@@ -48,7 +48,8 @@ for item in listed {
     let visibility = ItemVisibility.classify(item.info.frame, on: screen, appMenusMaxX: appMenusMaxX)
     rows.append((visibility, ItemRules.title(for: item.info, siblingCount: siblingCounts[item.info.pid] ?? 1), item))
 }
-for (header, kinds) in [("隠れている", [ItemVisibility.hidden, .offScreen]), ("見えている", [.visible])] {
+// 見えている項目は、アプリでは見出しを付けず区切り線だけで分ける。
+for (header, kinds) in [("隠れた項目", [ItemVisibility.hidden, .offScreen]), ("（見出しなし）", [.visible])] {
     let section = rows.filter { kinds.contains($0.0) }
     guard !section.isEmpty else { continue }
     print("== \(header)")

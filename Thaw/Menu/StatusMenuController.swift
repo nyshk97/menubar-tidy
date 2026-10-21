@@ -98,14 +98,14 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
         }
 
         if !hidden.isEmpty {
-            menu.addItem(.sectionHeader(title: "隠れている"))
+            menu.addItem(.sectionHeader(title: "隠れた項目"))
             hidden.forEach(menu.addItem)
         }
+        // Visible items get no header; the separator alone sets them apart.
         if !visible.isEmpty {
             if !hidden.isEmpty {
                 menu.addItem(.separator())
             }
-            menu.addItem(.sectionHeader(title: "見えている"))
             visible.forEach(menu.addItem)
         }
     }

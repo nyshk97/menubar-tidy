@@ -9,7 +9,8 @@ fork, see "Why it does not hide or move items" below and the plan in
 
 One status icon. Clicking it opens a menu listing **every** menu bar item —
 including the ones macOS has hidden behind the notch or under the frontmost
-app's menus — split into "隠れている" (hidden) and "見えている" (visible).
+app's menus — with the hidden ones first under a "隠れた項目" header, and the
+visible ones after a separator, with no header.
 Choosing an item sends it `AXPress`, which opens its menu or panel just below
 where the item sits.
 
